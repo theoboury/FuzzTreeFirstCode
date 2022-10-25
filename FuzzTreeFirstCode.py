@@ -45,15 +45,15 @@ def_constraint_class('Injectivity', lambda i, j: [i, j],
 
 
 
-def _EdgeRespect(x, y, edges_target):
-    if DEBUG:
-        print("Positions of mapping tried by EdgeRespect", x, y)
-    if (x, y) in edges_target or (y, x) in edges_target:
-        if DEBUG:
-            print("that succeded !")
-        return 1
-    else:
-        return 0
+#def _EdgeRespect(x, y, edges_target):
+#    if DEBUG:
+#        print("Positions of mapping tried by EdgeRespect", x, y)
+#    if (x, y) in edges_target or (y, x) in edges_target:
+#        if DEBUG:
+#            print("that succeded !")
+#        return 1
+#    else:
+#        return 0
 
 
 def _LabelRespect(x, label_i, label_target):
@@ -66,19 +66,30 @@ def _LabelRespect(x, label_i, label_target):
     else:
         return 0
 
+def _EdgeLabelRespect(x, y, label_edge_ij, label_edge_target, edges_target):
+    if DEBUG:
+        print("Positions of mapping tried by EdgeLabelRespect", x, y)
+    x, y =  min(x, y), max(x, y)
+    if (x, y) in edges_target:
+        if (label_edge_ij == label_edge_target[edges_target.index((x, y))]):
+            if DEBUG:
+                print("that succeded !")
+            return 1
+    return 0
 
-class EdgeRespect(infrared.infrared.WeightedFunction):
-    """
-    Constrain complementarity mapping of any pair of nodes (i,j) that are an edge in graph_pattern
 
-    ```
-    EdgeRespect(i, j, edges_target)
-    ```
-    The constraint is satisfied if values of the mapping (i; j) form an edge in graph_target.
-    """
-def_function_class('EdgeRespect', lambda i, j, edges_target: [i, j],
-            lambda x, y, edges_target: _EdgeRespect(x, y, edges_target),
-            module=__name__)
+#class EdgeRespect(infrared.infrared.WeightedFunction):
+#    """
+#    Constrain complementarity mapping of any pair of nodes (i,j) that are an edge in graph_pattern
+#
+#    ```
+#    EdgeRespect(i, j, edges_target)
+#    ```
+#    The constraint is satisfied if values of the mapping (i; j) form an edge in graph_target.
+#    """
+#def_function_class('EdgeRespect', lambda i, j, edges_target: [i, j],
+#            lambda x, y, edges_target: _EdgeRespect(x, y, edges_target),
+#            module=__name__)
 
 
 class LabelRespect(infrared.infrared.WeightedFunction):
@@ -94,9 +105,20 @@ def_function_class('LabelRespect', lambda i, label_i, label_target: [i],
             lambda x, label_i, label_target: _LabelRespect(x, label_i, label_target),
             module=__name__)
 
+class EdgeLabelRespect(infrared.infrared.WeightedFunction):
+    """
+    Constrain complementarity mapping of any pair of nodes (i,j) that are an edge in graph_pattern
+    ```
+    Label(i, j,label_edge_ij label_edge_target, edges_target)
+    ```
+    The constraint is satisfied if label of the mapped edge (i,j) is an edge and if its label near or equal to the label of (i, j).
+    """
+def_function_class('EdgeLabelRespect', lambda i, j, label_edge_ij, label_edge_target, edges_target: [i, j],
+            lambda x, y, label_edge_ij, label_edge_target, edges_target: _EdgeLabelRespect(x, y, label_edge_ij, label_edge_target, edges_target),
+            module=__name__)
 
 
-def main(graph_pattern, label_pattern, graph_target, label_target):
+def main(graph_pattern, label_pattern, label_edge_pattern , graph_target, label_target, label_edge_target):
     n_pattern, edges_pattern, n_target, edges_target = init_from_graph(graph_pattern, label_pattern, graph_target, label_target)
     model = ir.Model(n_pattern, n_target)
 
@@ -104,24 +126,28 @@ def main(graph_pattern, label_pattern, graph_target, label_target):
     model.add_constraints(Injectivity(i,j) for i in range(n_pattern) for j in range(n_pattern) if i != j)
     
     #We define Edge respect function on each couples of edges in the pattern to check if these edges appeared in the target
-    model.add_functions([EdgeRespect(i, j, edges_target) for (i,j) in edges_pattern], 'EdgeRespect')
+    #model.add_functions([EdgeRespect(i, j, edges_target) for (i,j) in edges_pattern], 'EdgeRespect')
     #We could have put the list on edge already but set_weight not fully understood by me ?
     #model.set_feature_weight(1, 'EdgeRespect')
 
     #We define Label respect function on each nodes in the pattern to check if the label in the target correspond to it.
     model.add_functions([LabelRespect(i, label_pattern[i], label_target) for i in range(n_pattern)], 'LabelRespect')
 
+    #We define Label respect function on each edges in the pattern to check if the label in the target correspond to it.
+    model.add_functions([EdgeLabelRespect(i, j, label_edge_pattern[k], label_edge_target, edges_target) for k, (i,j) in enumerate(edges_pattern)], 'EdgeLabelRespect')
+
     #We now take some samples of results
     sampler = ir.Sampler(model)
 
     #Next we ensure that edges in the pattern are represented correctly for now (or enough in the future) n the target
     #sampler.set_target(targetting value; tolerance; name of group of functions)
-    sampler.set_target(1*len(edges_pattern), 0, 'EdgeRespect')
+    #sampler.set_target(1*len(edges_pattern), 0, 'EdgeRespect')
     #Same for labels on nodes for now
     sampler.set_target(1*n_pattern, 0, 'LabelRespect')
+    #Same for labels on edges
+    sampler.set_target(1*len(edges_pattern), 0, 'EdgeLabelRespect')
     samples = [sampler.targeted_sample() for _ in range(10)]
     resu = [sample.values() for sample in samples]
-    print(resu)
     return resu
 
 
@@ -139,14 +165,15 @@ def main(graph_pattern, label_pattern, graph_target, label_target):
 
 graph_pattern = [[1, 2, 3], [0, 2], [0, 1, 3, 4], [0, 2], [2]] 
 label_pattern = ["O", "O", "S", "O", "T"]
-
+label_edge_pattern = ["L", "L", "L", "L", "L", "L"]
 graph_target = [[], [2, 3, 4], [1, 4, 5], [1, 7],  [1, 2],
                 [2, 6, 7, 10, 12], [5, 10, 11], 
                 [3, 5, 8, 10], [7, 9], [8, 11], [5, 6, 7, 11],
                 [6, 9, 10], [5]]
 label_target = ["BLUB", "O", "O", "T", "S", "O", "O",
                 "T","O","O","S","O","S"]
+label_edge_target = ["L", "L", "L", "L", "L", "L","L", "L", "L", "L", "L", "L","L", "L", "L", "L", "L"]
 
 
 
-main(graph_pattern, label_pattern, graph_target, label_target)
+main(graph_pattern, label_pattern, label_edge_pattern, graph_target, label_target, label_edge_target)
