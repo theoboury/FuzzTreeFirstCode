@@ -8,8 +8,11 @@ import math
 import sys
 import os
 import infrared
+import pickle
 #!export PYTHONPATH="${PYTHONPATH}:/home/uqamportable/miniconda3/python3.9/site-packages/infrared/"
 from infrared import def_constraint_class, def_function_class
+import networkx as nx
+import graphviz as gv
 
 DEBUG = 0
 
@@ -24,31 +27,31 @@ def init_from_graph(graph_pattern, label_pattern, graph_target, label_target, or
         edges_target = [(i, j) for i in range(n_target) for j in range(n_target) if j in graph_target[i] and i < j]
     return n_pattern, edges_pattern, n_target, edges_target
 
-#WARNING : Should we define another injectvity criteria
+#WARNING : Should we define another injectivity criteria ? Or is a restiction of the entry couple enough (for now we can focus on consecutive backbone for instance !)
 
-#def _Injectivity(x, y):
-#    if DEBUG:
-#        print("Positions of mapping tried by Injectivity", x, y)
-#    if x == y:
-#        return 0
-#    else:
-#        if DEBUG:
-#            print("that succeded !")
-#        return 1
+def _Injectivity(x, y):
+    if DEBUG:
+        print("Positions of mapping tried by Injectivity", x, y)
+    if x == y:
+        return 0
+    else:
+        if DEBUG:
+            print("that succeded !")
+        return 1
 
 
-#class Injectivity(infrared.Constraint):
-#    """
-#    Constrain complementarity mapping of any pair of nodes (i,j)
-#
-#    ```
-#    Injectivity(i, j)
-#    ```
-#    The constraint is satisfied if values of the mapping for i and j are distincts.
-#    """
-#def_constraint_class('Injectivity', lambda i, j: [i, j],
-#                     lambda x, y: _Injectivity(x, y),
-#                     module=__name__)
+class Injectivity(infrared.Constraint):
+    """
+    Constrain complementarity mapping of any pair of nodes (i,j)
+
+    ```
+    Injectivity(i, j)
+    ```
+    The constraint is satisfied if values of the mapping for i and j are distincts.
+    """
+def_constraint_class('Injectivity', lambda i, j: [i, j],
+                     lambda x, y: _Injectivity(x, y),
+                     module=__name__)
 
 
 
@@ -73,15 +76,27 @@ def _LabelRespect(x, label_i, label_target):
     else:
         return 0
 
-def DistanceEdgesLabel(x, y, Distance_matrix, DistanceMax = -1):
-    if DistanceMax == -1:
-        DistanceMax = -math.inf
-        for i in range(len(Distance_matrix)):
-            DistanceMax = max(DistanceMax, max(Distance_matrix[i]))
-    if Distance_matrix[ord(x)%12][ord(y)%12] > 10: #To change it will not be these "toy" characters forever
-        return 0
-    else:
+def interaction_to_number(interact_char):
+    if interact_char == 'B53':
+        return -1
+    if interact_char[2] == 'W':
+        interact_char = interact_char[0] + interact_char[2] + interact_char[1]
+    if interact_char[1] == 'S' and interact_char[2] == 'H':
+        interact_char = interact_char[0] + 'HS'
+    traduction = ['CHH', 'TWH', 'CWW', 'THS', 'CWS', 'CSS', 'CWH', 'CHS','TWS','TSS','TWW','THH']
+    return traduction.index(interact_char)
+    
+def DistanceEdgesLabel(x, y, Distance_matrix, len_edges_pattern):
+    (xx, yy) = interaction_to_number(x), interaction_to_number(y)
+    if xx == yy:
         return 1
+    return 0
+    if xx == -1 and yy == -1:
+        return 1
+    if xx == -1 or yy == -1 or Distance_matrix[xx][yy] > 10: #To change it will not be these "toy" characters forever
+        return 0 #Too different or backbone not respected
+    else:
+        return 1 #- Distance_matrix[xx][yy]/(10*len_edges_pattern)
     #TODO : carry on by distinguishing cases depending on distance on label
     #Les bombres placés devront être de la forme 0.5 /len(edges_pattern) pour garder la logique de pourcentages ?
 
@@ -92,13 +107,13 @@ def _EdgeLabelRespect(x, y, label_edge_ij, len_edges_pattern, label_edge_target,
     if (not oriented):
         x, y =  min(x, y), max(x, y)
     if (x, y) in edges_target:
-        return DistanceEdgesLabel(label_edge_ij,label_edge_target[edges_target.index((x, y))], IDI_matrix)
+        return DistanceEdgesLabel(label_edge_ij,label_edge_target[edges_target.index((x, y))], IDI_matrix, len_edges_pattern)
         #if (label_edge_ij == label_edge_target[edges_target.index((x, y))]):
             #if DEBUG:
             #    print("that succeded !")
             #return 1
             
-    return 0#-math.inf
+    return 0 #currently 0 simply eliminate this pattern #-math.inf
 
 def rev_matrix(mat):
     for i in range(len(mat)):
@@ -150,7 +165,7 @@ def_function_class('EdgeLabelRespect', lambda i, j, label_edge_ij, len_edges_pat
             module=__name__)
 
 
-def main(graph_pattern, label_pattern, label_edge_pattern , graph_target, label_target, label_edge_target, oriented=0):
+def main_old(graph_pattern, label_pattern, label_edge_pattern , graph_target, label_target, label_edge_target, oriented=0):
     
     IDI_matrix = [[8.9, 12.0, 14.7, 14.0, 13.7, 12.7, 15.1, 14.7, 16.2, 16.6, 16.2, 14.0],
             [0, 2.6, 10.6, 9.7, 14.3, 15.6, 11.2, 15.2, 13.8, 15.4, 11.9, 11.4],
@@ -214,6 +229,9 @@ def main(graph_pattern, label_pattern, label_edge_pattern , graph_target, label_
 #graph_target = [[1, 2], [0], [0]]
 #label_target = [0, 0, 1]
 
+
+
+#A first example that are nothing to do with RNA but is a good toy example
 graph_pattern = [[1, 2, 3], [0, 2], [0, 1, 3, 4], [0, 2], [2]] 
 label_pattern = ["O", "O", "S", "O", "T"]
 label_edge_pattern = ["L", "D", "S", "K", "S", "L"]
@@ -227,5 +245,82 @@ label_edge_target = ["L", "L", "D", "K", "L", "L","S", "S", "S", "S", "D", "L", 
 
 
 #In case of oriented graph, the adjacency matrix should be constructed accordingly and put orieted = 1 in main entry
-main(graph_pattern, label_pattern, label_edge_pattern, graph_target, label_target, label_edge_target)
+#main_old(graph_pattern, label_pattern, label_edge_pattern, graph_target, label_target, label_edge_target)
 #sans l'injectivité et avec même edge label l'algo peut confondre le noeud 5 et le noeud 11
+
+
+
+def main(GP, GT):
+    
+    IDI_matrix = [[8.9, 12.0, 14.7, 14.0, 13.7, 12.7, 15.1, 14.7, 16.2, 16.6, 16.2, 14.0],
+            [0, 2.6, 10.6, 9.7, 14.3, 15.6, 11.2, 15.2, 13.8, 15.4, 11.9, 11.4],
+            [0, 0, 4.1, 8.2, 9.2, 13.1, 14.5, 16.0, 12.4, 11.3, 11.1, 15.5],
+            [0, 0, 0, 2.1, 7.0, 12.7, 12.0, 12.1, 10.0, 11.9, 13.1, 15.8],
+            [0, 0, 0, 0, 3.5, 7.4, 14.9, 12.3, 10.9, 10.8, 14.6, 17.7],
+            [0, 0, 0, 0, 0, 1.3, 15.8, 12.9, 13.8, 12.0, 17.1, 19.0],
+            [0, 0, 0, 0, 0, 0, 3.2, 8.8, 8.4, 11.5, 10.6, 10.8],
+            [0, 0, 0, 0, 0, 0, 0, 2.4, 7.9, 11.2, 14.7, 14.9],
+            [0, 0, 0, 0, 0, 0, 0, 0, 3.4, 6.4, 9.6, 14.4],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 2.2, 9.0, 14.4],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.8, 9.0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.0]]
+    rev_matrix(IDI_matrix)
+    
+    n_pattern = len(GP.nodes)
+    n_target = len(GT.nodes)
+    edges_pattern = [(x-1, y-1) for (x,y) in list(GP.edges())]
+    edges_target = [(x-1, y-1) for (x,y) in list(GT.edges())]
+    label_edge_pattern = [t['label'] for (_, _, t) in GP.edges.data()]
+    label_edge_target = [t['label'] for (_, _, t) in GT.edges.data()]
+    print("HELLO\nWarning here indices are shift on 1 under in all theses debugs messages\n", n_pattern, n_target, edges_pattern, edges_target, label_edge_pattern, label_edge_target)
+    #No label on vertices needed for now    
+    model = ir.Model(n_pattern, n_target)
+
+    #First we can put constraint on Injectivity to have a proper mapping and rewrok them around backbone edges
+    #model.add_constraints(Injectivity(i,j) for i in range(n_pattern) for j in range(n_pattern) if i != j)
+   
+    #We define Label respect function on each edges in the pattern to check if the label in the target correspond to it.
+    model.add_functions([EdgeLabelRespect(i, j, label_edge_pattern[k], len(edges_pattern), label_edge_target, edges_target, IDI_matrix, oriented=1) for k, (i,j) in enumerate(edges_pattern)], 'EdgeLabelRespect')
+    #len(edges_pattern) here will allow us to scale th error depending on the size of the motif wihtout touching the tolerancy indicated in the set_target part
+    #We now take some samples of results
+    sampler = ir.Sampler(model)
+
+    #Next we ensure that edges in the pattern are represented correctly for now (or enough in the future) n the target
+    sampler.set_target(1*len(edges_pattern), 0.999 , 'EdgeLabelRespect') #All faulty case returns a 0 which eliminates the corresponding matching
+    #Other fuzzy mistakes must return something high and close to 1 to stay in the long run in the pattern
+    samples = [sampler.targeted_sample() for _ in range(10)]
+    resu = [([x+1 for x in sample.values()], len(list(set(sample.values())))) for sample in samples]
+    print('edges_pattern', edges_pattern, "edges_target", edges_target)
+    return resu
+
+
+#Graphviz for Python test
+
+#dot = gv.Digraph(comment='The Round Table')
+#dot.node('A', 'King Arthur')
+#dot.node('B', 'Sir Bedevere the Wise')
+#dot.node('L', 'Sir Lancelot the Brave')
+#dot.edges(['AB', 'AL'])
+#dot.edge('B', 'L', constraint='false')
+#print(dot.source)
+#dot.render('doctest-output/round-table.gv', view=True) 
+
+
+
+
+#GP = nx.read_gpickle("rin147-GP.pickle")
+#GT = nx.read_gpickle("6V9D-GT.pickle")
+
+with open("rin147-GP.pickle",'rb') as fP:
+    GP = pickle.load(fP)
+
+with open("1A3M.nxpickle",'rb') as fT:
+    GT = pickle.load(fT)
+
+
+print(GP.edges(data=True))
+#print(GP.nodes(data=True))
+print(GT.edges(data=True))
+#print(GT.nodes(data=True))
+
+main(GP, GP)
