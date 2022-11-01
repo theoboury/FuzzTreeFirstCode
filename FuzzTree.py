@@ -86,11 +86,12 @@ def_function_class('EdgeLabelRespect', lambda i, j, label_edge_ij, len_edges_pat
             module=__name__)
 
 
-def main(GP, GT): 
+def main(GP, GT, nb_samples=1000): 
     """
-    Input : Two graphs, the pattern graph GP and the target graph GT 
+    Input : - Two graphs, the pattern graph GP and the target graph GT.
+    	    - nb_samples, maximum numbers of samples allowed to look for a pattern in GT.
     Output : List of "pre"mapping between GP and GT (as injectivity is not respected yet) with the numbers of nodes of GP that are correctly mapped
-            The mapping is correct if this number is equals to n_pattern
+            The mapping is correct if this number is equals to n_pattern.
     """
 
     #The matrix for the isostericity between non-canonical interactions
@@ -143,7 +144,7 @@ def main(GP, GT):
     #With the tolerancy that is not scale on length of edges_pattern here, we ensure namely that if we put 0 as a return for EdgeLabelRespect then the pattern is automatically eliminated.
     #Other fuzzy "mistakes" must return values higher than 0 and "close" to 1 to stay in the long run as an admissible matching.
     
-    samples = [sampler.targeted_sample() for _ in range(1000)]
+    samples = [sampler.targeted_sample() for _ in range(nb_samples)]
     resu = [([(nodes_pattern[k], nodes_target[x]) for k,x in enumerate(sample.values())], len(list(set(sample.values())))) for sample in samples]
     
     return resu
