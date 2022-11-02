@@ -21,7 +21,7 @@ For Target RNA graphs, the used graphs were downloaded at https://uqam-my.sharep
 
 The different files are:
 * FuzzTree.py: launches the tool to search for Fuzzy Subgraph Isomorphism
-* TODO: FuzzynessParameters.py: contains the parameters than can be modified to customize the searched Fuzziness
+* FuzzynessParameters.py: contains the parameters than can be modified to customize the searched Fuzziness
 * TestFuzzTree.py: contains the test framework 
 
 The different folders are:

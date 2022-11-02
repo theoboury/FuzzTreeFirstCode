@@ -15,7 +15,7 @@ import pickle
 import networkx as nx
 import varnaapi
 
-
+from FuzzynessParameters import FuzzyParameters
 def interaction_to_number(interact_char):
     """ 
     Input : A non-canonical interaction/label as a string, interact_char.
@@ -38,15 +38,30 @@ def DistanceEdgesLabel(x, y, Distance_matrix, len_edges_pattern):
                - len_edges_patterns to scale the impact of errors with the size of the graph pattern.
     Output : A value between 0 and 1 that indicates how much these labels are close from each other.
     """
+    (number_BM_allowed, elim_iso_threshold, BM_iso_threshold, B53_missing_elim, allow_iso_nonBM, _, BM_by_gap, scale_BM_with_P_size) = FuzzyParameters()
+    if scale_BM_with_P_size:
+        number_BM_allowed = number_BM_allowed*len_edges_pattern/20
     (xx, yy) = interaction_to_number(x), interaction_to_number(y)
     if xx == yy: #including the case where xx == -1 (is a backbone)
         return 1
-    if xx == -1 or yy == -1 or Distance_matrix[xx][yy] > 10: 
-        return 0 #Too different or backbone not respected
-    else:
-        return 1 - Distance_matrix[xx][yy]/(20*len_edges_pattern)
-    #TODO : carry on by distinguishing cases depending on distance on label
-    #TODO : Les nombres placés devront être de la forme 0.5 /len(edges_pattern) pour garder la logique de pourcentages 
+    if xx == -1 or yy == -1: 
+        if B53_missing_elim:
+            return 0 #backbone not respected
+        else:
+            if number_BM_allowed:
+                return 1 - 1/number_BM_allowed
+            else:
+                return 0
+    if Distance_matrix[xx][yy] >= elim_iso_threshold: 
+        return 0 #Too different 
+    if Distance_matrix[xx][yy] >= BM_iso_threshold: 
+        if number_BM_allowed:
+            return 1 - 1/number_BM_allowed #Just a big mistake
+        else:
+            return 0
+    if allow_iso_nonBM and number_BM_allowed: #If small mistakes (non BM) are allowed
+        return 1 - Distance_matrix[xx][yy]/(20*number_BM_allowed)
+    return 1
 
 
 def _EdgeLabelRespect(x, y, label_edge_ij, len_edges_pattern, nodes_target, label_edge_target, edges_target, IDI_matrix, oriented):
@@ -61,6 +76,9 @@ def _EdgeLabelRespect(x, y, label_edge_ij, len_edges_pattern, nodes_target, labe
             - oriented specifies if the graph is oriented (1 if it is the case)
     Output : A value between 0 and 1 that indicates if the edge is present or not but also how much these labels are close from each other.
     """
+    (number_BM_allowed, _, _, _, _, BM_by_missing_edge, BM_by_gap, scale_BM_with_P_size) = FuzzyParameters()
+    if scale_BM_with_P_size:
+        number_BM_allowed = number_BM_allowed*len_edges_pattern/20
     if x == y: #If neighbors are mapped to the same node in GT, we can already reject 
         return 0 
         #TODO: Etendre ce critère d'injectivité à + ou - 1 le long du backbone ?
@@ -68,8 +86,13 @@ def _EdgeLabelRespect(x, y, label_edge_ij, len_edges_pattern, nodes_target, labe
         x, y =  min(x, y), max(x, y)
     if (nodes_target[x], nodes_target[y]) in edges_target: #We check that this edge is present or not in GT
         return DistanceEdgesLabel(label_edge_ij,label_edge_target[edges_target.index((nodes_target[x], nodes_target[y]))], IDI_matrix, len_edges_pattern)       
-    return 0 #currently 0 here simply eliminates this pattern when the edge is not present
-    #TODO : introduced more granularity about missing edges 
+    if BM_by_missing_edge == -1:
+        return 0 #currently 0 here simply eliminates this pattern when the edge is not present
+    else:
+        if number_BM_allowed:
+            return 1 - BM_by_missing_edge/number_BM_allowed
+        else:
+            return 0
 
 
 
@@ -204,26 +227,4 @@ def print_mapping_on_target_graph(GP, GT, mapping = [], output_format = "pdf", n
 
 
 
-#TESTS PART FOR NOW
 
-with open("rin147.pickle",'rb') as fP:
-    GP = pickle.load(fP)
-
-with open("6v9d.pickle",'rb') as fT:
-    GT = pickle.load(fT)
-
-
-#mapping = main(GP, GT)
-#print(mapping)
-#sur 10 samples on retrouve : ([(1, ('B', 7)), (2, ('B', 8)), (3, ('B', 12)), (4, ('B', 13)), (5, ('B', 17)), (6, ('B', 18)), (7, ('B', 23)), (8, ('B', 24))], 8)
-
-print_mapping_on_target_graph(GP, GT, 
-mapping = [(1, ('B', 7)), (2, ('B', 8)), (3, ('B', 12)), 
-(4, ('B', 13)), (5, ('B', 17)), (6, ('B', 18)), (7, ('B', 23)), 
-(8, ('B', 24))], name_file="rin147into6v9d", output_format="png")
-
-#En chronométrant à la main le nombre de samples (sachant qu'ils sont print) ne semblent pas beaucoup impacter la complexité (2 min 20 sec pour 10 samples et 3min12 sec pour 1000  samples)
-# En particulier sur 1000 samples fuzzy sur les labels on arrive à retrouver des samples corrects (8 exactement), dont certains qu'on ne trouver pas avant sur la strand E
-
-print_mapping_on_target_graph(GP, GT, 
-name_file="rin147into6v9d", output_format="png")
