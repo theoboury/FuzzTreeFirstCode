@@ -16,6 +16,8 @@ import networkx as nx
 import varnaapi
 
 from FuzzynessParameters import FuzzyParameters
+DEBUG = 1
+
 def interaction_to_number(interact_char):
     """ 
     Input : A non-canonical interaction/label as a string, interact_char.
@@ -31,6 +33,38 @@ def interaction_to_number(interact_char):
     traduction = ['CHH', 'TWH', 'CWW', 'THS', 'CWS', 'CSS', 'CWH', 'CHS','TWS','TSS','TWW','THH']
     return traduction.index(interact_char)
     
+#def DistanceEdgesLabel(x, y, Distance_matrix, len_edges_pattern):
+#    """
+#    Input : - Two edges labels x and y respectively from GP and GT.
+#               - A Distance Matrix between non-canonical interactions/labels (for instance the IDI matricx for isostericity distance).
+#               - len_edges_patterns to scale the impact of errors with the size of the graph pattern.
+#    Output : A value between 0 and 1 that indicates how much these labels are close from each other.
+#    """
+#    (number_BM_allowed, elim_iso_threshold, BM_iso_threshold, B53_missing_elim, allow_iso_nonBM, _, BM_by_gap, scale_BM_with_P_size) = FuzzyParameters()
+#    if scale_BM_with_P_size:
+#        number_BM_allowed = number_BM_allowed*len_edges_pattern/20
+#    (xx, yy) = interaction_to_number(x), interaction_to_number(y)
+#    if xx == yy: #including the case where xx == -1 (is a backbone)
+#        return 1
+#    if xx == -1 or yy == -1: 
+#        if B53_missing_elim:
+#            return 0 #backbone not respected
+#        else:
+#            if number_BM_allowed:
+#                return 1 - 1/number_BM_allowed
+#            else:
+#                return 0
+#    if Distance_matrix[xx][yy] >= elim_iso_threshold: 
+#        return 0 #Too different 
+#    if Distance_matrix[xx][yy] >= BM_iso_threshold: 
+#        if number_BM_allowed:
+#            return 1 - 1/number_BM_allowed #Just a big mistake
+#        else:
+#            return 0
+#    if allow_iso_nonBM and number_BM_allowed: #If small mistakes (non BM) are allowed
+#        return 1 - Distance_matrix[xx][yy]/(20*number_BM_allowed)
+#    return 1
+
 def DistanceEdgesLabel(x, y, Distance_matrix, len_edges_pattern):
     """
     Input : - Two edges labels x and y respectively from GP and GT.
@@ -44,25 +78,19 @@ def DistanceEdgesLabel(x, y, Distance_matrix, len_edges_pattern):
     (xx, yy) = interaction_to_number(x), interaction_to_number(y)
     if xx == yy: #including the case where xx == -1 (is a backbone)
         return 1
+    if (number_BM_allowed == 0) and (Distance_matrix[xx][yy] >= min(BM_iso_threshold, elim_iso_threshold)):
+        return 0
     if xx == -1 or yy == -1: 
-        if B53_missing_elim:
-            return 0 #backbone not respected
-        else:
-            if number_BM_allowed:
-                return 1 - 1/number_BM_allowed
-            else:
-                return 0
+        if B53_missing_elim or (number_BM_allowed == 0):
+            return 0 #backbone not respected or BM not allowed
+        return 1 - 1/number_BM_allowed
     if Distance_matrix[xx][yy] >= elim_iso_threshold: 
         return 0 #Too different 
     if Distance_matrix[xx][yy] >= BM_iso_threshold: 
-        if number_BM_allowed:
-            return 1 - 1/number_BM_allowed #Just a big mistake
-        else:
-            return 0
+        return 1 - 1/number_BM_allowed #Just a big mistake
     if allow_iso_nonBM and number_BM_allowed: #If small mistakes (non BM) are allowed
         return 1 - Distance_matrix[xx][yy]/(20*number_BM_allowed)
     return 1
-
 
 def _EdgeLabelRespect(x, y, label_edge_ij, len_edges_pattern, nodes_target, label_edge_target, edges_target, IDI_matrix, oriented):
     """
@@ -86,13 +114,10 @@ def _EdgeLabelRespect(x, y, label_edge_ij, len_edges_pattern, nodes_target, labe
         x, y =  min(x, y), max(x, y)
     if (nodes_target[x], nodes_target[y]) in edges_target: #We check that this edge is present or not in GT
         return DistanceEdgesLabel(label_edge_ij,label_edge_target[edges_target.index((nodes_target[x], nodes_target[y]))], IDI_matrix, len_edges_pattern)       
-    if BM_by_missing_edge == -1:
+    if BM_by_missing_edge == -1 or number_BM_allowed == 0:
         return 0 #currently 0 here simply eliminates this pattern when the edge is not present
-    else:
-        if number_BM_allowed:
-            return 1 - BM_by_missing_edge/number_BM_allowed
-        else:
-            return 0
+    return 1 - BM_by_missing_edge/number_BM_allowed
+
 
 
 
@@ -144,8 +169,8 @@ def main(GP, GT, nb_samples=1000):
     label_edge_target = [t['label'] for (_, _, t) in GT.edges.data()]
     
     #No label on vertices for now, can be introduced if needed.
-    
-    print("Graphs Infos\n n_pattern:", n_pattern, "\n n_target:", 
+    if DEBUG:
+        print("Graphs Infos\n n_pattern:", n_pattern, "\n n_target:", 
     n_target,"\n edges_pattern:", edges_pattern,"\n edges_target:", 
     edges_target,"\n nodes_pattern:", nodes_pattern,"\n nodes_target:", 
     nodes_target,"\n label_edge_pattern:", label_edge_pattern,

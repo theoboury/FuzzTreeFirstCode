@@ -6,19 +6,19 @@ def FuzzyParameters():
     number_BM_allowed = 0#5
     
     #Fixed the limit of isostericity that eliminate the matching if overcomes.
-    elim_iso_threshold = 10 
+    elim_iso_threshold = 10 #10 
     
     #Fixed the limit of isostericity in which it is just a big mistake.
     #Big mistakes in isostericity are the interval: 
     #[BM_iso_threshold, elim_iso_threshold[
-    BM_iso_threshold = 4
+    BM_iso_threshold = 0 #4
     
     #If this boolean is 1 it is eliminatory, otherwise it is just a big mistake.
     B53_missing_elim = 1
     
     #If small mistakes (nonBM) are allowed, isostericity below big_mistake_isostericity_threshold
     #will also be softly taken into account into the global error count.
-    allow_iso_nonBM = 1
+    allow_iso_nonBM = 0 #1
 
     #We define if edges missing are consider as a big mistakes or are eliminatory -1 means eliminatory
     #Others gives the number of bg mistakes that are counted for such a mistake.

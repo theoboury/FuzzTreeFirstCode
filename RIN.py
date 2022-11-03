@@ -5,6 +5,8 @@
 
 #external libraries
 import json #to hash data of edges (dictionnaries)
+import pickle
+import networkx as nx
 
 class RIN:
     #A RIN consists in a graph and a list of "occurences" which are the RNA graphs the RIN has been found in
@@ -138,3 +140,18 @@ class RIN:
 
                 distrib[len(d_sse_in_occ)]=distrib.get(len(d_sse_in_occ),0)+1
         return distrib
+
+
+def import_rin(rin_number):
+    with open("CaRNAval_1_as_dictionnary.nxpickled",'rb') as ff:
+        Gdict = pickle.load(ff)
+    GG = Gdict[rin_number].graph
+    relabel_mapping = {}
+    for k,ind in enumerate(GG.nodes()):
+        relabel_mapping[ind] = k + 1
+    GG = nx.relabel_nodes(GG, relabel_mapping)
+    name = "rin" + str(rin_number) + ".pickle"
+    with open(name, 'wb') as ff:
+        pickle.dump(GG, ff)
+    print(GG.nodes(data=True))
+    print(GG.edges(data=True))
