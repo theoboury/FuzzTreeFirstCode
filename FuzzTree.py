@@ -1,19 +1,19 @@
 import infrared as ir
-import infrared.rna as rna
-import matplotlib.pyplot as plt
+#import infrared.rna as rna
+#import matplotlib.pyplot as plt
 
-import re
-import collections
-import math
-import sys
-import os
+#import re
+#import collections
+#import math
+#import sys
+#import os
 
 #!export PYTHONPATH="${PYTHONPATH}:/home/uqamportable/miniconda3/lib/python3.9/site-packages/infrared/"
 from infrared import def_constraint_class, def_function_class
 
-import pickle
-import networkx as nx
-import varnaapi
+#import pickle
+#import networkx as nx
+#import varnaapi
 
 from FuzzynessParameters import FuzzyParameters
 DEBUG = 1
@@ -33,37 +33,7 @@ def interaction_to_number(interact_char):
     traduction = ['CHH', 'TWH', 'CWW', 'THS', 'CWS', 'CSS', 'CWH', 'CHS','TWS','TSS','TWW','THH']
     return traduction.index(interact_char)
     
-#def DistanceEdgesLabel(x, y, Distance_matrix, len_edges_pattern):
-#    """
-#    Input : - Two edges labels x and y respectively from GP and GT.
-#               - A Distance Matrix between non-canonical interactions/labels (for instance the IDI matricx for isostericity distance).
-#               - len_edges_patterns to scale the impact of errors with the size of the graph pattern.
-#    Output : A value between 0 and 1 that indicates how much these labels are close from each other.
-#    """
-#    (number_BM_allowed, elim_iso_threshold, BM_iso_threshold, B53_missing_elim, allow_iso_nonBM, _, BM_by_gap, scale_BM_with_P_size) = FuzzyParameters()
-#    if scale_BM_with_P_size:
-#        number_BM_allowed = number_BM_allowed*len_edges_pattern/20
-#    (xx, yy) = interaction_to_number(x), interaction_to_number(y)
-#    if xx == yy: #including the case where xx == -1 (is a backbone)
-#        return 1
-#    if xx == -1 or yy == -1: 
-#        if B53_missing_elim:
-#            return 0 #backbone not respected
-#        else:
-#            if number_BM_allowed:
-#                return 1 - 1/number_BM_allowed
-#            else:
-#                return 0
-#    if Distance_matrix[xx][yy] >= elim_iso_threshold: 
-#        return 0 #Too different 
-#    if Distance_matrix[xx][yy] >= BM_iso_threshold: 
-#        if number_BM_allowed:
-#            return 1 - 1/number_BM_allowed #Just a big mistake
-#        else:
-#            return 0
-#    if allow_iso_nonBM and number_BM_allowed: #If small mistakes (non BM) are allowed
-#        return 1 - Distance_matrix[xx][yy]/(20*number_BM_allowed)
-#    return 1
+
 
 def DistanceEdgesLabel(x, y, Distance_matrix, len_edges_pattern):
     """
@@ -201,54 +171,6 @@ def main(GP, GT, nb_samples=1000):
 
 
 
-
-def print_mapping_on_target_graph(GP, GT, mapping = [], output_format = "pdf", name_file = "", show=1):
-    """
-    Input : - Two graphs, the pattern graph GP and the target graph GT 
-            - A mapping between GP and GT, if this mapping is not specified, it is calculated here
-            - output_format is the type of file that we want to save, specify None for no save.
-            - name_file is the name of the output graph if specified.
-            - show is set to 1 if we want to observe the output with matplotlib.
-    Output : Build the GT graph with a red colored part for each node in GP mapped in GT, can save it as a file or plot it depending on the optons selected.
-    """
-    if mapping == []:
-        mapping = main(GP, GT)
-        mapping = [map for (map, length) in mapping if length == len(GP.nodes())]
-        mapping = mapping[0] #We take only the first result
-    GG = GT.copy()
-    pos = nx.nx_agraph.graphviz_layout(GG, prog="sfdp") #The layout can be modified is the graph is too "packed" visually
-    #pos = nx.spring_layout(GG, k=0.2)  #An alternative layout
-    
-    nx.draw(GG, pos, width=1, linewidths=1)
-    
-    # nodes drawing
-    options = {"edgecolors": "tab:black", "node_size": 500, "alpha": 0.9}
-    mapped = [j for (_, j) in mapping]
-    nx.draw_networkx_nodes(GG, pos, nodelist=mapped, node_color="tab:red")
-    nx.draw_networkx_nodes(GG, pos, nodelist=[i for i in list(GG.nodes()) if i not in mapped])
-
-    # edges drawing
-    nx.draw_networkx_edges(GG, pos)
-
-    # labels drawing
-    labels = {}
-    for (i, j) in mapping:
-        labels[j] = i
-    nx.draw_networkx_labels(GG, pos, labels, font_color="whitesmoke")
-    labels_edges = {}
-    for (i, j, t) in GT.edges.data():
-        labels_edges[(i,j)] = t['label']
-    nx.draw_networkx_edge_labels(GG, pos, edge_labels = labels_edges, font_size=5)
-
-    plt.axis("off")
-    if output_format:
-        if name_file == "":
-            name = "GPintoGT" + "." + output_format
-        else:
-            name = name_file + "." + output_format
-        plt.savefig(name) 
-    if show:
-        plt.show()
 
 
 
