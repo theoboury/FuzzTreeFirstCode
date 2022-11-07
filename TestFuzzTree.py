@@ -7,10 +7,16 @@ from multiprocessing import Process, Queue
 from RIN import import_rin
 
 def first_test_mapping():
-    #rin147into6v9d  rin169into1Y27
+    #rin147into6v9d  rin169into1Y27 
+    #rin163into1Y27-4falselabels in 604 secs with no missing edges allowed and no B53 mislabeled allowed 
+    #same example in 595 seconds when we just allow the label of B53 to be another label
+    #Around 3 hours without convergence when edge missing are allowed
+    #When elim threshold for label set to 9 pattern eliminated as expected in 20 minutes timeout
+    #rin169into1Y27-1B53misslabeledand1falselabel in 568 secs with of course mistake on B53 allowed but no error on edges
     with open("rin163.pickle",'rb') as fP:
         GP = pickle.load(fP)
-    with open("1Y27.nxpickle",'rb') as fT:
+    with open("1Y27-1B53misslabeledCWW1falselabelCHSintoCWH.nxpickle",'rb') as fT:
+    #with open("1Y27-4falselabelsCHSintoCWHandTHWintoTHSandTHWintoTHSandcWWintoTHS.nxpickle",'rb') as fT:
         GT = pickle.load(fT)
     timer = time.time()
     mapping = main(GP, GT, nb_samples=100)
@@ -94,41 +100,62 @@ def test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder 
 #with open(name, 'wb') as ff:
 #    pickle.dump(GG, ff)
 
-name="1Y27-4falselabelsCHSintoCWHandTHWintoTHSandTHWintoTHSandcWWintoTHS.nxpickle"
-with open("1Y27.nxpickle",'rb') as fG:
-    GG = pickle.load(fG)
+#name="1Y27-4falselabelsCHSintoCWHandTHWintoTHSandTHWintoTHSandcWWintoTHS.nxpickle"
+#with open("1Y27.nxpickle",'rb') as fG:
+#    GG = pickle.load(fG)
 
-    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 50) and j == ('X', 49)])
-    GG.remove_edge(('X', 50), ('X', 49))
-    GG.add_edge(('X', 50), ('X', 49), label='CWH', near=False, long_range=False)
-    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 50) and j == ('X', 49)])
+#    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 50) and j == ('X', 49)])
+#    GG.remove_edge(('X', 50), ('X', 49))
+#    GG.add_edge(('X', 50), ('X', 49), label='CWH', near=False, long_range=False)
+#    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 50) and j == ('X', 49)])
 
-    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 53) and j == ('X', 20)])
-    GG.remove_edge(('X', 53), ('X', 20))
-    GG.add_edge(('X', 53), ('X', 20), label='THS', near=False, long_range=False)
-    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 53) and j == ('X', 20)])
+#    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 53) and j == ('X', 20)])
+#    GG.remove_edge(('X', 53), ('X', 20))
+#    GG.add_edge(('X', 53), ('X', 20), label='THS', near=False, long_range=False)
+#    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 53) and j == ('X', 20)])
 
-    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 20) and j == ('X', 53)])
-    GG.remove_edge(('X', 20), ('X', 53))
-    GG.add_edge(('X', 20), ('X', 53), label='THS', near=False, long_range=False)
-    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 20) and j == ('X', 53)])
+#    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 20) and j == ('X', 53)])
+#    GG.remove_edge(('X', 20), ('X', 53))
+#    GG.add_edge(('X', 20), ('X', 53), label='THS', near=False, long_range=False)
+#    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 20) and j == ('X', 53)])
 
-    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 46) and j == ('X', 54)])
-    GG.remove_edge(('X', 46), ('X', 54))
-    GG.add_edge(('X', 46), ('X', 54), label='THS', near=False, long_range=False)
-    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 46) and j == ('X', 54)])
-with open(name, 'wb') as ff:
-    pickle.dump(GG, ff)
+#    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 46) and j == ('X', 54)])
+#    GG.remove_edge(('X', 46), ('X', 54))
+#    GG.add_edge(('X', 46), ('X', 54), label='THS', near=False, long_range=False)
+#    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 46) and j == ('X', 54)])
+#with open(name, 'wb') as ff:
+#    pickle.dump(GG, ff)
 
 
+#name="1Y27-1B53misslabeledCWW1falselabelCHSintoCWH.nxpickle"
+#with open("1Y27.nxpickle",'rb') as fG:
+#    GG = pickle.load(fG)
+#    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 52) and j == ('X', 53)])
+#    GG.remove_edge(('X', 52), ('X', 53))
+#    GG.add_edge(('X', 52), ('X', 53), label='CWW', near=False, long_range=False)
+#    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 52) and j == ('X', 53)])
+#    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 50) and j == ('X', 49)])
+#    GG.remove_edge(('X', 50), ('X', 49))
+#    GG.add_edge(('X', 50), ('X', 49), label='CWH', near=False, long_range=False)
+#    print([(i,j, t['label']) for (i,j,t) in GG.edges.data() if i == ('X', 50) and j == ('X', 49)])
+#with open(name, 'wb') as ff:
+#    pickle.dump(GG, ff)
+
+#with open("1Y27.nxpickle",'rb') as fG:
+#    GG = pickle.load(fG)
+#with open("1Y27-4falselabelsCHSintoCWHandTHWintoTHSandTHWintoTHSandcWWintoTHS.nxpickle",'rb') as fT:
+#    GT = pickle.load(fT)
+#Glist = [(i,j, t['label']) for (i,j,t) in GG.edges.data()]
+#Tlist = [(i,j, t['label']) for (i,j,t) in GT.edges.data()]
+#print([(elem, Tlist[k]) for k, elem in enumerate(Glist) if elem != Tlist[k]])
 #import_rin(163)
 
-#first_test_mapping()
+first_test_mapping()
 
 #first_test_varna()
 
 
-#test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder = "RNAstorage", BooleanListGPinGT = [0,0,0,0,0,0,0,0,0,0], nb_samples=100)
+#test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder = "RNAstorage", BooleanListGPinGT = [0,0,0,0,0,0,0,0,0,0,0], nb_samples=100)
 
 
 #([(1, ('X', 52)), (2, ('X', 46)), (3, ('X', 47)), (4, ('X', 48)), (5, ('X', 49)), (6, ('X', 50)), (7, ('X', 51)), (8, ('X', 20)), (9, ('X', 53)), (10, ('X', 22)), (11, ('X', 24)), (12, ('X', 25)), (13, ('X', 21)), (14, ('X', 54))], 14)

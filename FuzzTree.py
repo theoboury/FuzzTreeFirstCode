@@ -12,7 +12,7 @@ import infrared as ir
 from infrared import def_constraint_class, def_function_class
 
 #import pickle
-#import networkx as nx
+import networkx as nx
 #import varnaapi
 
 from FuzzynessParameters import FuzzyParameters
@@ -35,7 +35,7 @@ def interaction_to_number(interact_char):
     
 
 
-def DistanceEdgesLabel(x, y, Distance_matrix, len_edges_pattern):
+def DistanceEdgesLabel(x, y, Distance_matrix, len_edges_pattern, order=0):
     """
     Input : - Two edges labels x and y respectively from GP and GT.
                - A Distance Matrix between non-canonical interactions/labels (for instance the IDI matricx for isostericity distance).
@@ -48,6 +48,10 @@ def DistanceEdgesLabel(x, y, Distance_matrix, len_edges_pattern):
     (xx, yy) = interaction_to_number(x), interaction_to_number(y)
     if xx == yy: #including the case where xx == -1 (is a backbone)
         return 1
+        #if xx != -1 or BM_by_gap == []:
+        #    return 1 #not about backbone or no gap allowed
+        #BM_by_gap = [0] + BM_by_gap
+        #return 1 - 1/number_BM_allowed
     if (number_BM_allowed == 0) and (Distance_matrix[xx][yy] >= min(BM_iso_threshold, elim_iso_threshold)):
         return 0
     if xx == -1 or yy == -1: 
@@ -83,7 +87,7 @@ def _EdgeLabelRespect(x, y, label_edge_ij, len_edges_pattern, nodes_target, labe
     if (not oriented):
         x, y =  min(x, y), max(x, y)
     if (nodes_target[x], nodes_target[y]) in edges_target: #We check that this edge is present or not in GT
-        return DistanceEdgesLabel(label_edge_ij,label_edge_target[edges_target.index((nodes_target[x], nodes_target[y]))], IDI_matrix, len_edges_pattern)       
+        return DistanceEdgesLabel(label_edge_ij,label_edge_target[edges_target.index((nodes_target[x], nodes_target[y]))], IDI_matrix, len_edges_pattern, order = 0)       
     if BM_by_missing_edge == -1 or number_BM_allowed == 0:
         return 0 #currently 0 here simply eliminates this pattern when the edge is not present
     return 1 - BM_by_missing_edge/number_BM_allowed
@@ -126,6 +130,9 @@ def main(GP, GT, nb_samples=1000):
     [16.2, 11.9, 11.1, 13.1, 14.6, 17.1, 10.6, 14.7, 9.6, 9.0, 3.8, 9.0],
     [14.0, 11.4, 15.5, 15.8, 17.7, 19.0, 10.8, 14.9, 14.4, 14.4, 9.0, 4.0]]
     
+    (_, _, _, _, _, _, BM_by_gap, _) = FuzzyParameters()
+    #TODO : Gap incomping
+    #GT = augment_graph(GT, len(BM_by_gap))
     n_pattern = len(GP.nodes)
     n_target = len(GT.nodes)
 
@@ -164,14 +171,68 @@ def main(GP, GT, nb_samples=1000):
     
     samples = [sampler.targeted_sample() for _ in range(nb_samples)]
     resu = [([(nodes_pattern[k], nodes_target[x]) for k,x in enumerate(sample.values())], len(list(set(sample.values())))) for sample in samples]
-    
+    #TODO : Gap incomping
+    #resu [r for r in resu if filter(GP, GT, r) == 1]
     return resu
 
+def augment_graph(GT, number_gaps_allowed):
+    """
+    Input : - A graph GT that must be augmented with "false" edges between the B53 chains to account for gaps 
+    	    - The length of BM_by_gap number_gaps_allowed which for each consecutive gap account for the cost in big mistakes to use "false" edges
+    Output : - A modified GT graph that account gaps with "false edges" with two additionals labels
+            * label "order" on edges that indicate the "depth of the gap
+            * label "correspondant_nodes" that correspond to the list of shorcuted nodes. They will serve in the post procesing as shortcuted nodes must not be taken in mappings 
+    """
+    Gnew=nx.Graph()
+    Gnew.add_nodes_from(GT)
+    for (i,j,t) in GT.edges.data():
+        Gnew.add_edge(i,j, label=t['label'], long_range=t['long_range'], near=t['near'], order=0, correspondant_nodes=[])
+    for node in GT.nodes():
+        iter_node = node
+        correspondant_nodes = []
+        B53_neighbors=[n for n in GT.successors(iter_node) if GT[iter_node][n]['label'] == 'B53']
+        if len(B53_neighbors) > 1:
+            print("THE WORLD BLOWS UP")
+        if len(B53_neighbors) == 0:
+            continue
+        iter_node=B53_neighbors[0]
+        correspondant_nodes.append(iter_node)
+        for order in range(1,number_gaps_allowed+1):
+            B53_neighbors=[n for n in GT.successors(iter_node) if GT[iter_node][n]['label'] == 'B53']
+            if len(B53_neighbors) > 1:
+                print("THE WORLD BLOWS UP")
+            if len(B53_neighbors) == 0:
+                break #no nodes after on this strand to carry on
+            Gnew.add_edge(node, B53_neighbors[0], label='B53', long_range='False', near='False', order=order, correspondant_nodes=correspondant_nodes.copy())
+            iter_node = B53_neighbors[0]
+            correspondant_nodes.append(iter_node)
+    return Gnew
 
+def filter(GP, GTaugment, mapping):
+    """
+    Input: - A graph Pattern
+           - A Target graph GTaugment augmented with edges to allow gaps
+    Output: Return 1 if the mapping have effectively all correspondant_node unmapped which allows this mapping as feasible 
+    """
+    banned = []
+    for k1,(p1,t1) in mapping:
+        for k2, (p2, t2) in mapping:
+            if k1 != k2:
+                if (p1, p2) in GP.edges():
+                    banned += GTaugment[t1][t2]['correspondant_nodes']
+    banned = list(set(banned))
+    GTmapped = [t for (_, t) in mapping]
+    for b in banned:
+        if b in GTmapped:
+            return 0
+    return 1
 
-
-
-
-
-
+#import pickle
+#with open("1Y27.nxpickle",'rb') as fT:
+#    GT = pickle.load(fT)
+#    print(GT.nodes.data())
+#    print(GT.edges.data())
+#GG = augment_graph(GT, 2)
+#print(GG.nodes.data())
+#print(GG.edges.data())
 
