@@ -15,11 +15,13 @@ def first_test_mapping():
     #rin169into1Y27-1B53misslabeledand1falselabel in 568 secs with of course mistake on B53 allowed but no error on edges
     with open("rin163.pickle",'rb') as fP:
         GP = pickle.load(fP)
-    with open("1Y27-1B53misslabeledCWW1falselabelCHSintoCWH.nxpickle",'rb') as fT:
+    #with open("1Y27-1B53misslabeledCWW1falselabelCHSintoCWH.nxpickle",'rb') as fT:
     #with open("1Y27-4falselabelsCHSintoCWHandTHWintoTHSandTHWintoTHSandcWWintoTHS.nxpickle",'rb') as fT:
+    with open("1Y27.nxpickle",'rb') as fT:
         GT = pickle.load(fT)
     timer = time.time()
-    mapping = main(GP, GT, nb_samples=100)
+    mapping = main(GP, GT, 0, 0, 0, nb_samples=100)
+    #mapping = main(GP, GT, nb_samples=100)
     timer = time.time() - timer
     print("mapping", mapping)
     print("time", timer)

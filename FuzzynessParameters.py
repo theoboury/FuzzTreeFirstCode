@@ -25,7 +25,7 @@ def FuzzyParameters():
     BM_by_missing_edge = -1#-1
 
     #Gaps are counted as multiple big mistakes whose number can be specified here.
-    BM_by_gap = [1]
+    BM_by_gap = []
 
     #If it is 1, number_BM_allowed is for a pattern of around 20 edges.
     # #In this case, scaling is done according to the size of each pattern.
