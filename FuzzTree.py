@@ -78,7 +78,21 @@ def _LabelRespect(x, y, label_edge_ij, nodes_target, label_edge_target, edges_ta
         return IDI_matrix[xx][yy]#(IDI_matrix[xx][yy] - IDI_matrix[xx][xx])/100
     return 0#1 #0
 
-
+def _GapRespect(x, y, nodes_target, edges_target, GT, A):
+    """
+    Input : - Two nodes x and y from the GT respectively the mappings of i and j from the GP.
+            - The list of the nodes in GT nodes_target to map the index of infrared functions with real names of nodes in the graph.
+            - The list of all edges in GT, edges_target.
+    Output : A value between 0 and +inf that indicates  the sum of all "false" edge use distances.
+    """
+    #if x == y: #If neighbors are mapped to the same node in GT, we can already reject 
+    #    return math.inf#math.inf 
+    if (nodes_target[x], nodes_target[y]) in edges_target: #We check that this edge is present or not in GT
+        if GT[nodes_target[x]][nodes_target[y]]['dist'] != 0:
+            if A == 0:
+                return infinite
+            return GT[nodes_target[x]][nodes_target[y]]['dist']/A
+    return 0
 class EdgeRespect(ir.infrared.WeightedFunction):
     """
     Constrain complementarity mapping of any pair of nodes (i,j) that are an edge in graph_pattern.
@@ -100,6 +114,18 @@ class LabelRespect(ir.infrared.WeightedFunction):
     """
 def_function_class('LabelRespect', lambda i, j, label_edge_ij, nodes_target, label_edge_target, edges_target, IDI_matrix: [i, j],
             lambda x, y, label_edge_ij, nodes_target, label_edge_target, edges_target, IDI_matrix: _LabelRespect(x, y, label_edge_ij, nodes_target, label_edge_target, edges_target, IDI_matrix),
+            module=__name__)
+
+class GapRespect(ir.infrared.WeightedFunction):
+    """
+    Constrain the length of any pair of nodes (x,y) that are mapped to a "false" edge in graph_target.
+    ```
+    GapRespect(i, j,label_edge_ij, nodes_target, label_edge_target, edges_target, IDI_matrix).
+    ```
+    The constraint report the cost of the use of such "false edge".
+    """
+def_function_class('GapRespect', lambda i, j, nodes_target, edges_target, GT, A: [i, j],
+            lambda x, y, nodes_target, edges_target, GT, A: _GapRespect(x, y, nodes_target, edges_target, GT, A),
             module=__name__)
 
 
@@ -130,8 +156,9 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000):
     [14.0, 11.4, 15.5, 15.8, 17.7, 19.0, 10.8, 14.9, 14.4, 14.4, 9.0, 4.0]]
 
     #We enrich the target Graph with False Edges that account for gaps
+    print("GTnodes", len(GT.nodes()))
     GT = augment_graph(GT, maxGAPdistance)
-
+    print("GTnodesbis", len(GT.nodes()))
     if E != 0:
         for i in range(len(IDI_matrix)):
             storage = IDI_matrix[i][i]
@@ -167,7 +194,7 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000):
     model.add_functions([LabelRespect(nodes_pattern.index(i), nodes_pattern.index(j), label_edge_pattern[k], nodes_target, label_edge_target,  edges_target, IDI_matrix) for k, (i,j) in enumerate(edges_pattern)], 'LabelRespect')
 
     #We define Label respect function on each edges in the pattern to check if the label in the target correspond to it.
-    #model.add_functions([GapRespect(BLUB) for k, (i,j) in enumerate(edges_pattern)], 'LabelRespect')
+    model.add_functions([GapRespect(nodes_pattern.index(i), nodes_pattern.index(j), nodes_target,  edges_target, GT, A) for k, (i,j) in enumerate(edges_pattern)], 'GapRespect')
    
     #We now take some samples of results given the built model.
     sampler = ir.Sampler(model)
@@ -178,7 +205,7 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000):
     sampler.set_target(0, 1, 'LabelRespect') 
     #sampler.set_target(1*len(edges_pattern), 0.001, 'LabelRespect') 
     #Finally we ensure that the sum of gaps does not exceed a certain Angstrom value.
-    #sampler.set_target(0, A, 'GapRespect') 
+    sampler.set_target(0, 1, 'GapRespect') 
 
     samples = [sampler.targeted_sample() for _ in range(nb_samples)]
 
@@ -186,7 +213,7 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000):
     resu = [([(nodes_pattern[k], nodes_target[x]) for k,x in enumerate(sample.values())], len(list(set(sample.values())))) for sample in samples]
     
     #We postprocess now the gap procedure as shorcuted nodes must be left unaffected by the mapping.
-    #resu = [(r, r2) for r, r2 in resu if filter(GP, GT, r) == 1]
+    resu = [(r, r2) for r, r2 in resu if filter(GP, GT, r) == 1]
 
     return resu
 
@@ -237,7 +264,7 @@ def filter(GP, GTaugment, mapping):
     for k1,(p1,t1) in enumerate(mapping):
         for k2, (p2, t2) in enumerate(mapping):
             if k1 != k2:
-                if (p1, p2) in GP.edges():
+                if (p1, p2) in GP.edges() and (t1, t2) in GTaugment.edges():
                     banned += GTaugment[t1][t2]['correspondant_nodes']
     banned = list(set(banned))
     GTmapped = [t for (_, t) in mapping]
