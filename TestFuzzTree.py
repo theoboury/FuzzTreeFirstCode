@@ -16,11 +16,14 @@ def first_test_mapping():
     with open("rin163.pickle",'rb') as fP:
         GP = pickle.load(fP)
     #with open("1Y27-1B53misslabeledCWW1falselabelCHSintoCWH.nxpickle",'rb') as fT:
-    #with open("1Y27-4falselabelsCHSintoCWHandTHWintoTHSandTHWintoTHSandcWWintoTHS.nxpickle",'rb') as fT:
-    with open("1Y27.nxpickle",'rb') as fT:
+   # with open("1Y27-4falselabelsCHSintoCWHandTHWintoTHSandTHWintoTHSandcWWintoTHS.nxpickle",'rb') as fT:
+    #with open("1Y27.nxpickle",'rb') as fT:
+    with open("1Y27-2edgesmissing.nxpickle",'rb') as fT:
         GT = pickle.load(fT)
+    print(GT.nodes.data())
+    print(GT.edges.data())
     timer = time.time()
-    mapping = main(GP, GT, 0, 0, 0, nb_samples=100)
+    mapping = main(GP, GT, 80, 1, 0, nb_samples=100)
     #mapping = main(GP, GT, nb_samples=100)
     timer = time.time() - timer
     print("mapping", mapping)
@@ -145,11 +148,16 @@ def test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder 
 
 #with open("1Y27.nxpickle",'rb') as fG:
 #    GG = pickle.load(fG)
-#with open("1Y27-4falselabelsCHSintoCWHandTHWintoTHSandTHWintoTHSandcWWintoTHS.nxpickle",'rb') as fT:
+##with open("1Y27-4falselabelsCHSintoCWHandTHWintoTHSandTHWintoTHSandcWWintoTHS.nxpickle",'rb') as fT:
+#with open("1Y27-2edgesmissing.nxpickle",'rb') as fT:    
 #    GT = pickle.load(fT)
 #Glist = [(i,j, t['label']) for (i,j,t) in GG.edges.data()]
 #Tlist = [(i,j, t['label']) for (i,j,t) in GT.edges.data()]
-#print([(elem, Tlist[k]) for k, elem in enumerate(Glist) if elem != Tlist[k]])
+#temp =[(elem1, elem2) for elem in Glist if elem != Glist[k]]
+#print([i for i in Glist if i not in Tlist])
+#from FuzzTree import distance
+#for (i,j, t) in [i for i in Glist if i not in Tlist]:
+#    print("dist", distance(i,j, GG))
 #import_rin(163)
 
 first_test_mapping()

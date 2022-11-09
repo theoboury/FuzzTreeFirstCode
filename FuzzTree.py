@@ -17,8 +17,13 @@ import networkx as nx
 
 from FuzzynessParameters import FuzzyParameters
 DEBUG = 1
-
-def _EdgeRespect(x, y, nodes_target, edges_target):
+infinite = 1000
+#Des qu on autorise des fuzzy edges tout devient plus long on passe de 80 secondes à 250 pour un graphe où il ne manque aucun edge
+#TODO: faut il precomputer toutes les distances ?
+#TODO: WARNING gros probleme avec l infini.... l'infini est une constante ? (locale ou globale ?) #Autre probleme si l'infini est 1000000 -> inconsistancy error mais 100000 converge par exemple Mais si l'infini est placé à 10 c'est plus long 114 secondes contre 77 environ dans le cas où infinite = 1000 ou 10000 81 secs pour 100
+#TODO: WARNING Infrared (ou moi) semble définitivement avoir un problème avec les valeurs grandes j'ai pour le moment quotienté par 100 les thresholds et valeurs retournées en conséquence???
+#Ilse peut que ce soit tout simplement un problme de . flotant qui fait qu il retourne une difference de matricce inexac te ou alors il cherche tou les 10 puissance - qqc ce qui lu fait trop grand a explorere avec des entiers assez grand
+def _EdgeRespect(x, y, nodes_target, edges_target, GT, B, D):
     """
     Input : - Two nodes x and y from the GT respectively the mappings of i and j from the GP.
             - The list of the nodes in GT nodes_target to map the index of infrared functions with real names of nodes in the graph.
@@ -26,11 +31,12 @@ def _EdgeRespect(x, y, nodes_target, edges_target):
     Output : A value between 0 and +inf that indicates if the edge is present, returns 0 if it is the case, 1 if it is absent and +inf if it is eliminatory
     """
     #if x == y: #If neighbors are mapped to the same node in GT, we can already reject 
-    #    return 100000#math.inf 
+    #    return math.inf#math.inf 
     if (nodes_target[x], nodes_target[y]) in edges_target: #We check that this edge is present or not in GT
         return 0 #Change perhaps when it is a backbone ?
-    return 100000#math.inf #To be modified to allow fuzzy edges
-    #if dist correcte alors faire un return 0
+    if B == 0 or (distance(nodes_target[x], nodes_target[y], GT) > D):
+        return infinite#math.inf #To be modified to allow fuzzy edges
+    return 1/B
 
 
 def interaction_to_number(interact_char):
@@ -61,15 +67,15 @@ def _LabelRespect(x, y, label_edge_ij, nodes_target, label_edge_target, edges_ta
     Output : A value between 0 and +inf that indicates  how much labels are close from each other.
     """
     #if x == y: #If neighbors are mapped to the same node in GT, we can already reject 
-    #    return 100000#math.inf 
+    #    return math.inf#math.inf 
     if (nodes_target[x], nodes_target[y]) in edges_target: #We check that this edge is present or not in GT as no label to check if not present
         (xx, yy) = interaction_to_number(label_edge_ij), interaction_to_number(label_edge_target[edges_target.index((nodes_target[x], nodes_target[y]))])
         if xx == yy: 
             return 0 #1 #0
         if xx == -1 or yy == -1:
-            return 100000#math.inf#0#math.inf #backbone replaces by something else, it is eliminatory
+            return infinite#math.inf#0#math.inf #backbone replaces by something else, it is eliminatory
         #print("\nIDI", IDI_matrix[xx][yy] - IDI_matrix[xx][xx])
-        return IDI_matrix[xx][yy] - IDI_matrix[xx][xx]
+        return IDI_matrix[xx][yy]#(IDI_matrix[xx][yy] - IDI_matrix[xx][xx])/100
     return 0#1 #0
 
 
@@ -80,8 +86,8 @@ class EdgeRespect(ir.infrared.WeightedFunction):
     EdgeRespect(i, j,label_edge_ij, nodes_target, edges_target).
     The constraint is satisfied if the edge (x, y) mapped to (i,j) is an edge in GT.
     """
-def_function_class('EdgeRespect', lambda i, j, nodes_target, edges_target: [i, j],
-            lambda x, y, nodes_target, edges_target: _EdgeRespect(x, y, nodes_target, edges_target),
+def_function_class('EdgeRespect', lambda i, j, nodes_target, edges_target, GT, B, D: [i, j],
+            lambda x, y, nodes_target, edges_target, GT, B, D: _EdgeRespect(x, y, nodes_target, edges_target, GT, B, D),
             module=__name__)
 
 class LabelRespect(ir.infrared.WeightedFunction):
@@ -97,7 +103,7 @@ def_function_class('LabelRespect', lambda i, j, label_edge_ij, nodes_target, lab
             module=__name__)
 
 
-def main(GP, GT, E, B, A, maxGAPdistance=5, nb_samples=1000): 
+def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000): 
     """
     Input : - Two graphs, the pattern graph GP and the target graph GT.
             - E, the threshold in term of sum of isostericity allowed
@@ -124,8 +130,13 @@ def main(GP, GT, E, B, A, maxGAPdistance=5, nb_samples=1000):
     [14.0, 11.4, 15.5, 15.8, 17.7, 19.0, 10.8, 14.9, 14.4, 14.4, 9.0, 4.0]]
 
     #We enrich the target Graph with False Edges that account for gaps
-    #GT = augment_graph(GT, maxGAPdistance)
+    GT = augment_graph(GT, maxGAPdistance)
 
+    if E != 0:
+        for i in range(len(IDI_matrix)):
+            storage = IDI_matrix[i][i]
+            for j in range(len(IDI_matrix[0])):
+                IDI_matrix[i][j] = (IDI_matrix[i][j]- storage)/E
     n_pattern = len(GP.nodes)
     n_target = len(GT.nodes)
 
@@ -150,8 +161,8 @@ def main(GP, GT, E, B, A, maxGAPdistance=5, nb_samples=1000):
     model = ir.Model(n_pattern, n_target)
 
     #We define Edge respect function on each edges in the pattern to check if the mapping of this couple is effectively an edge in the target.
-    model.add_functions([EdgeRespect(nodes_pattern.index(i), nodes_pattern.index(j), nodes_target,  edges_target) for k, (i,j) in enumerate(edges_pattern)], 'EdgeRespect')
-
+    model.add_functions([EdgeRespect(nodes_pattern.index(i), nodes_pattern.index(j), nodes_target,  edges_target, GT, B, maxGAPdistance) for k, (i,j) in enumerate(edges_pattern)], 'EdgeRespect')
+    #For now max distance to consider missing edge is consider as max distance with which we consider gap
     #We define Label respect function on each edges in the pattern to check if the label in the target correspond to it.
     model.add_functions([LabelRespect(nodes_pattern.index(i), nodes_pattern.index(j), label_edge_pattern[k], nodes_target, label_edge_target,  edges_target, IDI_matrix) for k, (i,j) in enumerate(edges_pattern)], 'LabelRespect')
 
@@ -162,9 +173,9 @@ def main(GP, GT, E, B, A, maxGAPdistance=5, nb_samples=1000):
     sampler = ir.Sampler(model)
 
     #Next we ensure that edges in the pattern are represented enough
-    sampler.set_target(0, B+ 0.001, 'EdgeRespect') 
+    sampler.set_target(0, 1, 'EdgeRespect') 
     #Next we ensure that the labels are not too far in term of isostericity.
-    sampler.set_target(0, E + 0.001, 'LabelRespect') 
+    sampler.set_target(0, 1, 'LabelRespect') 
     #sampler.set_target(1*len(edges_pattern), 0.001, 'LabelRespect') 
     #Finally we ensure that the sum of gaps does not exceed a certain Angstrom value.
     #sampler.set_target(0, A, 'GapRespect') 
@@ -175,11 +186,11 @@ def main(GP, GT, E, B, A, maxGAPdistance=5, nb_samples=1000):
     resu = [([(nodes_pattern[k], nodes_target[x]) for k,x in enumerate(sample.values())], len(list(set(sample.values())))) for sample in samples]
     
     #We postprocess now the gap procedure as shorcuted nodes must be left unaffected by the mapping.
-    #resu = [r for r in resu if filter(GP, GT, r) == 1]
+    #resu = [(r, r2) for r, r2 in resu if filter(GP, GT, r) == 1]
 
     return resu
 
-def augment_graph(GT, number_gaps_allowed):
+def augment_graph(GT, maxGapallowed):
     """
     Input : - A graph GT that must be augmented with "false" edges between the B53 chains to account for gaps 
     	    - The length of BM_by_gap number_gaps_allowed which for each consecutive gap account for the cost in big mistakes to use "false" edges
@@ -187,9 +198,10 @@ def augment_graph(GT, number_gaps_allowed):
             * label "correspondant_nodes" that correspond to the list of shorcuted nodes. They will serve in the post procesing as shortcuted nodes must not be taken in mappings 
     """
     Gnew=nx.DiGraph()
-    Gnew.add_nodes_from(GT)
+    for (i,t) in GT.nodes.data():
+        Gnew.add_node(i, pdb_position = t['pdb_position'], atoms = t['atoms'])
     for (i,j,t) in GT.edges.data():
-        Gnew.add_edge(i,j, label=t['label'], long_range=t['long_range'], near=t['near'], correspondant_nodes=[])
+        Gnew.add_edge(i,j, label=t['label'], long_range=t['long_range'], near=t['near'], correspondant_nodes=[], dist=0)
     for node in GT.nodes():
         iter_node = node
         correspondant_nodes = []
@@ -200,14 +212,18 @@ def augment_graph(GT, number_gaps_allowed):
             continue
         iter_node=B53_neighbors[0]
         correspondant_nodes.append(iter_node)
-        for order in range(1,number_gaps_allowed+1):
+        first_dist = distance(node, iter_node, GT)
+        dist = first_dist
+        while dist < maxGapallowed: #can be replaced here by  while dist - first_dist < maxGapallowed: #if we only want to take into account everything but the first gap distance
             B53_neighbors=[n for n in GT.successors(iter_node) if GT[iter_node][n]['label'] == 'B53']
             if len(B53_neighbors) > 1:
                 print("THE WORLD BLOWS UP")
             if len(B53_neighbors) == 0:
                 break #no nodes after on this strand to carry on
-            Gnew.add_edge(node, B53_neighbors[0], label='B53', long_range='False', near='False', order=order, correspondant_nodes=correspondant_nodes.copy())
             iter_node = B53_neighbors[0]
+            dist = distance(node, iter_node, GT)
+            if dist < maxGapallowed: #if dist - first_dist < maxGapallowed:
+                Gnew.add_edge(node, iter_node, label='B53', long_range='False', near='False', correspondant_nodes=correspondant_nodes.copy(), dist = max(0, dist - first_dist))
             correspondant_nodes.append(iter_node)
     return Gnew
 
@@ -230,15 +246,28 @@ def filter(GP, GTaugment, mapping):
             return 0
     return 1
 
+def preL2distance(x,y,z):
+    return x**2 + y**2 + z**2
+ 
 def distance(node1, node2, GT):
-    li1 = GT[node1].atom()
-    li2 = GT[node2].atom()
+    li1 = [t['atoms'] for i,t in GT.nodes.data() if i == node1][0]
+    li2 = [t['atoms'] for i,t in GT.nodes.data() if i == node2][0]
+    dist = math.inf
+    for atom1 in li1:
+        for atom2 in li2:
+            (x1, y1, z1) = atom1['position']
+            (x2, y2, z2) = atom2['position']
+            (x1, y1, z1) = (float(x1), float(y1), float(z1))
+            (x2, y2, z2) = (float(x2), float(y2), float(z2))
+            dist = min(dist, preL2distance(x1 - x2, y1 - y2, z1 - z2))
+    return math.sqrt(dist)
 #import pickle
 #with open("1Y27.nxpickle",'rb') as fT:
 #    GT = pickle.load(fT)
 #    print(GT.nodes.data())
 #    print(GT.edges.data())
-#GG = augment_graph(GT, 2)
+#print(distance(('X', 46), ('X', 55), GT))
+#GG = augment_graph(GT, 3)
 #print(GG.nodes.data())
 #print(GG.edges.data())
 
