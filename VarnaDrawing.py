@@ -49,7 +49,7 @@ def draw_varna(GT, nodes_target, mapping):
     
     
 
-def print_mapping_on_target_graph(GP, GT, mapping = [], output_format = "pdf", name_file = "", show=1):
+def print_mapping_on_target_graph(GP, GT, mapping = [], output_format = "pdf", name_file = "", show=1, E=0, B=0, A=0):
     """
     Input : - Two graphs, the pattern graph GP and the target graph GT 
             - A mapping between GP and GT, if this mapping is not specified, it is calculated here
@@ -61,7 +61,7 @@ def print_mapping_on_target_graph(GP, GT, mapping = [], output_format = "pdf", n
     nodes_target = list(GT.nodes())
     nodes_target.sort()
     if mapping == []:
-        mapping = main(GP, GT)
+        mapping = main(GP, GT, E, B, A)
         mapping = [map for (map, length) in mapping if length == len(GP.nodes())]
         mapping = mapping[0] #We take only the first result
     v = draw_varna(GT, nodes_target, mapping)

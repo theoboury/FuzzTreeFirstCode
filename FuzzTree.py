@@ -22,6 +22,7 @@ infinite = 1000
 #TODO: faut il precomputer toutes les distances ?
 #TODO: WARNING gros probleme avec l infini.... l'infini est une constante ? (locale ou globale ?) #Autre probleme si l'infini est 1000000 -> inconsistancy error mais 100000 converge par exemple Mais si l'infini est placé à 10 c'est plus long 114 secondes contre 77 environ dans le cas où infinite = 1000 ou 10000 81 secs pour 100
 #TODO: WARNING Infrared (ou moi) semble définitivement avoir un problème avec les valeurs grandes j'ai pour le moment quotienté par 100 les thresholds et valeurs retournées en conséquence???
+#TODO: change the dstance function to a different preprocessed one
 #Ilse peut que ce soit tout simplement un problme de . flotant qui fait qu il retourne une difference de matricce inexac te ou alors il cherche tou les 10 puissance - qqc ce qui lu fait trop grand a explorere avec des entiers assez grand
 def _EdgeRespect(x, y, nodes_target, edges_target, GT, B, D):
     """
@@ -30,8 +31,8 @@ def _EdgeRespect(x, y, nodes_target, edges_target, GT, B, D):
             - The list of all edges in GT, edges_target.
     Output : A value between 0 and +inf that indicates if the edge is present, returns 0 if it is the case, 1 if it is absent and +inf if it is eliminatory
     """
-    #if x == y: #If neighbors are mapped to the same node in GT, we can already reject 
-    #    return math.inf#math.inf 
+    if x == y: #If neighbors are mapped to the same node in GT, we can already reject 
+        return infinite#math.inf 
     if (nodes_target[x], nodes_target[y]) in edges_target: #We check that this edge is present or not in GT
         return 0 #Change perhaps when it is a backbone ?
     if B == 0 or (distance(nodes_target[x], nodes_target[y], GT) > D):
@@ -129,7 +130,7 @@ def_function_class('GapRespect', lambda i, j, nodes_target, edges_target, GT, A:
             module=__name__)
 
 
-def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000): 
+def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1): 
     """
     Input : - Two graphs, the pattern graph GP and the target graph GT.
             - E, the threshold in term of sum of isostericity allowed
@@ -137,8 +138,8 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000):
             - A, the threshold in term of sum in Angstrom of gaps allowed
             - maxGAPdistance the maximal distance after which we are not looking for gap anymore
     	    - nb_samples, maximum numbers of samples allowed to look for a pattern in GT.
-    Output : List of mapping between GP and GT 
-        As injectivity is not respected yet and with gaps conditions, the results are preprocessed before being output to return only valid mapping. 
+    Output : List of (pre)mapping between GP and GT and the number of nodes that are effectively mapped.
+        As injectivity is not respected yet and with gaps conditions, the results are preprocessed before being output to return only valid premapping. 
     """
 
     #The matrix for the isostericity between non-canonical interactions
@@ -156,14 +157,14 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000):
     [14.0, 11.4, 15.5, 15.8, 17.7, 19.0, 10.8, 14.9, 14.4, 14.4, 9.0, 4.0]]
 
     #We enrich the target Graph with False Edges that account for gaps
-    print("GTnodes", len(GT.nodes()))
     GT = augment_graph(GT, maxGAPdistance)
-    print("GTnodesbis", len(GT.nodes()))
+
     if E != 0:
         for i in range(len(IDI_matrix)):
             storage = IDI_matrix[i][i]
             for j in range(len(IDI_matrix[0])):
                 IDI_matrix[i][j] = (IDI_matrix[i][j]- storage)/E
+    
     n_pattern = len(GP.nodes)
     n_target = len(GT.nodes)
 
@@ -201,20 +202,23 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000):
 
     #Next we ensure that edges in the pattern are represented enough
     sampler.set_target(0, 1, 'EdgeRespect') 
+
     #Next we ensure that the labels are not too far in term of isostericity.
     sampler.set_target(0, 1, 'LabelRespect') 
-    #sampler.set_target(1*len(edges_pattern), 0.001, 'LabelRespect') 
+
     #Finally we ensure that the sum of gaps does not exceed a certain Angstrom value.
     sampler.set_target(0, 1, 'GapRespect') 
 
     samples = [sampler.targeted_sample() for _ in range(nb_samples)]
 
-    #We postprocess here by checking number of nodes mapped to same nodes in GT in order to obtain the injectivity
     resu = [([(nodes_pattern[k], nodes_target[x]) for k,x in enumerate(sample.values())], len(list(set(sample.values())))) for sample in samples]
     
     #We postprocess now the gap procedure as shorcuted nodes must be left unaffected by the mapping.
     resu = [(r, r2) for r, r2 in resu if filter(GP, GT, r) == 1]
 
+    #We postprocess here by checking number of nodes mapped to same nodes in GT in order to obtain the injectivity
+    if respect_injectivity:
+        resu = [(r, length) for r, length  in resu if length == n_pattern]
     return resu
 
 def augment_graph(GT, maxGapallowed):
