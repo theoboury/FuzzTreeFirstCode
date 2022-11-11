@@ -2,6 +2,9 @@ import varnaapi
 from varnaapi.param import BaseAnnotation
 from FuzzTree import main
 
+DEBUG=1
+
+
 def traduction(label_char):
     """
     Input : - An interaction label as 3 capital letters label_char
@@ -52,7 +55,8 @@ def draw_varna(GT, nodes_target, mapping):
     style2 = varnaapi.param.BasesStyle(fill="#FFFFFF", outline="#000000")
     mapped = [nodes_target.index(j) for i,j in mapping]
     for (i,j) in mapping:
-        print(str(i), nodes_target.index(j))
+        if DEBUG:
+            print(str(i), nodes_target.index(j))
         v.add_annotation(BaseAnnotation(str(i), nodes_target.index(j) + 1, color="#FF0000", size=10))
     v.add_bases_style(style1, mapped)
     v.add_bases_style(style2, [i for i in range(len(nodes_target)) if i not in mapped])

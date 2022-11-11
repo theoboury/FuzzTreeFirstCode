@@ -65,7 +65,6 @@ def augment_graph(GT, maxGapallowed):
             iter_node = B53_neighbors[0]
             dist = distance(node, iter_node, GT)
             if dist < maxGapallowed: #if dist - first_dist < maxGapallowed:
-                print("iter_node", iter_node)
                 Gnew.add_edge(node, iter_node, label='B53', long_range='False', near='False', correspondant_nodes=correspondant_nodes.copy(), dist = max(0, dist - first_dist))
             correspondant_nodes.append(iter_node)
     return Gnew
