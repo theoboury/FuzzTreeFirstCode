@@ -9,6 +9,7 @@ dependencies:
 tests:
 	python TestFuzzTree.py
 clean:
-	rm *.png
-	rm *.pdf
-	rm output.txt
+	rm -f *.png
+	rm -R -f __pycache__
+	rm -f *.pdf
+	rm -f output.txt

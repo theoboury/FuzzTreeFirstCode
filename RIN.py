@@ -143,6 +143,9 @@ class RIN:
 
 
 def import_rin(rin_number):
+    """
+    From a given number, import the corresponding RIN in CaRNAval as a pickle file.
+    """
     with open("CaRNAval_1_as_dictionnary.nxpickled",'rb') as ff:
         Gdict = pickle.load(ff)
     GG = Gdict[rin_number].graph

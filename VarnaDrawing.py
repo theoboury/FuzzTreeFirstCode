@@ -3,6 +3,10 @@ from varnaapi.param import BaseAnnotation
 from FuzzTree import main
 
 def traduction(label_char):
+    """
+    Input : - An interaction label as 3 capital letters label_char
+    Output : - An interaction label foamlized as something readable by VARNA.
+    """
     resu = []
     if label_char[0] == 'C':
         resu.append('cis')
@@ -18,25 +22,32 @@ def traduction(label_char):
     return resu[1], resu[2], resu[0]
 
 def draw_varna(GT, nodes_target, mapping):
-    #nodes_target should be ordered in lexicographic order
+    """
+        Input :
+               - Graph Target GT.
+               - The list of all nodes in GT nodes_target, nodes_target should be ordered in lexicographic order.
+               - The mapping that we want to represent on GT.
+        Output : 
+        - Return GT graph with mapping drawn in red using VARNA.
+    """
     secondary_structures = [(nodes_target.index(i), nodes_target.index(j)) for (i, j, t) in GT.edges.data() if t['label'] == "CWW"]
     noncanonicaledges = [(nodes_target.index(i), nodes_target.index(j), t['label']) for (i, j, t) in GT.edges.data() if (nodes_target.index(i), nodes_target.index(j)) not in secondary_structures if t['label'] !='B53']
-    #print("secondseq", secondary_structures,"\nnoncanon", noncanonicaledges)
     sequence  = []
     if nodes_target != []:
         strain = nodes_target[0][0]
-    for node in  nodes_target:
+    for node in nodes_target:
         (i, t) = [(i, t) for (i, t) in GT.nodes.data() if i == node][0]
         if node[0] != strain:
-            sequence += "&"
+            sequence += "&" #We add this symbol when we change of strain in VARNA
             strain = node[0]
-        sequence += t['nt']
+        sequence += t['nt'] #Sequence is otherwise the list of nucleotides in order
     sequence = "".join(sequence)
-    #print("sequence", sequence)
     v  = varnaapi.Structure(sequence, secondary_structures)
     for (i,j,t) in noncanonicaledges:
         e5,e3,ster = traduction(t)
-        v.add_aux_BP( i, j, edge5=e5, edge3=e3, stericity=ster, color='blue', thickness=1) 
+        v.add_aux_BP(i, j, edge5=e5, edge3=e3, stericity=ster, color='blue', thickness=1) #We add now non canonical edges
+    
+        #We now color the part that correspond to the mapping using different styles
     style1 = varnaapi.param.BasesStyle(fill="#FF0000", label="#FFFFFF")
     style2 = varnaapi.param.BasesStyle(fill="#FFFFFF", outline="#000000")
     mapped = [nodes_target.index(j) for i,j in mapping]
@@ -51,12 +62,13 @@ def draw_varna(GT, nodes_target, mapping):
 
 def print_mapping_on_target_graph(GP, GT, mapping = [], output_format = "pdf", name_file = "", show=1, E=0, B=0, A=0):
     """
-    Input : - Two graphs, the pattern graph GP and the target graph GT 
-            - A mapping between GP and GT, if this mapping is not specified, it is calculated here
+    Input : - Two graphs, the pattern graph GP and the target graph GT. 
+            - A mapping between GP and GT, if this mapping is not specified, it is calculated here.
             - output_format is the type of file that we want to save, specify None for no save.
             - name_file is the name of the output graph if specified.
-            - show is set to 1 if we want to observe the output with matplotlib.
-    Output : Build the GT graph with a red colored part for each node in GP mapped in GT, can save it as a file or plot it depending on the optons selected.
+            - show is set to 1 if we want to observe the output with directly.
+            - E, A, B are fuzzyness options specified for the main function if mapping is not given.
+    Output : Build the GT graph with a red colored part for each node in GP mapped in GT, can save it as a file or plot it depending on the options selected.
     """
     nodes_target = list(GT.nodes())
     nodes_target.sort()
