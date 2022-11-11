@@ -125,10 +125,10 @@ from RIN import import_rin
 #import_rin(163)
 
 #first_test_mapping()
-first_test_varna_with_mapping()
-first_test_varna_without_mapping()
+#first_test_varna_with_mapping()
+#first_test_varna_without_mapping()
 
-
+test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder = "RNAstorage", E=80 , B=2, A=4, maxGAPdistance=3, nb_samples=100, remove_near=True, timeout=800)
 #test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder = "RNAstorage", BooleanListGPinGT = [0,0,0,0,0,0,0,0,0,0,0], nb_samples=100)
 
 

@@ -21,8 +21,9 @@ For Target RNA graphs, the used graphs were downloaded at https://uqam-my.sharep
 
 The different files are:
 * FuzzTree.py: launches the tool to search for Fuzzy Subgraph Isomorphism
-* FuzzynessParameters.py: contains the parameters than can be modified to customize the searched Fuzziness
+* VarnaDrawing.py: contains necessary wrappers to launch Varna on graphs and their mapping.
 * TestFuzzTree.py: contains the test framework 
+* WorkingSpace.py to write and import functions to import rin, build graphs and launch some tests
 
 The different folders are:
 * RNAstorage: To store the Target RNA graphs
@@ -35,7 +36,7 @@ First, this project will require Anaconda (or at least Miniconda), make sure tha
 Make sure next that conda is activate
 
 ```bash
-conda activate  fish
+conda activate fish
 ```
 
 To install the dependencies pacckage you can next type :
@@ -53,12 +54,17 @@ If no mistake appears here, you are good to go.
 
 #### Examples of executions
 
+TODO : propose examples
 
 ## Option for Fuzzyness
 
-These options can be modified directy in the file FuzzynessParameters.py
+Parameters can be modified to customize the searched Fuzziness, they are taken in input of the main function from Fuzztree.py
+Here are the different options :
 
-TODO : introduce the different options
+- E, specifies the threshold on the sum of distances in isostericity between labels in the searched pattern and corresponding labels in the found pattern. 
+- B, specifies the threshold on the number of interactions that we allow to be missing (number of edges missing).
+- A, specifies the threshold on the sum of geometrical distances covered by gaps.
+- maxGapAllowed, specifies the geometric distance at which we allow to look for potential gap, also distance for which we look for missing edges.
 
 
 ## Contributors
