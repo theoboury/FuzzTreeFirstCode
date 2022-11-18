@@ -1,7 +1,9 @@
 import os, glob, pickle
-from FuzzTree import main
+from FuzzTree_with_dist_preprocessing import main
+#from FuzzTree import main
 from VarnaDrawing import print_mapping_on_target_graph
 import time
+import sys
 from multiprocessing import Process, Queue
 
 DEBUG=1
@@ -46,7 +48,7 @@ def first_test_varna_without_mapping():
     print_mapping_on_target_graph(GP, GT, output_format = "png", name_file = "rin163into2XNZ", E=80, B=2, A=0)
 
 
-def test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder = "RNAstorage", E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=1000, remove_near=True, timeout=800):
+def test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder = "RNAstorage", E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=1000, remove_near=True, timeout=800, D = 5):
     """
     Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
            - A list of RNA Target Graphs GTlist as a folder of files GTlistfolder. For each of these GT, we are looking for GP or a fuzzy version of GP in it.
@@ -61,6 +63,8 @@ def test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder 
         GP = pickle.load(fP)
     path = os.path.abspath(os.getcwd()) + "/" + GTlistfolder
     resu = []
+    if DEBUG:
+        print("File exploration", glob.glob(os.path.join(path, '*.nxpickle')))
     for filename in glob.glob(os.path.join(path, '*.nxpickle')):
         with open(os.path.join(os.getcwd(), filename), 'rb') as fT:
             GT = pickle.load(fT)
@@ -73,10 +77,15 @@ def test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder 
 
             #We use an auxiliary process to be able to carry on even if we timeout.
             def pro(queue):
-                queue.put(main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1))
+                #try:
+                loc = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1, D = D)
+                queue.put(loc)
+                #except Exception as e:
+                #    queue.put(e)
+                #except:
+                #    return
             queue = Queue()
             p = Process(target=pro, args=(queue,), name='Process')
-
             timer = time.time()
             p.start()
             p.join(timeout=timeout)
@@ -86,8 +95,11 @@ def test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder 
             mapping = []
             if p.exitcode is not None:
                 mapping = queue.get()
-                if mapping:
+                if isinstance(mapping, Exception):
+                    mapping = []
+                elif mapping:
                     mapping = [map for (map, length) in mapping][0]
+            filename = (filename.split('/'))[-1]
             if DEBUG:
                 print("filename, mapping, time", (filename, mapping, timer))
             resu.append((filename, mapping, timer))

@@ -1,0 +1,40 @@
+import os, glob, pickle
+import networkx as nx
+
+DEBUG=1
+
+def extract(G, list_nodes, cutting_edges):
+    Gnew=nx.DiGraph() #Initiate the new GT graph.
+    Gnewnx=nx.DiGraph() #Initiate the new GT graph.
+    for (i, t) in G.nodes.data():
+        if i in list_nodes:
+            Gnew.add_node(list_nodes.index(i) + 1, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'])
+            Gnewnx.add_node(i, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'])
+    for (i,j,t) in G.edges.data():
+        if i in list_nodes and j in list_nodes:
+            Gnew.add_edge(list_nodes.index(i) + 1, list_nodes.index(j) + 1, label=t['label'], near=t['near'])
+            Gnewnx.add_edge(i, j, label=t['label'], near=t['near'])
+    for i in range(len(list_nodes) - 1):
+        if (i + 1, i + 2) not in Gnew.edges() and (list_nodes[i], list_nodes[i + 1]) not in cutting_edges:
+            Gnew.add_edge(i + 1, i + 2, label='B53', near=False)
+            Gnewnx.add_edge(list_nodes[i], list_nodes[i + 1], label='B53', near=False)
+    return Gnew, Gnewnx
+
+
+def extractor(Gpath, Gnewname, list_nodes, cutting_edges):
+    with open(Gpath,'rb') as fG:
+        G = pickle.load(fG)
+    Gnew, Gnewnx = extract(G, list_nodes,cutting_edges)
+    if DEBUG:
+        print([(i) for (i,t) in Gnew.nodes.data()])
+        #print([(i,j, t['label']) for (i,j,t) in Gnew.edges.data() if t['label'] != 'B53'])
+        print([(i,j, t['label']) for (i,j,t) in Gnew.edges.data() if t['label'] != 'B53'])
+        print([(i,j, t['label']) for (i,j,t) in Gnewnx.edges.data() if t['label'] != 'B53'])
+        #print([(i) for (i,t) in Gnewnx.nodes.data()])
+        #print([(i,j, t['label']) for (i,j,t) in Gnewnx.edges.data()])
+    with open("kinkturnpattern/" +Gnewname + ".pickle", 'wb') as ff:
+        pickle.dump(Gnew, ff)
+    with open("kinkturntarget/" + Gnewname + ".nxpickle", 'wb') as ff2:
+        pickle.dump(Gnewnx, ff2)
+
+

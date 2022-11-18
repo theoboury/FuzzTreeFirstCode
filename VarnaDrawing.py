@@ -2,7 +2,7 @@ import varnaapi
 from varnaapi.param import BaseAnnotation
 from FuzzTree import main
 
-DEBUG=1
+DEBUG=0
 
 
 def traduction(label_char):
@@ -48,6 +48,8 @@ def draw_varna(GT, nodes_target, mapping):
     v  = varnaapi.Structure(sequence, secondary_structures)
     for (i,j,t) in noncanonicaledges:
         e5,e3,ster = traduction(t)
+        if DEBUG:
+            print("(i, j) =", (i, j), "t", t, "edge5 = ", e5,"edge3 = ", e3, "stericity = ", ster)
         v.add_aux_BP(i, j, edge5=e5, edge3=e3, stericity=ster, color='blue', thickness=1) #We add now non canonical edges
     
         #We now color the part that correspond to the mapping using different styles
