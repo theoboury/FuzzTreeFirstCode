@@ -169,19 +169,19 @@
 
     #Optimal parameter above E = 0, B = 4, A = 0, D = 5 car D = 3 n'est pas suffisant
 
-    test = 1
+    test = 2
     if test == 1:
     #-----ETAPE 1------ 2 kink turns similaires a GAP près IL_4LCK_006 et IL_5XTM_007 respectivement dans les familles IL_51265.1 et IL_74051.1 
 
     #-----ETAPE 1.1------ Paramétrage optimal dans le cas le + proche
         list_nodes = [('F', 6), ('F', 7), ('F', 8), ('F', 10), ('F', 11), ('F', 12), ('F', 94), ('F', 95), ('F', 96), ('F', 97)]
         cutting_edges = [(('F', 12), ('F', 94))]
-        extractor("bigRNAstorage/4LCK.nxpickle", "IL_4LCK_006", list_nodes, cutting_edges)
+        extractor("bigRNAstorage/4LCK.nxpickle", "IL_4LCK_006", list_nodes, cutting_edges, with_pdb_num=1)
     #WARNING 20ZB is very strange for no reason same for 3SIV    ?
 
         list_nodes = [('D', 16), ('D', 17), ('D', 18), ('D', 20), ('D', 21), ('D', 22), ('D', 23), ('D', 30), ('D', 31), ('D', 32), ('D', 33)]
         cutting_edges = [(('D', 23), ('D', 30))]
-        extractor("bigRNAstorage/5XTM.nxpickle", "IL_5XTM_007", list_nodes, cutting_edges)
+        extractor("bigRNAstorage/5XTM.nxpickle", "IL_5XTM_007", list_nodes, cutting_edges, with_pdb_num=1)
 
         test_graph_where_pattern_is_detected(GPpath = "kinkturnpattern/IL_4LCK_006.pickle", GTlistfolder = "kinkturntarget", E=0, B=0, A=5, maxGAPdistance=7, nb_samples=100, remove_near=True,timeout = 300, D = 5)# timeout=800)
 
@@ -207,19 +207,19 @@
 
         list_nodes = [('F', 6), ('F', 7), ('F', 8), ('F', 10), ('F', 11), ('F', 12), ('F', 94), ('F', 95), ('F', 96), ('F', 97)]
         cutting_edges = [(('F', 12), ('F', 94))]
-        extractor("bigRNAstorage/4LCK.nxpickle", "IL_4LCK_006", list_nodes, cutting_edges)
+        extractor("bigRNAstorage/4LCK.nxpickle", "IL_4LCK_006", list_nodes, cutting_edges, with_pdb_num=1)
 
         list_nodes = [('D', 16), ('D', 17), ('D', 18), ('D', 20), ('D', 21), ('D', 22), ('D', 23), ('D', 30), ('D', 31), ('D', 32), ('D', 33)]
         cutting_edges = [(('D', 23), ('D', 30))]
-        extractor("bigRNAstorage/5XTM.nxpickle", "IL_5XTM_007", list_nodes, cutting_edges)
+        extractor("bigRNAstorage/5XTM.nxpickle", "IL_5XTM_007", list_nodes, cutting_edges, with_pdb_num=1)
 
         list_nodes = [('B', 16), ('B', 17), ('B', 18), ('B', 20), ('B', 21), ('B', 22), ('B', 23), ('B', 30), ('B', 31), ('B', 32), ('B', 33)]
         cutting_edges = [(('B', 23), ('B', 30))]
-        extractor("bigRNAstorage/5XTM.nxpickle", "IL_5XTM_003", list_nodes, cutting_edges)
+        extractor("bigRNAstorage/5XTM.nxpickle", "IL_5XTM_003", list_nodes, cutting_edges, with_pdb_num=1)
 
         list_nodes = [('D', 18), ('D', 19), ('D', 20), ('D', 22), ('D', 23), ('D', 24), ('D', 25), ('D', 32), ('D', 33), ('D', 34), ('D', 35)]
         cutting_edges = [(('D', 25), ('D', 32))]
-        extractor("bigRNAstorage/5DCV.nxpickle", "IL_5DCV_008", list_nodes, cutting_edges)
+        extractor("bigRNAstorage/5DCV.nxpickle", "IL_5DCV_008", list_nodes, cutting_edges, with_pdb_num=1)
 
         test_graph_where_pattern_is_detected(GPpath = "kinkturnpattern/IL_4LCK_006.pickle", GTlistfolder = "kinkturntarget", E=2, B=2, A=5, maxGAPdistance=7, nb_samples=100, remove_near=True,timeout = 300, D = 5)# timeout=800)
     #We have a tHS that becomes tSS in 5DCV, we need so fuzzy label 2 seems to be enough here, in addition one edge is missing in 5DCV, as it is in the two direction we need in parmeter 2 edge missing allowed, D = 5 for edge missing is required here too
@@ -231,11 +231,11 @@
 
         list_nodes = [('AA', 684), ('AA', 685), ('AA', 686), ('AA', 687), ('AA', 688), ('AA', 699), ('AA', 700), ('AA', 701), ('AA', 703), ('AA', 704),('AA', 705), ('AA', 706)]
         cutting_edges = [(('AA', 688), ('AA', 699))]
-        extractor("bigRNAstorage/5J7L.nxpickle", "IL_5J7L_035", list_nodes, cutting_edges)
+        extractor("bigRNAstorage/5J7L.nxpickle", "IL_5J7L_035", list_nodes, cutting_edges, with_pdb_num=1)
 
         list_nodes = [('H', 3), ('H', 4), ('H', 5), ('H', 6), ('H', 7), ('H', 26), ('H', 27), ('H', 28), ('H', 30), ('H', 31), ('H', 32), ('H', 33)]
         cutting_edges = [(('H', 7), ('H', 26))]
-        extractor("bigRNAstorage/5FJ4.nxpickle", "IL_5FJ4_002", list_nodes, cutting_edges)
+        extractor("bigRNAstorage/5FJ4.nxpickle", "IL_5FJ4_002", list_nodes, cutting_edges, with_pdb_num=1)
 
         test_graph_where_pattern_is_detected(GPpath = "kinkturnpattern/IL_5J7L_035.pickle", GTlistfolder = "kinkturntarget", E=15, B=2, A=0, maxGAPdistance=7, nb_samples=100, remove_near=True,timeout = 300, D = 3)# timeout=800)
     #WARNING SHOULD BE TUNED A BIT MORE E = 12 not OK D = 5 OK D = 3 OK too
@@ -265,28 +265,43 @@
         #TODO : end modifying requestiong nodes H must still be A at some places
         list_nodes = [('AA', 684), ('AA', 685), ('AA', 686), ('AA', 687), ('AA', 688), ('AA', 699), ('AA', 700), ('AA', 701), ('AA', 703), ('AA', 704),('AA', 705), ('AA', 706)]
         cutting_edges = [(('AA', 688), ('AA', 699))]
-        extractor("bigRNAstorage/5J7L.nxpickle", "IL_5J7L_035", list_nodes, cutting_edges)
+        extractor("bigRNAstorage/5J7L.nxpickle", "IL_5J7L_035", list_nodes, cutting_edges, with_pdb_num=1)
+
+        list_nodes = [('H', 18), ('H', 19), ('H', 20), ('H', 21), ('H', 22), ('H', 68), ('H', 69), ('H', 70), ('H', 73), ('H', 74), ('H', 75), ('H', 76)]
+        cutting_edges = [(('H', 22), ('H', 68))]
+        extractor("bigRNAstorage/6DVK.nxpickle", "IL_6DVK_002", list_nodes, cutting_edges, with_pdb_num=1)
+
+        list_nodes = [('A', 3), ('A', 4), ('A', 5), ('A', 6), ('A', 7), ('A', 16), ('A', 17), ('A', 18), ('A', 20), ('A', 21), ('A', 22), ('A', 23)]
+        cutting_edges = [(('A', 7), ('A', 16))]
+        extractor("bigRNAstorage/4BW0.nxpickle", "IL_4BW0_001", list_nodes, cutting_edges, with_pdb_num=1)
 
         list_nodes = [('H', 3), ('H', 4), ('H', 5), ('H', 6), ('H', 7), ('H', 26), ('H', 27), ('H', 28), ('H', 30), ('H', 31), ('H', 32), ('H', 33)]
         cutting_edges = [(('H', 7), ('H', 26))]
-        extractor("bigRNAstorage/6DVK.nxpickle", "IL_6DVK_002", list_nodes, cutting_edges)
+        extractor("bigRNAstorage/5FJ4.nxpickle", "IL_5FJ4_002", list_nodes, cutting_edges, with_pdb_num=1)
 
-        list_nodes = [('A', 3), ('A', 4), ('A', 5), ('H', 6), ('H', 7), ('H', 26), ('H', 27), ('H', 28), ('H', 30), ('H', 31), ('H', 32), ('H', 33)]
-        cutting_edges = [(('H', 7), ('H', 26))]
-        extractor("bigRNAstorage/4BW0.nxpickle", "IL_4BW0_001", list_nodes, cutting_edges)
+        list_nodes = [('A', 13), ('A', 14), ('A', 15), ('A', 16), ('A', 17), ('A', 3), ('A', 4), ('A', 5), ('A', 7), ('A', 8), ('A', 9), ('A', 10)]
+        cutting_edges = [(('A', 17), ('A', 3))]
+        extractor("bigRNAstorage/4CS1.nxpickle", "IL_4CS1_002", list_nodes, cutting_edges, with_pdb_num=1)
 
-        list_nodes = [('H', 3), ('H', 4), ('H', 5), ('H', 6), ('H', 7), ('H', 26), ('H', 27), ('H', 28), ('H', 30), ('H', 31), ('H', 32), ('H', 33)]
-        cutting_edges = [(('H', 7), ('H', 26))]
-        extractor("bigRNAstorage/5FJ4.nxpickle", "IL_5FJ4_002", list_nodes, cutting_edges)
-
-        list_nodes = [('A', 3), ('A', 4), ('A', 5), ('A', 6), ('A', 7), ('A', 26), ('A', 27), ('A', 28), ('A', 30), ('A', 31), ('A', 32), ('A', 33)]
-        cutting_edges = [(('A', 7), ('A', 26))]
-        extractor("bigRNAstorage/4CS1.nxpickle", "IL_4CS1_002", list_nodes, cutting_edges)
-
-        test_graph_where_pattern_is_detected(GPpath = "kinkturnpattern/IL_5J7L_035.pickle", GTlistfolder = "kinkturntarget", E=15, B=2, A=0, maxGAPdistance=7, nb_samples=100, remove_near=True,timeout = 300, D = 3)# timeout=800)
-    
-    
-    
+        test_graph_where_pattern_is_detected(GPpath = "kinkturnpattern/IL_5J7L_035.pickle", GTlistfolder = "kinkturntarget", E=15, B=4, A=0, maxGAPdistance=7, nb_samples=100, remove_near=True,timeout = 300, D = 18)# timeout=800)
+        #D = 18 is necessary here as D=15 is not enough, but warning the source of the problem 4CS1 is a strange pattern with strange symmetry !!!!
+    if test == 3:
+        list_nodes = [('C', 28), ('C', 29), ('C', 30), ('C', 32), ('C', 33), ('C', 34), ('C', 42), ('C', 43), ('C', 44), ('C', 45)]
+        cutting_edges = [(('C', 34), ('C', 42))]
+        extractor("bigRNAstorage/2OZB.nxpickle", "IL_2OZB_002", list_nodes, cutting_edges, with_pdb_num=1)
+    if test == 4:
+        list_nodes = [('C', 28), ('C', 29), ('C', 30), ('C', 32), ('C', 33), ('C', 34), ('C', 42), ('C', 43), ('C', 44), ('C', 45)]
+        with open("bigRNAstorage/2OZB.nxpickle",'rb') as fG:
+            G = pickle.load(fG)
+        print("Gpath", "bigRNAstorage/2OZB.nxpickle")
+        print ("list_nodes", list_nodes, "\nedges with one in list_nodes :")
+        for (i,t) in G.nodes.data():
+            print("A NODE", i, t)
+        for (i,j,t) in G.edges.data():
+            if i in list_nodes or j in list_nodes:
+                print("NOT AN EDGE", i, j, t)
+            if i in list_nodes and j in list_nodes:
+                print("GOT ONE EDGE",i, j, t)
     #REMARQUES :
 
     #DANS IL_74051.1 : on a un 5-9  qui devient un 5 - 11 sorte de gap mais pas vraiment ? Il faudrait pouvoir replier deux nucléotides sr un même nucléotide ?

@@ -50,7 +50,10 @@ def draw_varna(GT, nodes_target, mapping):
         e5,e3,ster = traduction(t)
         if DEBUG:
             print("(i, j) =", (i, j), "t", t, "edge5 = ", e5,"edge3 = ", e3, "stericity = ", ster)
-        v.add_aux_BP(i, j, edge5=e5, edge3=e3, stericity=ster, color='blue', thickness=1) #We add now non canonical edges
+        if i > j:
+            v.add_aux_BP(j, i, edge5=e3, edge3=e5, stericity=ster, color='blue', thickness=1) #We add now non canonical edges       
+        else:
+            v.add_aux_BP(i, j, edge5=e5, edge3=e3, stericity=ster, color='blue', thickness=1) #We add now non canonical edges
     
         #We now color the part that correspond to the mapping using different styles
     style1 = varnaapi.param.BasesStyle(fill="#FF0000", label="#FFFFFF")
