@@ -10,6 +10,30 @@ DEBUG = 0
 #infinite = 1000
 infinite = 100
 
+def check(GP, GT, Mapping, E, B, A, D, IDI_matrix, Distancer):
+    list_edges_GT = list(GT.edges())
+    mapped = {}
+    for (i, j) in Mapping:
+        mapped[i] = j
+    sum_label = 0
+    sum_edge_missing = 0
+    sum_dist_gap = 0
+    for (i, j, t) in GP.edges.data():
+        if (mapped[i], mapped[j]) not in list_edges_GT:
+            if t['label'] == 'B53':
+                return 0
+            if Distancer(mapped[i], mapped[j]) > D:
+                return 0
+            sum_edge_missing+=1
+        else:
+            (ii, jj, tt) = [(ii, jj, t) for (ii, jj, t) in GT.edges.data() if ii == mapped[i] and jj == mapped[j]][0]
+            if t['label'] != tt['label'] and (t['label'] == 'B53' or tt['label'] == 'B53'): #To avoid problem with B53 not in IDI matrix
+                return 0
+            sum_label += IDI_matrix[t['label']][tt['label']]
+            sum_dist_gap += tt['dist']
+    if (sum_label > E) or (sum_edge_missing > B) or (sum_dist_gap > A):
+        return 0
+    return 1
 
 def interaction_to_number(interact_char):
     """ 
@@ -65,7 +89,7 @@ def augment_graph(GT, maxGapallowed, Distancer):
             if len(B53_neighbors) == 0:
                 break #no nodes after, on this strand, to carry on.
             iter_node = B53_neighbors[0]
-            dist = distance(node, iter_node, GT)
+            dist = Distancer[node][iter_node]#distance(node, iter_node, GT) #TODO: WARNING CHANGE HERE TO CHECK
             if dist < maxGapallowed: #if dist - first_dist < maxGapallowed:
                 #Gnew.add_edge(node, iter_node, label='B53', long_range='False', near='False', correspondant_nodes=correspondant_nodes.copy(), dist = max(0, dist - first_dist))
                 Gnew.add_edge(node, iter_node, label='B53', near='False', correspondant_nodes=correspondant_nodes.copy(), dist = max(0, dist - first_dist))
@@ -299,26 +323,25 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
 
     #We define Gap respect function on each edges in the pattern to check if we mapped "false edges" that represent gaps and we take into account the distance between nodes that they induced.
     model.add_functions([GapRespect(nodes_pattern.index(i), nodes_pattern.index(j), nodes_target,  edges_target, GT, A) for k, (i,j) in enumerate(edges_pattern)], 'GapRespect')
-   
+    
+    model.set_feature_weight(B/2, 'EdgeRespect')
+    model.set_feature_weight(E/2, 'LabelRespect')
+    model.set_feature_weight(A/2, 'GapRespect')
     #We now take some samples of results given the built model.
     sampler = ir.Sampler(model)
 
-    x = 10
 
     #Next we ensure that edges in the pattern are represented enough
-    sampler.set_target(0, B, 'EdgeRespect') 
-    #sampler.set_target(B/2, B/2, 'EdgeRespect') 
+    #sampler.set_target(0, B, 'EdgeRespect') 
     #Next we ensure that the labels are not too far in term of isostericity.
-    sampler.set_target(0, E, 'LabelRespect') 
-    #sampler.set_target(E/2, E/2, 'LabelRespect') 
+    #sampler.set_target(0, E, 'LabelRespect') 
     #Finally we ensure that the sum of gaps does not exceed a certain Angstrom value.
-    sampler.set_target(0, A, 'GapRespect') 
-    #sampler.set_target(A/2, A/2, 'GapRespect')
+    #sampler.set_target(0, A, 'GapRespect') 
 
     samples = []
     for _ in range(nb_samples):
         try:
-            samples.append(sampler.targeted_sample())
+            samples.append(sampler.sample())
         except:
             print("Inconsistancy error detected !")
             return []
