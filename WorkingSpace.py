@@ -6,7 +6,7 @@ from TestFuzzTree import first_test_mapping, first_test_varna_with_mapping, firs
 import time
 from multiprocessing import Process, Queue
 from RIN import import_rin
-from extractor import extractor, csv_parse
+from Extractor import extractor, csv_parse
 
     #name="1Y27-1B53misslabeledCWW1edgesmissing1falselabelCHSintoCWH.nxpickle"
     #with open("1Y27.nxpickle",'rb') as fG:
@@ -303,7 +303,7 @@ def work():
             if i in list_nodes and j in list_nodes:
                 print("GOT ONE EDGE",i, j, t)
     if test == 5:
-        csv_parse("IL_29549", [(5,6)])
+        csv_parse("IL_29549.9", [(5,6)])
     if test == 6:
         csv_parse("IL_74051.1", [(7,8)])
     if test == 7:

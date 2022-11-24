@@ -1,16 +1,18 @@
 import os, glob, pickle
 #from FuzzTree_with_dist_preprocessing_and_set_weight import main
-from FuzzTree_with_dist_preprocessing import main
-#from FuzzTree import main
+#from FuzzTree_without_dist_preprocessing import main
+from FuzzTree import main
 from VarnaDrawing import print_mapping_on_target_graph
 import time
 import sys
 from multiprocessing import Process, Queue
+import networkx as nx
 
 DEBUG=1
 
 
 def first_test_mapping():
+    #TODO : to be removed for final version
     with open("rin163.pickle",'rb') as fP:
         GP = pickle.load(fP)
     #with open("RNAstorage/1Y27-1B53misslabeledCWW1falselabelCHSintoCWH.nxpickle",'rb') as fT:
@@ -30,6 +32,7 @@ def first_test_mapping():
 
 
 def first_test_varna_with_mapping():
+    #TODO : to be removed for final version
     with open("rin163.pickle",'rb') as fP:
         GP = pickle.load(fP)
     with open("RNAstorage/1Y27.nxpickle",'rb') as fT:
@@ -42,6 +45,7 @@ def first_test_varna_with_mapping():
     print_mapping_on_target_graph([], GT, mapping, output_format = "png", name_file = "rin163into1Y27")
 
 def first_test_varna_without_mapping():
+    #TODO : to be removed for final version
     with open("rin163.pickle",'rb') as fP:
         GP = pickle.load(fP)
     with open("RNAstorage/2XNZ.nxpickle", 'rb') as fT:
@@ -49,12 +53,12 @@ def first_test_varna_without_mapping():
     print_mapping_on_target_graph(GP, GT, output_format = "png", name_file = "rin163into2XNZ", E=80, B=2, A=0)
 
 
-def test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder = "RNAstorage", E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=1000, remove_near=True, timeout=800, D = 5):
+def test_graph_where_pattern_is_detected(GPpath, GTlistfolder = "RNAstorage", E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=1000, remove_near=True, timeout=800, D = 5):
     """
     Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
            - A list of RNA Target Graphs GTlist as a folder of files GTlistfolder. For each of these GT, we are looking for GP or a fuzzy version of GP in it.
            - The Fuzzy Parameters E, B, A that are respectively threshold on sum of isostericity, number of edges and sum of gap distances.
-           - maxGAPdistance, fuzzy parameter about how far we allow to look for gaps.
+           - maxGAPdistance and D, fuzzy parameter about how far we allow to look respectively for gaps and missing edges.
            - number of samples done for each searched pattern nb_samples
            - remove_near to True remove all edges labelled "near" and that are not as precise as we want.
            - As we have no return when the process fails, we put a timeout
@@ -78,13 +82,8 @@ def test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder 
 
             #We use an auxiliary process to be able to carry on even if we timeout.
             def pro(queue):
-                #try:
                 loc = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1, D = D)
                 queue.put(loc)
-                #except Exception as e:
-                #    queue.put(e)
-                #except:
-                #    return
             queue = Queue()
             p = Process(target=pro, args=(queue,), name='Process')
             timer = time.time()
@@ -107,20 +106,26 @@ def test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder 
     return resu
 
 
-def similar(mapping_ref, mapping, GT):
+def similar_mapping(mapping_ref, mapping, GT):
+    """
+    Input: - mapping_ref, the perfect mapping that we wan to compare with. 
+           - mapping, a mapping that was found in the RNA sampled by the algorithm.
+           - GT, the graph target.
+    Output: Returns 1, if the mappings are the same and 0 otherwise.
+    """
     for (i, j) in mapping:
-        t = [tt['pdb_position'] for (ii, jj, tt) in GT.edges.data() if (ii, jj) == j][0]
+        t = [tt['pdb_position'] for (jj, tt) in GT.nodes.data() if jj == j][0]
         if (i, t) not in mapping_ref:
             return 0
     return 1
 
-import networkx as nx
-def test_perfect_mapping(perfect_mapping, GPpath = "rin163.pickle", E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=10, remove_near=True, timeout=800, D = 5):
+
+def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=10, remove_near=True, timeout=800, D = 5):
     """
     Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
-           - A list of RNA Target Graphs GTlist as a folder of files GTlistfolder. For each of these GT, we are looking for GP or a fuzzy version of GP in it.
+           - A perfect_mapping that icontains the list of RNA Target Graphs, but also for each of them the "perfect mapping" that we want to find nad that is indicated in the RNA data.
            - The Fuzzy Parameters E, B, A that are respectively threshold on sum of isostericity, number of edges and sum of gap distances.
-           - maxGAPdistance, fuzzy parameter about how far we allow to look for gaps.
+           - maxGAPdistance and D, fuzzy parameter about how far we allow to look respectively for gaps and missing edges.
            - number of samples done for each searched pattern nb_samples
            - remove_near to True remove all edges labelled "near" and that are not as precise as we want.
            - As we have no return when the process fails, we put a timeout
@@ -133,7 +138,8 @@ def test_perfect_mapping(perfect_mapping, GPpath = "rin163.pickle", E=0 , B=0, A
     for (RNAname, _) in perfect_mapping:
         path_list.append(path+ RNAname + '.nxpickle')
     if DEBUG:
-        print("list of studied files", path_list)
+        print("perfect_mapping", perfect_mapping)
+        print("list of studied RNA files", path_list)
     resu = []
     for index, filename in enumerate(path_list):
         with open(filename, 'rb') as fT:
@@ -144,9 +150,9 @@ def test_perfect_mapping(perfect_mapping, GPpath = "rin163.pickle", E=0 , B=0, A
                     print("size of near removal", len(edges_to_remove))
                 for (i, j) in edges_to_remove:
                     GT.remove_edge(i, j)
-            chain = perfect_mapping[index][1][0][1][0]
-            print(chain)
-            print(len(GT.nodes.data()), len(GT.edges.data()))
+            chain = perfect_mapping[index][1][0][1][0] #We retrieve the letter of the chain as we will look only at the objective chain in order to study a smaller graph
+            if DEBUG:
+                print("nb_nodes_GT_before", len(GT.nodes.data()),"nb_edges_GT_before", len(GT.edges.data()))
             Gnew=nx.DiGraph() #Initiate the new GT graph.
             for ((i, ii),t) in GT.nodes.data():
                 if i == chain:
@@ -155,16 +161,12 @@ def test_perfect_mapping(perfect_mapping, GPpath = "rin163.pickle", E=0 , B=0, A
                 if i == chain and j == chain:
                     Gnew.add_edge((i, ii),(j, jj), label=t['label'], near=t['near'])
             GT = Gnew
-            print(len(GT.nodes.data()), len(GT.edges.data()))
+            if DEBUG:
+                print("nb_nodes_GT_after", len(GT.nodes.data()),"nb_edges_GT_after", len(GT.edges.data()))
             #We use an auxiliary process to be able to carry on even if we timeout.
             def pro(queue):
-                #try:
                 loc = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1, D = D)
                 queue.put(loc)
-                #except Exception as e:
-                #    queue.put(e)
-                #except:
-                #    return
             queue = Queue()
             p = Process(target=pro, args=(queue,), name='Process')
             timer = time.time()
@@ -179,10 +181,12 @@ def test_perfect_mapping(perfect_mapping, GPpath = "rin163.pickle", E=0 , B=0, A
                 if isinstance(mapping, Exception):
                     mapping = []
                 elif mapping:
-                    proportion = len([mapp for mapp in mapping if similar(perfect_mapping[index][1], mapp, GT) ])/len(mapping)
+                    #We compute the proportion of mappings that correspond to the "perfect mapping"
+                    proportion = len([mapp for mapp in mapping if similar_mapping(perfect_mapping[index][1], mapp, GT) ])/len(mapping)
             filename = (filename.split('/'))[-1]
             if DEBUG:
                 print("filename, proportion, time", (filename, proportion, timer))
             resu.append((filename, mapping, timer))
     return resu
 
+#TODO: add the tests here for final version

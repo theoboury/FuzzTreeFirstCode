@@ -7,6 +7,7 @@
 import json #to hash data of edges (dictionnaries)
 import pickle
 import networkx as nx
+DEBUG = 1
 
 class RIN:
     #A RIN consists in a graph and a list of "occurences" which are the RNA graphs the RIN has been found in
@@ -156,5 +157,6 @@ def import_rin(rin_number):
     name = "rin" + str(rin_number) + ".pickle"
     with open(name, 'wb') as ff:
         pickle.dump(GG, ff)
-    print(GG.nodes(data=True))
-    print(GG.edges(data=True))
+    if DEBUG:
+        print(GG.nodes(data=True))
+        print(GG.edges(data=True))

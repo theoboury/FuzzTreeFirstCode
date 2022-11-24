@@ -69,7 +69,7 @@ def draw_varna(GT, nodes_target, mapping):
     
     
 
-def print_mapping_on_target_graph(GP, GT, mapping = [], output_format = "pdf", name_file = "", show=1, E=0, B=0, A=0):
+def print_mapping_on_target_graph(GP, GT, mapping = [], output_format = "pdf", name_file = "", show=1, E=0, B=0, A=0, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5):
     """
     Input : - Two graphs, the pattern graph GP and the target graph GT. 
             - A mapping between GP and GT, if this mapping is not specified, it is calculated here.
@@ -82,9 +82,9 @@ def print_mapping_on_target_graph(GP, GT, mapping = [], output_format = "pdf", n
     nodes_target = list(GT.nodes())
     nodes_target.sort()
     if mapping == []:
-        mapping = main(GP, GT, E, B, A)
+        mapping = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D)
         mapping = [map for (map, length) in mapping if length == len(GP.nodes())]
-        mapping = mapping[0] #We take only the first result
+        mapping = mapping[0] #We take only the first result #TODO : modify to work with the proportion relatively to the perfect mapping ?
     v = draw_varna(GT, nodes_target, mapping)
     if output_format:
         if name_file == "":

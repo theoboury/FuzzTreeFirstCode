@@ -17,16 +17,17 @@ The project uses the following non-standard libraries:
 ### Files and repositories
 The project is entirely available on the current archive. 
 
-For Target RNA graphs, the used graphs were downloaded at https://uqam-my.sharepoint.com/:u:/g/personal/reinharz_vladimir_uqam_ca/Eb9rc26hI-FPgBuRH8EHR3gByiQmcgCgMu6hAdlK0-EVyA?e=R9FocY. (1.5 GB) Your recommandation is to extract them directly into the folder RNAstorage
+For Target RNA graphs, the used graphs were downloaded at https://uqam-my.sharepoint.com/:u:/g/personal/reinharz_vladimir_uqam_ca/Eb9rc26hI-FPgBuRH8EHR3gByiQmcgCgMu6hAdlK0-EVyA?e=R9FocY. (1.5 GB) Your recommandation is to extract them directly into the folder bigRNAstorage
 
 The different files are:
 * FuzzTree.py: launches the tool to search for Fuzzy Subgraph Isomorphism
+* Extractor.py to extract the RNA pattern from csv to put them in pickle format files
 * VarnaDrawing.py: contains necessary wrappers to launch Varna on graphs and their mapping.
 * TestFuzzTree.py: contains the test framework 
-* WorkingSpace.py to write and import functions to import rin, build graphs and launch some tests
+* TODO : to remove for final version -- WorkingSpace.py: to write and import functions to import rin, build graphs and launch some tests 
 
 The different folders are:
-* RNAstorage: To store the Target RNA graphs
+* bigRNAstorage mandatory to build it): To store the Target RNA graphs
 
 
 ### Get started
@@ -39,13 +40,13 @@ Make sure next that conda is activate
 conda activate fish
 ```
 
-To install the dependencies pacckage you can next type :
+To install the dependencies package you can next type :
 
 ```bash
 make dependencies
 ```
 
-You can now launch the test by using:
+You can now launch the test by using: #TODO: for now the real test is to laucn the WorkingSpace.py file directly, different tests can be done by switching the parameter "test" in entry of function work at the end of the file.
 
 ```bash
 make tests
