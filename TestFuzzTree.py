@@ -107,3 +107,82 @@ def test_graph_where_pattern_is_detected(GPpath = "rin163.pickle", GTlistfolder 
     return resu
 
 
+def similar(mapping_ref, mapping, GT):
+    for (i, j) in mapping:
+        t = [tt['pdb_position'] for (ii, jj, tt) in GT.edges.data() if (ii, jj) == j][0]
+        if (i, t) not in mapping_ref:
+            return 0
+    return 1
+
+import networkx as nx
+def test_perfect_mapping(perfect_mapping, GPpath = "rin163.pickle", E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=10, remove_near=True, timeout=800, D = 5):
+    """
+    Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
+           - A list of RNA Target Graphs GTlist as a folder of files GTlistfolder. For each of these GT, we are looking for GP or a fuzzy version of GP in it.
+           - The Fuzzy Parameters E, B, A that are respectively threshold on sum of isostericity, number of edges and sum of gap distances.
+           - maxGAPdistance, fuzzy parameter about how far we allow to look for gaps.
+           - number of samples done for each searched pattern nb_samples
+           - remove_near to True remove all edges labelled "near" and that are not as precise as we want.
+           - As we have no return when the process fails, we put a timeout
+    Output: returns a list of triplets(filename, mapping, time) with mapping, a mapping from the ones sample by the process. Left empty if no mapping where found in time.
+    """
+    with open(GPpath,'rb') as fP:
+        GP = pickle.load(fP)
+    path = os.path.abspath(os.getcwd()) + "/bigRNAstorage/"
+    path_list = []
+    for (RNAname, _) in perfect_mapping:
+        path_list.append(path+ RNAname + '.nxpickle')
+    if DEBUG:
+        print("list of studied files", path_list)
+    resu = []
+    for index, filename in enumerate(path_list):
+        with open(filename, 'rb') as fT:
+            GT = pickle.load(fT)
+            if remove_near: #We reove the near edges only if requested.
+                edges_to_remove = [(i, j) for (i, j, t) in GT.edges.data() if t['near'] == True]
+                if DEBUG:
+                    print("size of near removal", len(edges_to_remove))
+                for (i, j) in edges_to_remove:
+                    GT.remove_edge(i, j)
+            chain = perfect_mapping[index][1][0][1][0]
+            print(chain)
+            print(len(GT.nodes.data()), len(GT.edges.data()))
+            Gnew=nx.DiGraph() #Initiate the new GT graph.
+            for ((i, ii),t) in GT.nodes.data():
+                if i == chain:
+                    Gnew.add_node((i, ii), atoms = t['atoms'])
+            for ((i, ii),(j, jj),t) in GT.edges.data():
+                if i == chain and j == chain:
+                    Gnew.add_edge((i, ii),(j, jj), label=t['label'], near=t['near'])
+            GT = Gnew
+            print(len(GT.nodes.data()), len(GT.edges.data()))
+            #We use an auxiliary process to be able to carry on even if we timeout.
+            def pro(queue):
+                #try:
+                loc = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1, D = D)
+                queue.put(loc)
+                #except Exception as e:
+                #    queue.put(e)
+                #except:
+                #    return
+            queue = Queue()
+            p = Process(target=pro, args=(queue,), name='Process')
+            timer = time.time()
+            p.start()
+            p.join(timeout=timeout)
+            p.terminate()
+            timer = time.time() - timer
+            proportion = -1
+            mapping = []
+            if p.exitcode is not None:
+                mapping = queue.get()
+                if isinstance(mapping, Exception):
+                    mapping = []
+                elif mapping:
+                    proportion = len([mapp for mapp in mapping if similar(perfect_mapping[index][1], mapp, GT) ])/len(mapping)
+            filename = (filename.split('/'))[-1]
+            if DEBUG:
+                print("filename, proportion, time", (filename, proportion, timer))
+            resu.append((filename, mapping, timer))
+    return resu
+

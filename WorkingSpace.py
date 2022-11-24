@@ -1,12 +1,12 @@
-    import os, glob, pickle
-    import networkx as nx
-    from FuzzTree import main
-    from VarnaDrawing import print_mapping_on_target_graph
-    from TestFuzzTree import first_test_mapping, first_test_varna_with_mapping, first_test_varna_without_mapping, test_graph_where_pattern_is_detected
-    import time
-    from multiprocessing import Process, Queue
-    from RIN import import_rin
-    from extractor import extractor, csv_parse
+import os, glob, pickle
+import networkx as nx
+from FuzzTree import main
+from VarnaDrawing import print_mapping_on_target_graph
+from TestFuzzTree import first_test_mapping, first_test_varna_with_mapping, first_test_varna_without_mapping, test_graph_where_pattern_is_detected, test_perfect_mapping
+import time
+from multiprocessing import Process, Queue
+from RIN import import_rin
+from extractor import extractor, csv_parse
 
     #name="1Y27-1B53misslabeledCWW1edgesmissing1falselabelCHSintoCWH.nxpickle"
     #with open("1Y27.nxpickle",'rb') as fG:
@@ -168,8 +168,8 @@
     #test_graph_where_pattern_is_detected(GPpath = "kinkturnpattern/IL_4WF9_046.pickle", GTlistfolder = "kinkturntarget", E=0 , B=5, A=0, maxGAPdistance=3, nb_samples=100, remove_near=True,timeout = 300, D = 5)# timeout=800)
 
     #Optimal parameter above E = 0, B = 4, A = 0, D = 5 car D = 3 n'est pas suffisant
-
-    test = 5
+def work():
+    test = 11
     if test == 1:
     #-----ETAPE 1------ 2 kink turns similaires a GAP près IL_4LCK_006 et IL_5XTM_007 respectivement dans les familles IL_51265.1 et IL_74051.1 
 
@@ -346,10 +346,14 @@
         (8, ('V', 18))]
 
         print_mapping_on_target_graph([], GT, mapping = mapping, output_format = "png", name_file = "IL_68780.2into4BW05intoIL_68057.1into3Q3Z")
-
+    if test == 11:
+        perfect_mapping = csv_parse("IL_29549.9", [(5,6)])
+        print("perfect mapping", perfect_mapping)
+        test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/7IL_29549.9into6UFG.pickle", E=0 , B=0, A=0, maxGAPdistance = 0, nb_samples=10, remove_near=True, timeout=800, D = 5)
 
     #REMARQUES :
 
     #DANS IL_74051.1 : on a un 5-9  qui devient un 5 - 11 sorte de gap mais pas vraiment ? Il faudrait pouvoir replier deux nucléotides sr un même nucléotide ?
 
     #Il n'y a aucun kink turn où un label change au sein de la famille
+work()
