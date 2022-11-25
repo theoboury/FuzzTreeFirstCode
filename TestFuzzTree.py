@@ -114,10 +114,10 @@ def similar_mapping(mapping_ref, mapping, GT):
     Output: Returns 1, if the mappings are the same and 0 otherwise.
     """
     mapping = mapping[0]
-    print("mapping_ref, mapping",mapping_ref, mapping)
+    #print("mapping_ref, mapping",mapping_ref, mapping)
     for (i, j) in mapping:
         ii,t = [(ii, tt['pdb_position']) for ((ii,jj), tt) in GT.nodes.data() if (ii,jj) == j][0]
-        print('i, t', i, t)
+        #print('i, t', i, t)
         if (i, (ii, t)) not in mapping_ref:
             return 0
     return 1
@@ -153,15 +153,19 @@ def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance
                     print("size of near removal", len(edges_to_remove))
                 for (i, j) in edges_to_remove:
                     GT.remove_edge(i, j)
-            chain = perfect_mapping[index][1][0][1][0] #We retrieve the letter of the chain as we will look only at the objective chain in order to study a smaller graph
+            chains = []
+            for mappinger in perfect_mapping[index][1]:
+                if mappinger[1][0] not in chains:
+                    chains += mappinger[1][0] #We retrieve the letter of the chain as we will look only at the objective chain in order to study a smaller graph
+            print("chains", chains)
             if DEBUG:
                 print("nb_nodes_GT_before", len(GT.nodes.data()),"nb_edges_GT_before", len(GT.edges.data()))
             Gnew=nx.DiGraph() #Initiate the new GT graph.
             for ((i, ii),t) in GT.nodes.data():
-                if i == chain:
+                if i in chains:
                     Gnew.add_node((i, ii), pdb_position = t['pdb_position'], atoms = t['atoms'])
             for ((i, ii),(j, jj),t) in GT.edges.data():
-                if i == chain and j == chain:
+                if i in chains and j in chains:
                     Gnew.add_edge((i, ii),(j, jj), label=t['label'], near=t['near'])
             GT = Gnew
             if DEBUG:

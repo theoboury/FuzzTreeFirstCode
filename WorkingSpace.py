@@ -349,9 +349,10 @@ def work(test = 10):
         perfect_mapping = csv_parse("IL_29549.9", [(5,6)])
         csv_parse("IL_68780.2", [(5,6)])
         print("perfect mapping", perfect_mapping)
+        perfect_mapping = [perfect_mapping[3]]
         #test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/7IL_29549.9into6UFG.pickle", E=0 , B=0, A=0, maxGAPdistance = 0, nb_samples=10, remove_near=True, timeout=800, D = 5)
         test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/0IL_68780.2into4BW0.pickle", E=0 , B=4, A=5, maxGAPdistance = 7, nb_samples=100, remove_near=True, timeout=3600, D = 5)
-
+    #LE MAPPING EN 1T0K implique une chaine D !!!!!
     #REMARQUES :
 
     #DANS IL_74051.1 : on a un 5-9  qui devient un 5 - 11 sorte de gap mais pas vraiment ? Il faudrait pouvoir replier deux nucléotides sr un même nucléotide ?
