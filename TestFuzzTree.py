@@ -113,9 +113,12 @@ def similar_mapping(mapping_ref, mapping, GT):
            - GT, the graph target.
     Output: Returns 1, if the mappings are the same and 0 otherwise.
     """
+    mapping = mapping[0]
+    print("mapping_ref, mapping",mapping_ref, mapping)
     for (i, j) in mapping:
-        t = [tt['pdb_position'] for (jj, tt) in GT.nodes.data() if jj == j][0]
-        if (i, t) not in mapping_ref:
+        ii,t = [(ii, tt['pdb_position']) for ((ii,jj), tt) in GT.nodes.data() if (ii,jj) == j][0]
+        print('i, t', i, t)
+        if (i, (ii, t)) not in mapping_ref:
             return 0
     return 1
 
@@ -156,7 +159,7 @@ def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance
             Gnew=nx.DiGraph() #Initiate the new GT graph.
             for ((i, ii),t) in GT.nodes.data():
                 if i == chain:
-                    Gnew.add_node((i, ii), atoms = t['atoms'])
+                    Gnew.add_node((i, ii), pdb_position = t['pdb_position'], atoms = t['atoms'])
             for ((i, ii),(j, jj),t) in GT.edges.data():
                 if i == chain and j == chain:
                     Gnew.add_edge((i, ii),(j, jj), label=t['label'], near=t['near'])
@@ -182,6 +185,7 @@ def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance
                     mapping = []
                 elif mapping:
                     #We compute the proportion of mappings that correspond to the "perfect mapping"
+                    print('mapping_first', mapping[0])
                     proportion = len([mapp for mapp in mapping if similar_mapping(perfect_mapping[index][1], mapp, GT) ])/len(mapping)
             filename = (filename.split('/'))[-1]
             if DEBUG:
