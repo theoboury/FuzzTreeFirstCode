@@ -349,13 +349,17 @@ def work(test = 10):
         perfect_mapping = csv_parse("IL_29549.9", [(5,6)])
         csv_parse("IL_68780.2", [(5,6)])
         print("perfect mapping", perfect_mapping)
-        perfect_mapping = [perfect_mapping[3]]
+        perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] == '5Y7M']
         #test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/7IL_29549.9into6UFG.pickle", E=0 , B=0, A=0, maxGAPdistance = 0, nb_samples=10, remove_near=True, timeout=800, D = 5)
-        test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/0IL_68780.2into4BW0.pickle", E=0 , B=4, A=5, maxGAPdistance = 7, nb_samples=100, remove_near=True, timeout=3600, D = 5)
+        test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/0IL_68780.2into4BW0.pickle", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=3600, D = 5)
     #LE MAPPING EN 1T0K implique une chaine D !!!!!
     #REMARQUES :
 
     #DANS IL_74051.1 : on a un 5-9  qui devient un 5 - 11 sorte de gap mais pas vraiment ? Il faudrait pouvoir replier deux nucléotides sr un même nucléotide ?
 
+#nb_nodes_GT_before 102 nb_edges_GT_before 172
+#nb_nodes_GT_after 51 nb_edges_GT_after 85
+#mapping_first ([(1, ('D', 29)), (2, ('D', 30)), (12, ('D', 22)), (3, ('D', 31)), (11, ('D', 21)), (4, ('D', 32)), (10, ('D', 20)), (5, ('D', 34)), (9, ('D', 17)), (6, ('D', 14)), (7, ('D', 15)), (8, ('D', 16))], 12)
+#filename, proportion, time ('5Y7M.nxpickle', 0.0, 12.564391613006592)
     #Il n'y a aucun kink turn où un label change au sein de la famille
 work(test = 11)
