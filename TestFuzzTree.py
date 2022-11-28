@@ -155,6 +155,7 @@ def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance
                     GT.remove_edge(i, j)
             chains = []
             for mappinger in perfect_mapping[index][1]:
+                print("chain_pre", cha, num)
                 (cha, num) = mappinger[1]
                 if cha not in chains:
                     chains += cha #We retrieve the letter of the chain as we will look only at the objective chain in order to study a smaller graph
