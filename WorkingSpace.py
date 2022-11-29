@@ -2,12 +2,12 @@ import os, glob, pickle
 import networkx as nx
 from FuzzTree import main
 from VarnaDrawing import print_mapping_on_target_graph
-from TestFuzzTree import first_test_mapping, first_test_varna_with_mapping, first_test_varna_without_mapping, test_graph_where_pattern_is_detected, test_perfect_mapping
+from TestFuzzTree import first_test_mapping, first_test_varna_with_mapping, first_test_varna_without_mapping, test_graph_where_pattern_is_detected, test_perfect_mapping, test_perfect_mapping_multiprocess
 import time
 from multiprocessing import Process, Queue
 from RIN import import_rin
 from Extractor import extractor, csv_parse
-
+from TestFuzzTree import bar_graph
     #name="1Y27-1B53misslabeledCWW1edgesmissing1falselabelCHSintoCWH.nxpickle"
     #with open("1Y27.nxpickle",'rb') as fG:
         #GG = pickle.load(fG)
@@ -353,6 +353,7 @@ def work(test = 10):
         print(len(perfect_mapping))
         #test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/7IL_29549.9into6UFG.pickle", E=0 , B=0, A=0, maxGAPdistance = 0, nb_samples=10, remove_near=True, timeout=800, D = 5)
         test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/0IL_68780.2into4BW0.pickle", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=3600, D = 5)
+            #TODO : do the same test with reduced gap allowed maxGap = 7 and A = 10 for instance and see if we mis some specific instances. 
     #LE MAPPING EN 1T0K implique une chaine D !!!!!
     #REMARQUES :
 
@@ -363,4 +364,60 @@ def work(test = 10):
 #mapping_first ([(1, ('D', 29)), (2, ('D', 30)), (12, ('D', 22)), (3, ('D', 31)), (11, ('D', 21)), (4, ('D', 32)), (10, ('D', 20)), (5, ('D', 34)), (9, ('D', 17)), (6, ('D', 14)), (7, ('D', 15)), (8, ('D', 16))], 12)
 #filename, proportion, time ('5Y7M.nxpickle', 0.0, 12.564391613006592)
     #Il n'y a aucun kink turn où un label change au sein de la famille
-work(test = 11)
+    if test == 12:
+        #IN REALITY WE CAN DIRECTLY OBTAINED RESU AS THE RESULTS FROM test_perfect_mapping 
+        resu = [('6UFM.nxpickle', 0.88, 527.328111410141), ('4GXY.nxpickle', 0.95, 1999.8474061489105),('7RQB.nxpickle', -1, 0.08730363845825195), ('1T0K.nxpickle', 0.58, 13.746737957000732), ('4V9F.nxpickle', -1, 3600.0996148586273), ('4AOB.nxpickle', 0.8, 312.53955245018005), ('6UFH.nxpickle', 0.95, 2243.756167411804)
+        , ('6UFG.nxpickle', 0.9, 2067.5632150173187), ('5Y7M.nxpickle', 0.0, 37.807730197906494), ('7A0S.nxpickle', -1, 3600.1246066093445), ('5G4U.nxpickle', 0.33, 24.88226819038391), ('4KQY.nxpickle', 0.76, 797.4127531051636), ('4V88.nxpickle', -1, 0.05709958076477051)
+        , ('5G4T.nxpickle', 0.16, 4.063181400299072), ('5G4U.nxpickle', 0.32, 36.06558680534363),('5FJC.nxpickle', 0.08, 100.25284171104431), ('4C4W.nxpickle', 0.64, 31.49244499206543), ('4WF9.nxpickle', -1, 3600.0999608039856), ('3V7E.nxpickle', 0.89, 847.1687686443329), ('5TBW.nxpickle', -1, 3600.1048793792725) ,
+        ('7RQB.nxpickle', -1, 0.09167170524597168), ('5J7L.nxpickle', -1, 0.08423399925231934), ('4V9F.nxpickle', -1, 3600.122519016266), ('7A0S.nxpickle', -1, 3600.1033158302307),  ('4V9F.nxpickle', -1, 3600.1037492752075), ('4WF9.nxpickle', -1, 3600.112297773361), ('4LFB.nxpickle', -1, 3600.101831674576), ('6CZR.nxpickle', -1, 0.06897544860839844)
+        , ('3RW6.nxpickle', 0.35, 77.90302109718323), ('5J7L.nxpickle', -1, 0.06272149085998535), ('4V88.nxpickle', -1, 0.061377763748168945)]
+        print(len(resu))
+        #fatal_list = ['5Y7M', '7RQB', '4V88', '5J7L', '6CZR', '5J7L', '4V88']
+        resu1 = resu[:10] #[(i,j,k) for (i, j, k) in resu[:14] if i[:4] not in fatal_list]
+        resu2 = resu[10:20] #[(i,j,k) for (i, j, k) in resu[14:] if i[:4] not in fatal_list]
+        resu3 = resu[20:]
+        bar_graph(resu1, "0IL_68780.2into4BW0--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
+        bar_graph(resu2, "0IL_68780.2into4BW0--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
+        bar_graph(resu3, "0IL_68780.2into4BW0--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
+    if test == 13:
+        csv_parse("IL_68780.2", [(5,6)])
+        perfect_mapping = csv_parse("IL_68057.1", [(7,8)])
+        print(len(perfect_mapping))
+        #resu = test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/0IL_68780.2into4BW0.pickle", E=13, B=2, A=20, maxGAPdistance=10, nb_samples=100, remove_near=True,timeout = 50, D = 5)
+        #ABOVE WHAT IS MANDATORY IN RESU(not known about gaps)
+        motifs_mapping=[(1,8), (2,9), (3, 10), (4, 11), (5, 12), (6, 1), (7, 2), (8, 3), (9, 4), (10, 5), (11, 6), (12, 7)]
+        resu = test_perfect_mapping_multiprocess(perfect_mapping, GPpath = "ALLkinkturnpattern/0IL_68780.2into4BW0.pickle", E=13, B=0, A=10, maxGAPdistance=7, nb_samples=100, remove_near=True,timeout = 50, D = 5, motifs_mapping=motifs_mapping)
+        #with 10000 samples does not converge
+        print(resu)
+        bar_graph(resu, "0IL_68780.2into4BW0--familyIL_68057.1\nE=13, B=2, A=20, maxGAPdistance=10, nb_samples=100, timeout = 3600, D = 5")
+    if test == 14:
+        perfect_mapping = csv_parse("IL_29549.9", [(5,6)])
+        print("perfect mapping", perfect_mapping)
+        #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['5Y7M', '7RQB', '4V88', '5J7L', '6CZR', '5J7L', '4V88']]
+        print(len(perfect_mapping))
+        #test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/7IL_29549.9into6UFG.pickle", E=0 , B=0, A=0, maxGAPdistance = 0, nb_samples=10, remove_near=True, timeout=800, D = 5)
+        resu = test_perfect_mapping_multiprocess(perfect_mapping, GPpath = "ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=3600, D = 5)
+        print(resu)
+        bar_graph(resu, "22IL_29549.9into5J7L--familyIL_68057.1\nE=0, B=4, A=20, maxGAPdistance=10, nb_samples=100, timeout = 3600, D = 5")
+#list of studied RNA files ['/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3NVI.nxpickle', '/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3NMU.nxpickle', '/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3Q3Z.nxpickle']
+#size of near removal 0
+#chains ['F']
+#nb_nodes_GT_before 48 nb_edges_GT_before 78
+#nb_nodes_GT_after 24 nb_edges_GT_after 39
+#mapping_first ([(1, ('F', 3)), (2, ('F', 4)), (12, ('F', 21)), (3, ('F', 5)), (11, ('F', 20)), (4, ('F', 6)), (10, ('F', 19)), (5, ('F', 7)), (9, ('F', 18)), (6, ('F', 14)), (7, ('F', 15)), (8, ('F', 16))], 12)
+#filename, proportion, time ('3NVI.nxpickle', 0.0, 1.468977928161621)
+#size of near removal 0
+#chains ['E']
+#nb_nodes_GT_before 94 nb_edges_GT_before 134
+#nb_nodes_GT_after 34 nb_edges_GT_after 47
+#"mapping_first ([(1, ('E', 13)), (2, ('E', 14)), (12, ('E', 31)), (3, ('E', 15)), (11, ('E', 30)), (4, ('E', 16)), (10, ('E', 29)), (5, ('E', 17)), (9, ('E', 28)), (6, ('E', 24)), (7, ('E', 25)), (8, ('E', 26))], 12)
+#filename, proportion, time ('3NMU.nxpickle', 0.0, 2.7047994136810303)
+#size of near removal 0
+#chains ['V']
+#nb_nodes_GT_before 150 nb_edges_GT_before 280
+#nb_nodes_GT_after 75 nb_edges_GT_after 139
+#mapping_first ([(1, ('V', 47)), (2, ('V', 49)), (12, ('V', 18)), (3, ('V', 50)), (11, ('V', 16)), (4, ('V', 51)), (10, ('V', 15)), (5, ('V', 52)), (9, ('V', 14)), (6, ('V', 10)), (7, ('V', 11)), (8, ('V', 12))], 12)
+#filename, proportion, time ('3Q3Z.nxpickle', 0.0, 16.299317836761475)
+#[('3NVI.nxpickle', 0.0, 1.468977928161621), ('3NMU.nxpickle', 0.0, 2.7047994136810303), ('3Q3Z.nxpickle', 0.0, 16.299317836761475)]
+work(test = 14)
+

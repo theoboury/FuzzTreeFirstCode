@@ -5,8 +5,11 @@ from FuzzTree import main
 from VarnaDrawing import print_mapping_on_target_graph
 import time
 import sys
-from multiprocessing import Process, Queue
+from multiprocessing import Pool, Process, Queue
 import networkx as nx
+import matplotlib.pyplot as plt
+import func_timeout
+NB_PROCS = 32
 
 DEBUG=1
 
@@ -123,7 +126,7 @@ def similar_mapping(mapping_ref, mapping, GT):
     return 1
 
 
-def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=10, remove_near=True, timeout=800, D = 5):
+def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=10, remove_near=True, timeout=800, D = 5, motifs_mapping = []):
     """
     Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
            - A perfect_mapping that icontains the list of RNA Target Graphs, but also for each of them the "perfect mapping" that we want to find nad that is indicated in the RNA data.
@@ -191,11 +194,147 @@ def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance
                 elif mapping:
                     #We compute the proportion of mappings that correspond to the "perfect mapping"
                     print('mapping_first', mapping[0])
-                    proportion = len([mapp for mapp in mapping if similar_mapping(perfect_mapping[index][1], mapp, GT) ])/len(mapping)
+
+                    if motifs_mapping:
+                        local_mapping = []
+                        new_motifs_mapping = [-1 for i in range(len(motifs_mapping) + 1)]
+                        for (k, l) in motifs_mapping:
+                            new_motifs_mapping[l] = k
+                        pre_local_mapping = perfect_mapping[index][1]
+                        for (num, stay) in pre_local_mapping:
+                            local_mapping.append((new_motifs_mapping[num], stay))
+                    else:
+                        local_mapping = perfect_mapping[index][1]
+                    print("local", local_mapping)
+                    proportion = len([mapp for mapp in mapping if similar_mapping(local_mapping, mapp, GT) ])/len(mapping)
             filename = (filename.split('/'))[-1]
             if DEBUG:
                 print("filename, proportion, time", (filename, proportion, timer))
-            resu.append((filename, mapping, timer))
+            resu.append((filename, proportion, timer)) #, mapping
     return resu
 
+def newmain(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_perfect_mapping_index_filename):
+    (GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, perfect_mapping, index, filename) = GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_perfect_mapping_index_filename
+    def pro():
+        return main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1, D = D)
+    timer = time.time()
+    try:
+        mapping = func_timeout.func_timeout(timeout, pro)
+    except func_timeout.FunctionTimeOut:
+        mapping = []
+    timer = time.time() - timer
+    if isinstance(mapping, Exception):
+        mapping = []
+    elif mapping:
+        #We compute the proportion of mappings that correspond to the "perfect mapping"
+        print('mapping_first', mapping[0])
+
+        if motifs_mapping:
+            local_mapping = []
+            new_motifs_mapping = [-1 for i in range(len(motifs_mapping) + 1)]
+            for (k, l) in motifs_mapping:
+                new_motifs_mapping[l] = k
+            pre_local_mapping = perfect_mapping[index][1]
+            for (num, stay) in pre_local_mapping:
+                local_mapping.append((new_motifs_mapping[num], stay))
+        else:
+            local_mapping = perfect_mapping[index][1]
+        print("local", local_mapping)
+        proportion = len([mapp for mapp in mapping if similar_mapping(local_mapping, mapp, GT) ])/len(mapping)
+    filename = (filename.split('/'))[-1]
+    if DEBUG:
+        print("filename, proportion, time", (filename, proportion, timer))
+    return (filename, proportion, timer)
+def test_perfect_mapping_multiprocess(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=10, remove_near=True, timeout=800, D = 5, motifs_mapping = []):
+    """
+    Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
+           - A perfect_mapping that icontains the list of RNA Target Graphs, but also for each of them the "perfect mapping" that we want to find nad that is indicated in the RNA data.
+           - The Fuzzy Parameters E, B, A that are respectively threshold on sum of isostericity, number of edges and sum of gap distances.
+           - maxGAPdistance and D, fuzzy parameter about how far we allow to look respectively for gaps and missing edges.
+           - number of samples done for each searched pattern nb_samples
+           - remove_near to True remove all edges labelled "near" and that are not as precise as we want.
+           - As we have no return when the process fails, we put a timeout
+    Output: returns a list of triplets(filename, mapping, time) with mapping, a mapping from the ones sample by the process. Left empty if no mapping where found in time.
+    """
+    with open(GPpath,'rb') as fP:
+        GP = pickle.load(fP)
+    path = os.path.abspath(os.getcwd()) + "/bigRNAstorage/"
+    path_list = []
+    for (RNAname, _) in perfect_mapping:
+        path_list.append(path+ RNAname + '.nxpickle')
+    if DEBUG:
+        print("perfect_mapping", perfect_mapping)
+        print("list of studied RNA files", path_list)
+    resu = []
+    entry = []
+    
+    for index, filename in enumerate(path_list):
+        with open(filename, 'rb') as fT:
+            GT = pickle.load(fT)
+            if remove_near: #We reove the near edges only if requested.
+                edges_to_remove = [(i, j) for (i, j, t) in GT.edges.data() if t['near'] == True]
+                if DEBUG:
+                    print("size of near removal", len(edges_to_remove))
+                for (i, j) in edges_to_remove:
+                    GT.remove_edge(i, j)
+            chains = []
+            for mappinger in perfect_mapping[index][1]:
+                (cha, num) = mappinger[1]
+                if cha not in chains:
+                    chains.append(cha) #We retrieve the letter of the chain as we will look only at the objective chain in order to study a smaller graph
+            print("chains", chains)
+            if DEBUG:
+                print("nb_nodes_GT_before", len(GT.nodes.data()),"nb_edges_GT_before", len(GT.edges.data()))
+            Gnew=nx.DiGraph() #Initiate the new GT graph.
+            for ((i, ii),t) in GT.nodes.data():
+                if i in chains:
+                    Gnew.add_node((i, ii), pdb_position = t['pdb_position'], atoms = t['atoms'])
+            for ((i, ii),(j, jj),t) in GT.edges.data():
+                if i in chains and j in chains:
+                    Gnew.add_edge((i, ii),(j, jj), label=t['label'], near=t['near'])
+            GT = Gnew
+            if DEBUG:
+                print("nb_nodes_GT_after", len(GT.nodes.data()),"nb_edges_GT_after", len(GT.edges.data()))
+            #We use an auxiliary process to be able to carry on even if we timeout.
+            entry.append((GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, perfect_mapping, index, filename))
+            with Pool(NB_PROCS) as pool:
+                resu = list(pool.imap_unordered(newmain, entry))
+            print(resu)
+    return resu
 #TODO: add the tests here for final version
+
+def bar_graph(resu, title, bar_length = 0.3):
+    """
+    Input: - resu, the list of triplets (filename, proportion, time) obtained during the test.
+           - title, a title for the plot.
+           - bar_length, size of bar drawn.
+    Output: returns a bar plot for the proportion and the time for each RNA studied during the tests.
+    """
+    y1 = []
+    y2 = []
+    graph_names = []
+    for (name, proportion, time) in resu:
+        y1.append(max(0, proportion))
+        y2.append(time)
+        graph_names.append(name[:-9])
+
+    x1 = range(len(y1)) 
+
+    x2 = [i + bar_length for i in x1]
+
+
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+
+    ax1.set_ylabel('Proportion of "perfect" mapping', color='orange')
+    ax1.set(ylim=(0, 1))
+    ax2.set_ylabel('Time', color='blue')
+    ax1.bar(x1, y1, width = bar_length, color = 'orange', edgecolor = 'black', linewidth = 2)
+    ax2.bar(x2, y2, width = bar_length, color = 'blue', edgecolor = 'black', linewidth = 2, log = True)
+    ax1.set_facecolor(color='white')
+    ax2.set_facecolor(color='white')
+    fig.set_facecolor(color='white')
+    plt.xticks([r + bar_length / 2 for r in range(len(y1))], graph_names)
+    plt.title(title)
+    plt.show()
+
