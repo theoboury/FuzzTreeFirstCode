@@ -213,14 +213,15 @@ def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance
             resu.append((filename, proportion, timer)) #, mapping
     return resu
 
-def newmain(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_perfect_mapping_index_filename):
-    (GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, perfect_mapping, index, filename) = GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_perfect_mapping_index_filename
+def newmain(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_perfect_mapping_index_filename_chain_entry):
+    (GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, perfect_mapping, index, filename, chain_entry) = GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_perfect_mapping_index_filename_chain_entry
+    proportion = -1
     def pro():
         return main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1, D = D)
     timer = time.time()
     try:
         mapping = func_timeout.func_timeout(timeout, pro)
-    except func_timeout.FunctionTimeOut:
+    except func_timeout.FunctionTimedOut:
         mapping = []
     timer = time.time() - timer
     if isinstance(mapping, Exception):
@@ -243,8 +244,8 @@ def newmain(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_perfe
         proportion = len([mapp for mapp in mapping if similar_mapping(local_mapping, mapp, GT) ])/len(mapping)
     filename = (filename.split('/'))[-1]
     if DEBUG:
-        print("filename, proportion, time", (filename, proportion, timer))
-    return (filename, proportion, timer)
+        print("filename, proportion, time", (filename[:-9] + chain_entry, proportion, timer))
+    return (filename[:-9] + chain_entry, proportion, timer, mapping)
 def test_perfect_mapping_multiprocess(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=10, remove_near=True, timeout=800, D = 5, motifs_mapping = []):
     """
     Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
@@ -296,11 +297,19 @@ def test_perfect_mapping_multiprocess(perfect_mapping, GPpath, E=0 , B=0, A=0, m
             if DEBUG:
                 print("nb_nodes_GT_after", len(GT.nodes.data()),"nb_edges_GT_after", len(GT.edges.data()))
             #We use an auxiliary process to be able to carry on even if we timeout.
-            entry.append((GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, perfect_mapping, index, filename))
-            with Pool(NB_PROCS) as pool:
-                resu = list(pool.imap_unordered(newmain, entry))
-            print(resu)
-    return resu
+            chain_entry = ""
+            for c in chains:
+                chain_entry+= ',' + c 
+            entry.append((GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, perfect_mapping, index, filename,chain_entry))
+    with Pool(NB_PROCS) as pool:
+        resu = list(pool.imap_unordered(newmain, entry))
+    allresu = []
+    allmapping = []
+    for (namer, proportion, timer, mapping) in resu:
+        allresu.append((namer, proportion, timer))
+        allmapping.append((namer, mapping))
+    print(allresu)
+    return allresu, allmapping
 #TODO: add the tests here for final version
 
 def bar_graph(resu, title, bar_length = 0.3):
@@ -310,13 +319,14 @@ def bar_graph(resu, title, bar_length = 0.3):
            - bar_length, size of bar drawn.
     Output: returns a bar plot for the proportion and the time for each RNA studied during the tests.
     """
+    plt.rc('xtick', labelsize=7)
     y1 = []
     y2 = []
     graph_names = []
     for (name, proportion, time) in resu:
         y1.append(max(0, proportion))
         y2.append(time)
-        graph_names.append(name[:-9])
+        graph_names.append(name)
 
     x1 = range(len(y1)) 
 
@@ -333,6 +343,7 @@ def bar_graph(resu, title, bar_length = 0.3):
     ax2.bar(x2, y2, width = bar_length, color = 'blue', edgecolor = 'black', linewidth = 2, log = True)
     ax1.set_facecolor(color='white')
     ax2.set_facecolor(color='white')
+        # fontsize of the x and y labels
     fig.set_facecolor(color='white')
     plt.xticks([r + bar_length / 2 for r in range(len(y1))], graph_names)
     plt.title(title)

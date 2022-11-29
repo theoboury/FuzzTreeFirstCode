@@ -386,7 +386,7 @@ def work(test = 10):
         #resu = test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/0IL_68780.2into4BW0.pickle", E=13, B=2, A=20, maxGAPdistance=10, nb_samples=100, remove_near=True,timeout = 50, D = 5)
         #ABOVE WHAT IS MANDATORY IN RESU(not known about gaps)
         motifs_mapping=[(1,8), (2,9), (3, 10), (4, 11), (5, 12), (6, 1), (7, 2), (8, 3), (9, 4), (10, 5), (11, 6), (12, 7)]
-        resu = test_perfect_mapping_multiprocess(perfect_mapping, GPpath = "ALLkinkturnpattern/0IL_68780.2into4BW0.pickle", E=13, B=0, A=10, maxGAPdistance=7, nb_samples=100, remove_near=True,timeout = 50, D = 5, motifs_mapping=motifs_mapping)
+        resu, mapping = test_perfect_mapping_multiprocess(perfect_mapping, GPpath = "ALLkinkturnpattern/0IL_68780.2into4BW0.pickle", E=13, B=0, A=10, maxGAPdistance=7, nb_samples=100, remove_near=True,timeout = 50, D = 5, motifs_mapping=motifs_mapping)
         #with 10000 samples does not converge
         print(resu)
         bar_graph(resu, "0IL_68780.2into4BW0--familyIL_68057.1\nE=13, B=2, A=20, maxGAPdistance=10, nb_samples=100, timeout = 3600, D = 5")
@@ -396,9 +396,17 @@ def work(test = 10):
         #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['5Y7M', '7RQB', '4V88', '5J7L', '6CZR', '5J7L', '4V88']]
         print(len(perfect_mapping))
         #test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/7IL_29549.9into6UFG.pickle", E=0 , B=0, A=0, maxGAPdistance = 0, nb_samples=10, remove_near=True, timeout=800, D = 5)
-        resu = test_perfect_mapping_multiprocess(perfect_mapping, GPpath = "ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=3600, D = 5)
-        print(resu)
-        bar_graph(resu, "22IL_29549.9into5J7L--familyIL_68057.1\nE=0, B=4, A=20, maxGAPdistance=10, nb_samples=100, timeout = 3600, D = 5")
+        resu, mapping = test_perfect_mapping_multiprocess(perfect_mapping, GPpath = "ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=3600, D = 5)
+        print("resu", resu)
+        print("mapping", mapping)
+    if test == 15:
+        resu = []
+        resu1 = resu[:10] #[(i,j,k) for (i, j, k) in resu[:14] if i[:4] not in fatal_list]
+        resu2 = resu[10:20] #[(i,j,k) for (i, j, k) in resu[14:] if i[:4] not in fatal_list]
+        resu3 = resu[20:]
+        bar_graph(resu1, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
+        bar_graph(resu2, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
+        bar_graph(resu3, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
 #list of studied RNA files ['/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3NVI.nxpickle', '/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3NMU.nxpickle', '/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3Q3Z.nxpickle']
 #size of near removal 0
 #chains ['F']
