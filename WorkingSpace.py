@@ -396,11 +396,11 @@ def work(test = 10):
         #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['5Y7M', '7RQB', '4V88', '5J7L', '6CZR', '5J7L', '4V88']]
         print(len(perfect_mapping))
         #test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/7IL_29549.9into6UFG.pickle", E=0 , B=0, A=0, maxGAPdistance = 0, nb_samples=10, remove_near=True, timeout=800, D = 5)
-        resu, mapping = test_perfect_mapping_multiprocess(perfect_mapping, GPpath = "ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=3600, D = 5)
+        resu, mapping = test_perfect_mapping_multiprocess(perfect_mapping, GPpath = "ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=3600 *12, D = 5)
         print("resu", resu)
         print("mapping", mapping)
     if test == 15:
-        resu = []
+        resu = [('5G4T,B,A', 0.13, 5.378903388977051), ('1T0K,C,D', 0.67, 19.369725704193115), ('4C4W,H', 0.63, 44.13654041290283), ('5G4U,J,I', 0.26, 58.97392225265503), ('5Y7M,D', 0.0, 63.21999931335449), ('5G4U,I,J', 0.31, 63.92445158958435), ('3U4M,B', 0.08, 112.59432363510132), ('5FJC,A', 0.08, 166.35041213035583), ('3RW6,H', 0.33, 162.470632314682), ('4AOB,A', 0.79, 488.4759957790375), ('6UFM,B', 0.85, 693.7601215839386), ('4KQY,A', 0.78, 1088.923911333084), ('3V7E,C', 0.94, 1262.6511182785034), ('6UFG,A', 0.93, 2970.834854364395), ('6UFH,A', 0.95, 3161.3698856830597), ('4GXY,A', 0.93, 3207.8569464683533), ('4V88,A6', -1, 3600.1291987895966), ('7RQB,1A', -1, 3600.125324487686), ('4V9F,0', -1, 3600.143296480179), ('7A0S,X', -1, 3600.148289680481), ('4WF9,X', -1, 3600.145581483841), ('5TBW,1', -1, 3600.1269764900208), ('7RQB,1A', -1, 3600.097424507141), ('5J7L,DA', -1, 3600.1047308444977), ('4V9F,0', -1, 3600.146371603012), ('4LFB,A', -1, 3600.155631542206), ('6CZR,1a', -1, 3600.2748243808746), ('7A0S,X', -1, 3600.1278727054596), ('5J7L,AA', -1, 3600.103734254837), ('4V88,A6', -1, 3600.169770717621), ('4V9F,0', -1, 3600.103699207306), ('4WF9,X', -1, 3600.157623052597)]
         resu1 = resu[:10] #[(i,j,k) for (i, j, k) in resu[:14] if i[:4] not in fatal_list]
         resu2 = resu[10:20] #[(i,j,k) for (i, j, k) in resu[14:] if i[:4] not in fatal_list]
         resu3 = resu[20:]
@@ -427,5 +427,5 @@ def work(test = 10):
 #mapping_first ([(1, ('V', 47)), (2, ('V', 49)), (12, ('V', 18)), (3, ('V', 50)), (11, ('V', 16)), (4, ('V', 51)), (10, ('V', 15)), (5, ('V', 52)), (9, ('V', 14)), (6, ('V', 10)), (7, ('V', 11)), (8, ('V', 12))], 12)
 #filename, proportion, time ('3Q3Z.nxpickle', 0.0, 16.299317836761475)
 #[('3NVI.nxpickle', 0.0, 1.468977928161621), ('3NMU.nxpickle', 0.0, 2.7047994136810303), ('3Q3Z.nxpickle', 0.0, 16.299317836761475)]
-work(test = 14)
+work(test = 15)
 
