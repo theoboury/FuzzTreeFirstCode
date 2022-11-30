@@ -2,12 +2,12 @@ import os, glob, pickle
 import networkx as nx
 from FuzzTree import main
 from VarnaDrawing import print_mapping_on_target_graph
-from TestFuzzTree import first_test_mapping, first_test_varna_with_mapping, first_test_varna_without_mapping, test_graph_where_pattern_is_detected, test_perfect_mapping, test_perfect_mapping_multiprocess
+from TestFuzzTree import first_test_mapping, first_test_varna_with_mapping, first_test_varna_without_mapping, test_graph_where_pattern_is_detected, test_perfect_mapping, test_perfect_mapping_multiprocess,test_perfect_mapping_multiprocess_multiple_occurences
 import time
 from multiprocessing import Process, Queue
 from RIN import import_rin
 from Extractor import extractor, csv_parse
-from TestFuzzTree import bar_graph
+from TestFuzzTree import bar_graph, bar_graph2
     #name="1Y27-1B53misslabeledCWW1edgesmissing1falselabelCHSintoCWH.nxpickle"
     #with open("1Y27.nxpickle",'rb') as fG:
         #GG = pickle.load(fG)
@@ -408,6 +408,24 @@ def work(test = 10):
         bar_graph(resu1, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
         bar_graph(resu2, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
         bar_graph(resu3, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
+    if test == 16:
+        perfect_mapping = csv_parse("IL_29549.9", [(5,6)])
+        print("perfect mapping", perfect_mapping)
+        #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['5Y7M', '7RQB', '4V88', '5J7L', '6CZR', '5J7L', '4V88']]
+        #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if i > 16]
+        print(len(perfect_mapping))
+        #test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/7IL_29549.9into6UFG.pickle", E=0 , B=0, A=0, maxGAPdistance = 0, nb_samples=10, remove_near=True, timeout=800, D = 5)
+        resu, mapping = test_perfect_mapping_multiprocess_multiple_occurences(perfect_mapping, GPpath = "ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=20, D = 5)
+        print("resu", resu)
+        print("mapping", mapping)
+    if test == 17:
+        resu = [('5G4T,A,B', [0.09, 0.3], 10.983399629592896), ('6UFM,B', [0.4, 0.07, 0.2], 20.046091318130493), ('4GXY,A', [], 20.076128482818604), ('1T0K,C,D', [], 20000.205880165100098), ('6UFH,A', [], 20.07821297645569), ('6UFG,A', [], 20.058774709701538), ('4AOB,A', [], 20.106066942214966), ('5Y7M,D', [], 20.17974543571472), ('4KQY,A', [], 20.068326950073242), ('5G4U,I,J', [], 20.30578112602234), ('5FJC,A', [], 20.082794666290283), ('4C4W,H', [], 20.10532236099243), ('4V88,A6', [], 20.079351663589478), ('7RQB,1A', [], 20.062228202819824), ('3U4M,B', [], 20.09431767463684), ('3V7E,C', [], 20.080447673797607), ('4V9F,0', [], 20.087060928344727), ('7A0S,X', [], 20.057557106018066), ('4LFB,A', [], 20.072710275650024), ('3RW6,H', [], 20.107783794403076), ('4WF9,X', [], 20.037036895751953), ('6CZR,1a', [], 20.103374481201172), ('5J7L,AA', [], 20.046199798583984), ('5TBW,1', [], 20.068098783493042), ('5J7L,DA', [], 20.076056480407715)]
+        resu1 = resu[:10] #[(i,j,k) for (i, j, k) in resu[:14] if i[:4] not in fatal_list]
+        resu2 = resu[10:20] #[(i,j,k) for (i, j, k) in resu[14:] if i[:4] not in fatal_list]
+        resu3 = resu[20:]
+        bar_graph2(resu1, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=20, D = 5")
+        bar_graph2(resu2, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=20, D = 5")
+        bar_graph2(resu3, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=20, D = 5")
 #list of studied RNA files ['/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3NVI.nxpickle', '/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3NMU.nxpickle', '/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3Q3Z.nxpickle']
 #size of near removal 0
 #chains ['F']
@@ -428,5 +446,5 @@ def work(test = 10):
 #mapping_first ([(1, ('V', 47)), (2, ('V', 49)), (12, ('V', 18)), (3, ('V', 50)), (11, ('V', 16)), (4, ('V', 51)), (10, ('V', 15)), (5, ('V', 52)), (9, ('V', 14)), (6, ('V', 10)), (7, ('V', 11)), (8, ('V', 12))], 12)
 #filename, proportion, time ('3Q3Z.nxpickle', 0.0, 16.299317836761475)
 #[('3NVI.nxpickle', 0.0, 1.468977928161621), ('3NMU.nxpickle', 0.0, 2.7047994136810303), ('3Q3Z.nxpickle', 0.0, 16.299317836761475)]
-work(test = 14)
+work(test = 17)
 
