@@ -221,7 +221,7 @@ def newmain(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_perfe
     timer = time.time()
     try:
         mapping = func_timeout.func_timeout(timeout, pro)
-    except func_timeout.FunctionTimedOut:
+    except: #func_timeout.FunctionTimedOut:
         mapping = []
     timer = time.time() - timer
     if isinstance(mapping, Exception):
@@ -283,7 +283,7 @@ def test_perfect_mapping_multiprocess(perfect_mapping, GPpath, E=0 , B=0, A=0, m
                 (cha, num) = mappinger[1]
                 if cha not in chains:
                     chains.append(cha) #We retrieve the letter of the chain as we will look only at the objective chain in order to study a smaller graph
-            print("chains", chains)
+            print("filename", filename, "chains", chains)
             if DEBUG:
                 print("nb_nodes_GT_before", len(GT.nodes.data()),"nb_edges_GT_before", len(GT.edges.data()))
             Gnew=nx.DiGraph() #Initiate the new GT graph.
@@ -338,6 +338,7 @@ def bar_graph(resu, title, bar_length = 0.3):
 
     ax1.set_ylabel('Proportion of "perfect" mapping', color='orange')
     ax1.set(ylim=(0, 1))
+    ax2.set(ylim=(0, 10**7))
     ax2.set_ylabel('Time', color='blue')
     ax1.bar(x1, y1, width = bar_length, color = 'orange', edgecolor = 'black', linewidth = 2)
     ax2.bar(x2, y2, width = bar_length, color = 'blue', edgecolor = 'black', linewidth = 2, log = True)

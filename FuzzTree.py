@@ -305,14 +305,14 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
 
     #TODO : change the way we set target here depending on benchmark to avoid numerical problem and also focus on the samples that we want.
     #Next we ensure that edges in the pattern are represented enough
-    sampler.set_target(0, B, 'EdgeRespect') 
-    #sampler.set_target(B/2, B/2, 'EdgeRespect') 
+    #sampler.set_target(0, B, 'EdgeRespect') 
+    sampler.set_target(B/2, B/2, 'EdgeRespect') 
     #Next we ensure that the labels are not too far in term of isostericity.
-    sampler.set_target(0, E, 'LabelRespect') 
-    #sampler.set_target(E/2, E/2, 'LabelRespect') 
+    #sampler.set_target(0, E, 'LabelRespect') 
+    sampler.set_target(E/2, E/2, 'LabelRespect') 
     #Finally we ensure that the sum of gaps does not exceed a certain Angstrom value.
-    sampler.set_target(0, A, 'GapRespect') 
-    #sampler.set_target(A/2, A/2, 'GapRespect')
+    #sampler.set_target(0, A, 'GapRespect') 
+    sampler.set_target(A/2, A/2, 'GapRespect')
 
     samples = []
     for _ in range(nb_samples):

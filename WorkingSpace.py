@@ -394,9 +394,10 @@ def work(test = 10):
         perfect_mapping = csv_parse("IL_29549.9", [(5,6)])
         print("perfect mapping", perfect_mapping)
         #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['5Y7M', '7RQB', '4V88', '5J7L', '6CZR', '5J7L', '4V88']]
+        #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if i > 16]
         print(len(perfect_mapping))
         #test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/7IL_29549.9into6UFG.pickle", E=0 , B=0, A=0, maxGAPdistance = 0, nb_samples=10, remove_near=True, timeout=800, D = 5)
-        resu, mapping = test_perfect_mapping_multiprocess(perfect_mapping, GPpath = "ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=3600 *12, D = 5)
+        resu, mapping = test_perfect_mapping_multiprocess(perfect_mapping, GPpath = "ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=3600 * 4, D = 5)
         print("resu", resu)
         print("mapping", mapping)
     if test == 15:
@@ -427,5 +428,5 @@ def work(test = 10):
 #mapping_first ([(1, ('V', 47)), (2, ('V', 49)), (12, ('V', 18)), (3, ('V', 50)), (11, ('V', 16)), (4, ('V', 51)), (10, ('V', 15)), (5, ('V', 52)), (9, ('V', 14)), (6, ('V', 10)), (7, ('V', 11)), (8, ('V', 12))], 12)
 #filename, proportion, time ('3Q3Z.nxpickle', 0.0, 16.299317836761475)
 #[('3NVI.nxpickle', 0.0, 1.468977928161621), ('3NMU.nxpickle', 0.0, 2.7047994136810303), ('3Q3Z.nxpickle', 0.0, 16.299317836761475)]
-work(test = 15)
+work(test = 14)
 
