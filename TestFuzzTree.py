@@ -181,8 +181,8 @@ def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance
                 (cha, num) = mappinger[1]
                 if cha not in chains:
                     chains.append(cha) #We retrieve the letter of the chain as we will look only at the objective chain in order to study a smaller graph
-            print("chains", chains)
             if DEBUG:
+                print("filename", filename, "\nchains", chains)
                 print("nb_nodes_GT_before", len(GT.nodes.data()),"nb_edges_GT_before", len(GT.edges.data()))
             Gnew=nx.DiGraph() #Initiate the new GT graph.
             for ((i, ii),t) in GT.nodes.data():
@@ -213,7 +213,8 @@ def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance
                     mapping = []
                 elif mapping:
                     #We compute the proportion of mappings that correspond to the "perfect mapping"
-                    print('mapping_first', mapping[0])
+                    if DEBUG:
+                        print('mapping_first', mapping[0])
 
                     if motifs_mapping:
                         local_mapping = []
@@ -225,7 +226,8 @@ def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance
                             local_mapping.append((new_motifs_mapping[num], stay))
                     else:
                         local_mapping = perfect_mapping[index][1]
-                    print("local", local_mapping)
+                    if DEBUG:
+                        print("local_mapping", local_mapping)
                     proportion = len([mapp for mapp in mapping if similar_mapping(local_mapping, mapp, GT) ])/len(mapping)
             filename = (filename.split('/'))[-1]
             if DEBUG:
@@ -248,7 +250,8 @@ def newmain(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_perfe
         mapping = []
     elif mapping:
         #We compute the proportion of mappings that correspond to the "perfect mapping"
-        print('mapping_first', mapping[0])
+        if DEBUG:
+            print('mapping_first', mapping[0])
 
         if motifs_mapping:
             local_mapping = []
@@ -260,12 +263,14 @@ def newmain(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_perfe
                 local_mapping.append((new_motifs_mapping[num], stay))
         else:
             local_mapping = perfect_mapping[index][1]
-        print("local", local_mapping)
+        if DEBUG:
+            print("local_mapping", local_mapping)
         proportion = len([mapp for mapp in mapping if similar_mapping(local_mapping, mapp, GT) ])/len(mapping)
     filename = (filename.split('/'))[-1]
     if DEBUG:
         print("filename, proportion, time", (filename[:-9] + chain_entry, proportion, timer))
     return (filename[:-9] + chain_entry, proportion, timer, mapping)
+
 def test_perfect_mapping_multiprocess(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=10, remove_near=True, timeout=800, D = 5, motifs_mapping = []):
     """
     Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
@@ -328,7 +333,6 @@ def test_perfect_mapping_multiprocess(perfect_mapping, GPpath, E=0 , B=0, A=0, m
     for (namer, proportion, timer, mapping) in resu:
         allresu.append((namer, proportion, timer))
         allmapping.append((namer, mapping))
-    print(allresu)
     return allresu, allmapping
 #TODO: add the tests here for final version
 
@@ -386,7 +390,8 @@ def newmain2(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_
         mapping = []
     elif mapping:
         #We compute the proportion of mappings that correspond to the "perfect mapping"
-        print('mapping_first', mapping[0])
+        if DEBUG:
+            print('mapping_first', mapping[0])
         for mapper in new_perfect_mapping[index]:
             if motifs_mapping:
                 local_mapping = []
@@ -398,11 +403,12 @@ def newmain2(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_
                     local_mapping.append((new_motifs_mapping[num], stay))
             else:
                 local_mapping = mapper
-        print("local", local_mapping)
-        if strong_mapping == 1:
-            proportion.append(len([mapp for mapp in mapping if similar_mapping(local_mapping, mapp, GT) ])/len(mapping))
-        else:
-            proportion.append(len([mapp for mapp in mapping if weak_similar_mapping(local_mapping, mapp, GT, strong_mapping) ])/len(mapping))
+        if DEBUG:
+            print("local_mapping", local_mapping)
+        #if strong_mapping == 1:
+        #    proportion.append(len([mapp for mapp in mapping if similar_mapping(local_mapping, mapp, GT) ])/len(mapping))
+        #else:
+        proportion.append(len([mapp for mapp in mapping if weak_similar_mapping(local_mapping, mapp, GT, strong_mapping) ])/len(mapping))
     filename = (filename.split('/'))[-1]
     if DEBUG:
         print("filename, proportion, time", (filename[:-9] + chain_entry, proportion, timer))
@@ -477,7 +483,6 @@ def test_perfect_mapping_multiprocess_multiple_occurences(perfect_mapping, GPpat
     for (namer, proportion, timer, mapping) in resu:
         allresu.append((namer, proportion, timer))
         allmapping.append((namer, mapping))
-    print(allresu)
     return allresu, allmapping
 
 def bar_graph2(resu, title, bar_length = 0.3):

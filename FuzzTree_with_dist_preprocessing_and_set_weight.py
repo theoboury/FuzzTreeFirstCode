@@ -26,11 +26,11 @@ def check(GP, GT, Mapping, E, B, A, D, IDI_matrix, Distancer):
                 return 0
             sum_edge_missing+=1
         else:
-            (ii, jj, tt) = [(ii, jj, t) for (ii, jj, t) in GT.edges.data() if ii == mapped[i] and jj == mapped[j]][0]
+            (ii, jj, tt) = [(ii, jj, tt) for (ii, jj, tt) in GT.edges.data() if ii == mapped[i] and jj == mapped[j]][0]
             if t['label'] != tt['label'] and (t['label'] == 'B53' or tt['label'] == 'B53'): #To avoid problem with B53 not in IDI matrix
                 return 0
             sum_label += IDI_matrix[t['label']][tt['label']]
-            sum_dist_gap += tt['dist']
+            sum_dist_gap += tt['dist'] #Can be done in any case as this label is set to 0 when it is not a "false" edge.
     if (sum_label > E) or (sum_edge_missing > B) or (sum_dist_gap > A):
         return 0
     return 1
