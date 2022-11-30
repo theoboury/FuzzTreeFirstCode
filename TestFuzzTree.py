@@ -125,6 +125,26 @@ def similar_mapping(mapping_ref, mapping, GT):
             return 0
     return 1
 
+def weak_similar_mapping(mapping_ref, mapping, GT, strong_mapping):
+    """
+    Input: - mapping_ref, the perfect mapping that we wan to compare with. 
+           - mapping, a mapping that was found in the RNA sampled by the algorithm.
+           - GT, the graph target.
+           - strong_mapping, the proportio, of the mapping that we ensure to correspond exactly to say that the mapping are "weakly" similar
+    Output: Returns 1, if the mappings are weakly the same given a proportion and 0 otherwise.
+    """
+    mapping = mapping[0]
+    #print("mapping_ref, mapping",mapping_ref, mapping)
+    quantity_nodes_valid = 0
+    for (i, j) in mapping:
+        ii,t = [(ii, tt['pdb_position']) for ((ii,jj), tt) in GT.nodes.data() if (ii,jj) == j][0]
+        #print('i, t', i, t)
+        if (i, (ii, t)) in mapping_ref:
+            quantity_nodes_valid +=1
+    if quantity_nodes_valid >= strong_mapping*len(mapping):
+        return 1
+    else:
+        return 0
 
 def test_perfect_mapping(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=10, remove_near=True, timeout=800, D = 5, motifs_mapping = []):
     """
@@ -351,8 +371,8 @@ def bar_graph(resu, title, bar_length = 0.3):
     plt.show()
 
 
-def newmain2(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_perfect_mapping_index_filename_chain_entry):
-    (GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, index, filename, chain_entry) = GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_perfect_mapping_index_filename_chain_entry
+def newmain2(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_perfect_mapping_index_filename_chain_entry_strong_mapping):
+    (GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, index, filename, chain_entry, strong_mapping) = GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_perfect_mapping_index_filename_chain_entry_strong_mapping
     proportion = []
     def pro():
         return main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1, D = D)
@@ -379,14 +399,17 @@ def newmain2(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_
             else:
                 local_mapping = mapper
         print("local", local_mapping)
-        proportion.append(len([mapp for mapp in mapping if similar_mapping(local_mapping, mapp, GT) ])/len(mapping))
+        if strong_mapping == 1:
+            proportion.append(len([mapp for mapp in mapping if similar_mapping(local_mapping, mapp, GT) ])/len(mapping))
+        else:
+            proportion.append(len([mapp for mapp in mapping if weak_similar_mapping(local_mapping, mapp, GT, strong_mapping) ])/len(mapping))
     filename = (filename.split('/'))[-1]
     if DEBUG:
         print("filename, proportion, time", (filename[:-9] + chain_entry, proportion, timer))
     return (filename[:-9] + chain_entry, proportion, timer, mapping)
 
 
-def test_perfect_mapping_multiprocess_multiple_occurences(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=10, remove_near=True, timeout=800, D = 5, motifs_mapping = []):
+def test_perfect_mapping_multiprocess_multiple_occurences(perfect_mapping, GPpath, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=10, remove_near=True, timeout=800, D = 5, motifs_mapping = [], strong_mapping = 1):
     """
     Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
            - A perfect_mapping that icontains the list of RNA Target Graphs, but also for each of them the "perfect mapping" that we want to find nad that is indicated in the RNA data.
@@ -446,7 +469,7 @@ def test_perfect_mapping_multiprocess_multiple_occurences(perfect_mapping, GPpat
             chain_entry = ""
             for c in chains:
                 chain_entry+= ',' + c 
-            entry.append((GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, (RNAname, tuple(chains)), filename,chain_entry))
+            entry.append((GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, (RNAname, tuple(chains)), filename,chain_entry, strong_mapping))
     with Pool(NB_PROCS) as pool:
         resu = list(pool.imap_unordered(newmain2, entry))
     allresu = []
