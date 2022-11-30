@@ -415,7 +415,7 @@ def work(test = 10):
         #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if i > 16]
         print(len(perfect_mapping))
         #test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/7IL_29549.9into6UFG.pickle", E=0 , B=0, A=0, maxGAPdistance = 0, nb_samples=10, remove_near=True, timeout=800, D = 5)
-        resu, mapping = test_perfect_mapping_multiprocess_multiple_occurences(perfect_mapping, GPpath = "ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=20, D = 5, strong_mapping=1)
+        resu, mapping = test_perfect_mapping_multiprocess_multiple_occurences(perfect_mapping, GPpath = "ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=3600 * 12, D = 5, strong_mapping=1)
         print("resu", resu)
         print("mapping", mapping)
     if test == 17:
@@ -427,6 +427,14 @@ def work(test = 10):
         bar_graph2(resu1, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=20, D = 5")
         bar_graph2(resu2, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=20, D = 5")
         bar_graph2(resu3, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=20, D = 5")
+    if test == 18:
+        resu = [('5G4T,B,A', 0.06, 3.864753246307373), ('1T0K,C,D', 0.29, 25.263774394989014), ('4C4W,H', 0.32, 50.28081154823303), ('5Y7M,D', 0.0, 62.246861934661865), ('5G4U,I,J', 0.22, 68.29138660430908), ('5G4U,J,I', 0.18, 70.35977911949158), ('3U4M,B', 0.01, 102.1136040687561), ('5FJC,A', 0.06, 155.3191819190979), ('3RW6,H', 0.07, 179.20753979682922), ('4AOB,A', 0.52, 467.89054322242737), ('6UFM,B', 0.61, 779.5730571746826), ('4KQY,A', 0.42, 1260.3879652023315), ('3V7E,C', 0.66, 1510.5184276103973), ('6UFG,A', 0.61, 3424.0232150554657), ('6UFH,A', 0.58, 3621.7064003944397), ('4GXY,A', 0.93, 3694.1355867385864), ('4V88,A6', -1, 14400.089645385742), ('7RQB,1A', -1, 14400.283421993256), ('4V9F,0', -1, 14400.472038507462), ('7A0S,X', -1, 14400.492266893387), ('4WF9,X', -1, 14400.558336019516), ('5TBW,1', -1, 14400.457538366318), ('7RQB,1A', -1, 14400.18429017067), ('5J7L,DA', -1, 14400.297923326492), ('4V9F,0', -1, 14400.447693824768), ('4LFB,A', -1, 14400.129451036453), ('6CZR,1a', -1, 14400.145420312881), ('7A0S,X', -1, 14400.486805438995), ('5J7L,AA', -1, 14400.109685659409), ('4V88,A6', -1, 14400.134433746338), ('4V9F,0', -1, 14400.506151914597), ('4WF9,X', -1, 14400.446256637573)]
+        resu1 = resu[:10] #[(i,j,k) for (i, j, k) in resu[:14] if i[:4] not in fatal_list]
+        resu2 = resu[10:20] #[(i,j,k) for (i, j, k) in resu[14:] if i[:4] not in fatal_list]
+        resu3 = resu[20:]
+        bar_graph(resu1, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
+        bar_graph(resu2, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
+        bar_graph(resu3, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
 #list of studied RNA files ['/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3NVI.nxpickle', '/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3NMU.nxpickle', '/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3Q3Z.nxpickle']
 #size of near removal 0
 #chains ['F']
