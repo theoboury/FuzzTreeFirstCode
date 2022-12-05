@@ -239,7 +239,7 @@ def_function_class('GapRespect', lambda i, j, nodes_target, edges_target, GT, A:
             module=__name__)
 
 
-def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5): 
+def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}): 
     """
     Input : - Two graphs, the pattern graph GP and the target graph GT.
             - E, the threshold in term of sum of isostericity allowed
@@ -267,19 +267,21 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
     [14.0, 11.4, 15.5, 15.8, 17.7, 19.0, 10.8, 14.9, 14.4, 14.4, 9.0, 4.0]]
 
    
-
-    Distancer = {}
-    for node1 in GT.nodes():
-        loc_distance = {}
-        for node2 in GT.nodes():
-            if node2 in Distancer.keys():
-                if node1 in Distancer[node2].keys():
-                    loc_distance[node2] = Distancer[node2][node1]
+    if Distancer_preprocessed != {}:
+        Distancer = Distancer_preprocessed
+    else:
+        Distancer = {}
+        for node1 in GT.nodes():
+            loc_distance = {}
+            for node2 in GT.nodes():
+                if node2 in Distancer.keys():
+                    if node1 in Distancer[node2].keys():
+                        loc_distance[node2] = Distancer[node2][node1]
+                    else:
+                        loc_distance[node2] = distance(node1, node2, GT)
                 else:
                     loc_distance[node2] = distance(node1, node2, GT)
-            else:
-                loc_distance[node2] = distance(node1, node2, GT)
-        Distancer[node1] = loc_distance.copy()
+            Distancer[node1] = loc_distance.copy()
     #We enrich the target Graph with False Edges that account for gaps
     GT = augment_graph(GT, maxGAPdistance, Distancer)
     
