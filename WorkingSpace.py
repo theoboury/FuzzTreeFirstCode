@@ -451,7 +451,7 @@ def work(test = 10):
         #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if i > 16]
         print(len(perfect_mapping))
         #test_perfect_mapping(perfect_mapping, GPpath = "ALLkinkturnpattern/7IL_29549.9into6UFG.pickle", E=0 , B=0, A=0, maxGAPdistance = 0, nb_samples=10, remove_near=True, timeout=800, D = 5)
-        resu, mapping = test_perfect_mapping_multiprocess_multiple_occurences_sliced(perfect_mapping, GPpath = "ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", pattern_name= "22IL_29549.9into5J7L", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=3600 * 12, D = 5, strong_mapping=1)
+        resu, mapping = test_perfect_mapping_multiprocess_multiple_occurences_sliced(perfect_mapping, GPpath = "ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", pattern_name= "22IL_29549.9into5J7L", E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout=3600 * 24, D = 5, strong_mapping=1)
         print("resu", resu)
         print("mapping", mapping)
 #list of studied RNA files ['/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3NVI.nxpickle', '/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3NMU.nxpickle', '/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstorage/3Q3Z.nxpickle']

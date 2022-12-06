@@ -488,8 +488,11 @@ def test_perfect_mapping_multiprocess_multiple_occurences(perfect_mapping, GPpat
 
 def newmain3(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_perfect_mapping_index_filename_chain_entry_strong_mapping_pattern_name):
     (GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, index, filename, chain_entry, strong_mapping, pattern_name) = GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_perfect_mapping_index_filename_chain_entry_strong_mapping_pattern_name
+    if len(GT.nodes()) <= 1200:
+        print("Reasonnable graph", pattern_name)
+        return newmain2((GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, index, filename, chain_entry, strong_mapping))
     proportion = []
-    graph_grid, Distancer = slicer(pattern_name, GT,  size_cube_versus_radius=0.5)
+    graph_grid, Distancer = slicer(pattern_name, GT,  size_cube_versus_radius=1) #instead of 0.5 for now to have less cubes
     def pro():
         resu = []
         for GTsmall in graph_grid:

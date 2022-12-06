@@ -339,13 +339,15 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
     #Finally we ensure that the sum of gaps does not exceed a certain Angstrom value.
     #sampler.set_target(0, A, 'GapRespect') 
     sampler.set_target(A/2, A/2, 'GapRespect')
-    print("treewidth", sampler.treewidth())
+    if DEBUG:
+        print("treewidth", sampler.treewidth())
     samples = []
     for _ in range(nb_samples):
         try:
             samples.append(sampler.targeted_sample())
         except:
-            print("Inconsistancy error detected !")
+            if DEBUG:
+                print("Inconsistancy error detected !")
             return []
     resu = [([(nodes_pattern[k], nodes_target[x]) for k,x in enumerate(sample.values())], len(list(set(sample.values())))) for sample in samples]
     
