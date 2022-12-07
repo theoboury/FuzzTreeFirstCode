@@ -113,7 +113,7 @@ def extract_graph(GT, list_nodes):
             Gnew.add_edge((i, ii),(j, jj), label=t['label'], near=t['near'])
     return Gnew
 
-def slicer(pattern_name, GT,  size_cube_versus_radius=0.5):
+def slicer(pattern_name, GT,  size_cube_versus_radius=0.5, filename = ""):
     with open("ALLkinkturntarget/" + pattern_name + ".nxpickle",'rb') as fP:
         GP = pickle.load(fP)
     diam = get_diameter(GP)
@@ -134,7 +134,7 @@ def slicer(pattern_name, GT,  size_cube_versus_radius=0.5):
         Distancer[node1] = loc_distance.copy()
     grid = full_cube_diam_rad(GT, size_cube_versus_radius*rad, rad, Distancer)
     if DEBUG:
-        print("Number of cubes", len(grid), "Max size cube", max([len(grid[i]) for i in grid.keys()]), "Size of each cube", ([len(grid[i]) for i in grid.keys()]))
+        print("filename", filename, "Number of cubes", len(grid), "Max size cube", max([len(grid[i]) for i in grid.keys()]), "Size of each cube", ([len(grid[i]) for i in grid.keys()]))
     pre_graph_grid = [grid[i] for i in grid.keys()]
     pre_graph_grid.sort(key=len)
     graph_grid = []

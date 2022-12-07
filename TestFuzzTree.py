@@ -489,17 +489,19 @@ def test_perfect_mapping_multiprocess_multiple_occurences(perfect_mapping, GPpat
 def newmain3(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_perfect_mapping_index_filename_chain_entry_strong_mapping_pattern_name):
     (GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, index, filename, chain_entry, strong_mapping, pattern_name) = GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_perfect_mapping_index_filename_chain_entry_strong_mapping_pattern_name
     if len(GT.nodes()) <= 1200:
-        print("Reasonnable graph", pattern_name)
+        print("Reasonnable graph", filename)
         return newmain2((GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, index, filename, chain_entry, strong_mapping))
     proportion = []
-    graph_grid, Distancer = slicer(pattern_name, GT,  size_cube_versus_radius=1) #instead of 0.5 for now to have less cubes
+    graph_grid, Distancer = slicer(pattern_name, GT,  size_cube_versus_radius=1, filename=filename) #instead of 0.5 for now to have less cubes
     def pro():
         resu = []
         for GTsmall in graph_grid:
             try:
                 resuloc = main(GP, GTsmall, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1, D = D, Distancer_preprocessed=Distancer)
                 resu+=resuloc
+                print(filename, "I got a cube done", resuloc, "\n")
             except:
+                print(filename, "I got a void cube done\n")
                 pass
             #if resu != []:
             #    return resu
