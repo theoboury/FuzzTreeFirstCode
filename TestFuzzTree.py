@@ -499,7 +499,7 @@ def newmain3(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_
             try:
                 resuloc = main(GP, GTsmall, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1, D = D, Distancer_preprocessed=Distancer)
                 resu+=resuloc
-                print(filename, "I got a cube done", ind_debug, "len:" len(resuloc), "\n")
+                print(filename, "I got a cube done", ind_debug, "len:", len(resuloc), "\n")
             except:
                 print(filename, "I got a void cube done",ind_debug, "\n")
                 pass
