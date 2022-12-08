@@ -495,13 +495,13 @@ def newmain3(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_
     graph_grid, Distancer = slicer(pattern_name, GT,  size_cube_versus_radius=1, filename=filename) #instead of 0.5 for now to have less cubes
     def pro():
         resu = []
-        for GTsmall in graph_grid:
+        for ind_debug, GTsmall in enumerate(graph_grid):
             try:
                 resuloc = main(GP, GTsmall, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1, D = D, Distancer_preprocessed=Distancer)
                 resu+=resuloc
-                print(filename, "I got a cube done", resuloc, "\n")
+                print(filename, "I got a cube done", ind_debug, "len:" len(resuloc), "\n")
             except:
-                print(filename, "I got a void cube done\n")
+                print(filename, "I got a void cube done",ind_debug, "\n")
                 pass
             #if resu != []:
             #    return resu
