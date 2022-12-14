@@ -493,6 +493,7 @@ def newmain3(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_
         return newmain2((GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, index, filename, chain_entry, strong_mapping))
     proportion = []
     graph_grid, Distancer = slicer(pattern_name, GT,  size_cube_versus_radius=1, filename=filename) #instead of 0.5 for now to have less cubes
+    print("len_graph_grid", len(graph_grid))
     def pro():
         resu = []
         for ind_debug, GTsmall in enumerate(graph_grid):
