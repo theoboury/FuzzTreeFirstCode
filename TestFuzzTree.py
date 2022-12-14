@@ -697,6 +697,8 @@ def test_perfect_mapping_multiprocess_oneRNA_sliced(perfect_mapping_one_RNA, GPp
     resu = resubis
     proportion = len([mapp for mapp in resu if weak_similar_mapping(local_mapping, mapp, GT, strong_mapping) ])/len(resu)
     timer = time.time() - timer
+    if DEBUG:
+        print("RNAname", RNAname, "proportion", proportion, "timer", timer, "resu", resu)
     return RNAname, proportion, timer, resu
     
 def bar_graph2(resu, title, bar_length = 0.3):
