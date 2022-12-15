@@ -11,13 +11,6 @@ DEBUG = 0
 infinite = 100
 
 def check(GP, GT, Mapping, E, B, A, D, IDI_matrix, Distancer):
-    """ 
-    Input : - Pattern and target graphs GP and GT
-            - Fuzzy thresholds E, B, A, D
-            - A mapping found in GT for GP
-            - IDI_matrix for label isostericity computation and Distancer that stores distances between edges of GT.
-    Output : Returns 1 if the Mapping is admissible and respects all of the fuzzy thresholds and 0 otherwise.
-    """
     list_edges_GT = list(GT.edges())
     mapped = {}
     for (i, j) in Mapping:
@@ -36,8 +29,7 @@ def check(GP, GT, Mapping, E, B, A, D, IDI_matrix, Distancer):
             (ii, jj, tt) = [(ii, jj, tt) for (ii, jj, tt) in GT.edges.data() if ii == mapped[i] and jj == mapped[j]][0]
             if t['label'] != tt['label'] and (t['label'] == 'B53' or tt['label'] == 'B53'): #To avoid problem with B53 not in IDI matrix
                 return 0
-            elif t['label'] != tt['label']:
-                sum_label += IDI_matrix[t['label']][tt['label']]
+            sum_label += IDI_matrix[t['label']][tt['label']]
             sum_dist_gap += tt['dist'] #Can be done in any case as this label is set to 0 when it is not a "false" edge.
     if (sum_label > E) or (sum_edge_missing > B) or (sum_dist_gap > A):
         return 0
@@ -124,17 +116,13 @@ def filter(GP, GTaugment, mapping):
             return 0
     return 1
 
- 
-def preL2distance(triplet1, triplet2):
-    """
-        Compute square of L2 distances between the three coordinates triplet1=(x1,y1,z1) and triplet2=(x2,y2,z2).
-    """
-    (x1,y1,z1) = triplet1
-    (x2,y2,z2) = triplet2
-    (x1,y1,z1) = float(x1), float(y1), float(z1)
-    (x2,y2,z2) = float(x2), float(y2), float(z2)
-    return (x2 - x1)**2 + (y2 - y1)**2 + (z2 - z1)**2
 
+def preL2distance(x,y,z):
+    """
+        Compute square of L2 distances forthe three coordinates (x,y,z).
+    """
+    return x**2 + y**2 + z**2
+ 
 
 def distance(node1, node2, GT):
     """
@@ -143,30 +131,19 @@ def distance(node1, node2, GT):
     Output :
             - The minimal distance between node1 and node2 in GT by considering the atoms that are the more close to each other.
     """
+    #TODO : precompute the distance ?
     #TODO : replace with a distance base on "centrality" of atoms ?
     li1 = [t['atoms'] for i,t in GT.nodes.data() if i == node1][0]
     li2 = [t['atoms'] for i,t in GT.nodes.data() if i == node2][0]
     dist = math.inf
     for atom1 in li1:
         for atom2 in li2:
-            dist = min(dist, preL2distance(atom1['position'], atom2['position']))
+            (x1, y1, z1) = atom1['position']
+            (x2, y2, z2) = atom2['position']
+            (x1, y1, z1) = (float(x1), float(y1), float(z1))
+            (x2, y2, z2) = (float(x2), float(y2), float(z2))
+            dist = min(dist, preL2distance(x1 - x2, y1 - y2, z1 - z2))
     return math.sqrt(dist)
-
-def precompute_distance(GT):
-    Distancer = {}
-    for node1 in GT.nodes():
-        loc_distance = {}
-        for node2 in GT.nodes():
-            if node2 in Distancer.keys():
-                if node1 in Distancer[node2].keys():
-                    loc_distance[node2] = Distancer[node2][node1]
-                else:
-                    loc_distance[node2] = distance(node1, node2, GT)
-            else:
-                loc_distance[node2] = distance(node1, node2, GT)
-        Distancer[node1] = loc_distance.copy()
-    return Distancer
-
 
 def _EdgeRespect(x, y, label_edge_ij, nodes_target, edges_target, Distancer, B, D):
     """
@@ -181,7 +158,7 @@ def _EdgeRespect(x, y, label_edge_ij, nodes_target, edges_target, Distancer, B, 
     if x == y: #Necessary condition of Injectivity : If neighbors are mapped to the same node in GT, we can already reject  
         return infinite
     if (nodes_target[x], nodes_target[y]) in edges_target: #We check that this edge is present or not in GT
-        return 0
+        return 0 #TODO: Change perhaps when it is a B53 missing ?
     if B == 0 or label_edge_ij == 'B53' or (Distancer[nodes_target[x]][nodes_target[y]] > D):
         return infinite
     return 1
@@ -293,8 +270,18 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
     if Distancer_preprocessed != {}:
         Distancer = Distancer_preprocessed
     else:
-        Distancer = precompute_distance(GT)
-
+        Distancer = {}
+        for node1 in GT.nodes():
+            loc_distance = {}
+            for node2 in GT.nodes():
+                if node2 in Distancer.keys():
+                    if node1 in Distancer[node2].keys():
+                        loc_distance[node2] = Distancer[node2][node1]
+                    else:
+                        loc_distance[node2] = distance(node1, node2, GT)
+                else:
+                    loc_distance[node2] = distance(node1, node2, GT)
+            Distancer[node1] = loc_distance.copy()
     #We enrich the target Graph with False Edges that account for gaps
     GT = augment_graph(GT, maxGAPdistance, Distancer)
     
@@ -371,8 +358,7 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
     if respect_injectivity:
         resu = [(r, length) for r, length  in resu if length == n_pattern]
     
-    #TODO : use the check function here to ensure that samples are not leving the tolerancy, depends on how set_samples are done. WARNING HERE WITH NO ADDITIONAL CODES IT CAN SOMETIMES RETURNS VOID LIST
-    #resu = [(r, length) for r, length  in resu if check(GP, GT, r, E, B, A, D, IDI_matrix, Distancer)] 
+    #TODO : use the check function here to ensure that samples are not leving the tolerancy, depends on how set_samples are done.
     return resu
 
 

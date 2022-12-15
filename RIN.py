@@ -7,7 +7,7 @@
 import json #to hash data of edges (dictionnaries)
 import pickle
 import networkx as nx
-DEBUG = 1
+DEBUG = 0
 
 class RIN:
     #A RIN consists in a graph and a list of "occurences" which are the RNA graphs the RIN has been found in

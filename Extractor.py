@@ -61,9 +61,9 @@ def extractor(Gpath, Gnewname, list_nodes, cutting_edges, pattern_place="kinktur
     with open(target_place + Gnewname + ".nxpickle", 'wb') as ff2:
         pickle.dump(Gnewnx, ff2)
 
-def csv_parse(family_name, break_list, csvlocation = "RNAcsv/", pattern_place="ALLkinkturnpattern/", target_place ="ALLkinkturntarget/"):
+def csv_parse(family_name, break_list, RNAstorage = "bigRNAstorage/", csvlocation = "RNAcsv/", pattern_place="ALLkinkturnpattern/", target_place ="ALLkinkturntarget/"):
     """
-    Input : - family_name, the name of the family of RNA from which we et the RNAs 
+    Input : - family_name, the name of the family of RNA from which we extract the graphs
             - Gnewname, the name for the pattern and target graphs that we are extracted
             - break_list, a precursor for cutting_edges with a more natural numerotation
             - csvlocation, place where csv are stored.
@@ -78,15 +78,13 @@ def csv_parse(family_name, break_list, csvlocation = "RNAcsv/", pattern_place="A
         for k,row in enumerate(reader):
             symmetry = 0
             RNAtarget = row[0].split('|')[0]
-            Gpath = "bigRNAstorage/" + RNAtarget + ".nxpickle"
-            print(Gpath)
+            Gpath = RNAstorage + RNAtarget + ".nxpickle"
             list_nodes = []
             list_nodes_clean = []
             cutting_edges = []
             perfect_mapping = []
             for kk, nucleo in enumerate(row):
                 explore_list = nucleo.split('|')
-                #print(explore_list)
                 if len(explore_list) > 8:
                     symmetry = 1
                 if len(explore_list) > 7:
@@ -96,16 +94,15 @@ def csv_parse(family_name, break_list, csvlocation = "RNAcsv/", pattern_place="A
                 list_nodes_clean.append((explore_list[2], int(explore_list[4])))
                 list_nodes.append((explore_list[2], pdb_string))
                 perfect_mapping.append((kk + 1, (explore_list[2], pdb_string)))
-            #print(list_nodes)
-            #print(list_nodes_clean)
-            print(perfect_mapping)
+            if DEBUG:
+                print(perfect_mapping)
             for (i, j) in break_list:
                 cutting_edges.append((list_nodes[i - 1], list_nodes[j - 1]))
-            #print(cutting_edges)
             if symmetry == 0:
                 extractor(Gpath, str(k) + family_name + 'into' + RNAtarget, list_nodes, cutting_edges, pattern_place=pattern_place, target_place =target_place, list_nodes_clean = list_nodes_clean)
                 resu.append((RNAtarget, perfect_mapping))
             else:
-                print("SKIPPED DUE TO SYMMETRY")
+                if DEBUG:
+                    print("SKIPPED DUE TO SYMMETRY")
         return resu
 
