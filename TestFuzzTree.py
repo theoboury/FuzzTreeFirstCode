@@ -23,6 +23,18 @@ def near_removal(GT):
         GT.remove_edge(i, j)  
     return GT
  
+def outer_chain_removal(GT, chains):
+    Gnew=nx.DiGraph() #Initiate the new GT graph.
+    for ((i, ii),t) in GT.nodes.data():
+        if i in chains:
+            Gnew.add_node((i, ii), pdb_position = t['pdb_position'], atoms = t['atoms'])
+    for ((i, ii),(j, jj),t) in GT.edges.data():
+        if i in chains and j in chains:
+            Gnew.add_edge((i, ii),(j, jj), label=t['label'], near=t['near'])
+    if DEBUG:
+        print("nb_nodes_GT_before", len(GT.nodes.data()),"nb_edges_GT_before", len(GT.edges.data()))
+        print("nb_nodes_GT_after", len(Gnew.nodes.data()),"nb_edges_GT_after", len(Gnew.edges.data()))
+    return Gnew
 
 def weak_similar_mapping(mapping_ref, mapping, GT, strong_mapping):
     """
@@ -32,7 +44,7 @@ def weak_similar_mapping(mapping_ref, mapping, GT, strong_mapping):
            - strong_mapping, the proportio, of the mapping that we ensure to correspond exactly to say that the mapping are "weakly" similar
     Output: Returns 1, if the mappings are weakly the same given a proportion and 0 otherwise.
     """
-    mapping = mapping[0]
+    #mapping = mapping[0]
     #print("mapping_ref, mapping",mapping_ref, mapping)
     quantity_nodes_valid = 0
     for (i, j) in mapping:
@@ -47,10 +59,8 @@ def weak_similar_mapping(mapping_ref, mapping, GT, strong_mapping):
 
 def wrapper_main(filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGAPdistance_nb_samples_respect_injectivity_D_Distancer_preprocessed):
     (filename, local_mapping, strong_mapping, timeout, GP, GT, E, B, A, maxGAPdistance, nb_samples, respect_injectivity, D, Distancer_preprocessed) = filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGAPdistance_nb_samples_respect_injectivity_D_Distancer_preprocessed
-    print(    (filename, local_mapping, strong_mapping, timeout, GP, GT, E, B, A, maxGAPdistance, nb_samples, respect_injectivity, D, Distancer_preprocessed) )
     timer = time.time()
     if timeout == -1:
-        print("\nparam",E, B, A, maxGAPdistance, D)
         mapping = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed)
         mapping = [mapp for (mapp, _) in mapping]
     else:
@@ -63,11 +73,14 @@ def wrapper_main(filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGA
             mapping = []
     timer = time.time() - timer
     if local_mapping:
-        proportion = [len([mapp for mapp in mapping if weak_similar_mapping(local_mapping, mapp, GT, strong_mapping) ])/len(mapping)]
+        proportion = []
+        for loc_mapp in local_mapping:
+            print("HERE", local_mapping)
+            proportion.append(len([mapp for mapp in mapping if weak_similar_mapping(loc_mapp, mapp, GT, strong_mapping) ])/len(mapping))
     else:
         proportion = [1.01] #It means here that we have no way to verify that the mappings are the ones that we want here.
     if DEBUG:
-        print("filename", filename, "timer", timer, "proportion", proportion)
+        print("filename", filename, "timer", timer, "proportion", proportion, "number_mapping", len(mapping))
     return (filename, timer, proportion, mapping)
 
 
@@ -75,182 +88,15 @@ def fusion_resu_cube(resu): #resu empty never happens
     full_filename = resu[0][0]
     full_timer = max([timer for (_, timer, _, _) in resu])
     full_mapping = []
-    full_proportion = 0
+    full_proportion = [0]*len(resu[0][2])
     for (_, _, proportion, mapping) in resu:
-        full_proportion += proportion * len(mapping)
+        for k in range(len(proportion)):
+            full_proportion[k] += proportion[k] * len(mapping)
         full_mapping+= mapping
     if full_mapping:
-        full_proportion = full_proportion/len(full_mapping)
+        for k in range(len(full_proportion)):
+            full_proportion[k] = full_proportion[k]/len(full_mapping)
     return (full_filename, full_timer, full_proportion, full_mapping)
-
-def test_mapping(GPpath, GTpath, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}):
-    GP = open_graph(GPpath)
-    GT = open_graph(GTpath)
-    timer = time.time()
-    mapping = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed)
-    timer = time.time() - timer
-    if DEBUG:
-        print("\nmapping", mapping)
-        print("\ntime", timer)
-    return mapping
-
-def test_varna(name_file,GPpath, GTpath, show=1, output_format='png', E = 0, B = 0, A = 0, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}, mapping = []):
-    GP = open_graph(GPpath)
-    GT = open_graph(GTpath)
-    if mapping:
-        print_mapping_on_target_graph([], GT, mapping=mapping, output_format = output_format, name_file = name_file, show=show)
-    else:
-        print_mapping_on_target_graph(GP, GT, mapping = [], output_format = output_format, name_file = name_file, show=show, E=E, B=B, A=A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D)
-
-
-
-def test_GP_into_multiples_GT(GPpath, GTlistfolder = "RNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=1000, remove_near=True, timeout=-1, D = 5, nb_procs = 32):
-    """
-    Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
-           - A list of RNA Target Graphs GTlist as a folder of files GTlistfolder. For each of these GT, we are looking for GP or a fuzzy version of GP in it.
-           - The Fuzzy Parameters E, B, A that are respectively threshold on sum of isostericity, number of edges and sum of gap distances.
-           - maxGAPdistance and D, fuzzy parameter about how far we allow to look respectively for gaps and missing edges.
-           - number of samples done for each searched pattern nb_samples
-           - remove_near to True remove all edges labelled "near" and that are not as precise as we want.
-           - As we have no return when the process fails, we put a timeout
-    Output: returns a list of triplets(filename, mapping, time) with mapping, a mapping from the ones sample by the process. Left empty if no mapping where found in time.
-    """
-    GP = open_graph(GPpath)
-    path = os.path.abspath(os.getcwd()) + "/" + GTlistfolder
-    smallGT = []
-    bigGT = []
-    if DEBUG:
-        print("File exploration", glob.glob(os.path.join(path, '*.nxpickle')))
-    for filename in glob.glob(os.path.join(path, '*.nxpickle')):
-        GT = open_graph(os.path.join(os.getcwd(), filename))
-        if remove_near: #We reove the near edges only if requested.
-            GT = near_removal(GT)
-        if len(list(GT.nodes())) > 500:
-            if DEBUG:
-                print("Big GT", (filename.split('/'))[-1][:-9], "size", len(GT.nodes()), "\n")
-            bigGT.append(((filename.split('/'))[-1][:-9], GT.copy()))
-        else:
-            if DEBUG:
-                print("Small GT", (filename.split('/'))[-1][:-9], "size", len(GT.nodes()), "\n")
-            smallGT.append(((filename.split('/'))[-1][:-9], GT.copy()))
-        entry = []
-    for (filename, GT) in smallGT:
-        entry.append((filename, [], strong_mapping, timeout, GP, GT, E, B, A, maxGAPdistance, nb_samples, respect_injectivity, D, {}))
-    with Pool(nb_procs) as pool:
-        print("entry", entry)
-        resu = list(pool.imap_unordered(wrapper_main, entry))
-    for (filename, GT) in bigGT:
-        entry = []
-        graph_grid, Distancer = slicer(GP, GT,  size_cube_versus_radius=1, filename=filename) #instead of 0.5 for now to have less cubes
-        for GTsmall in graph_grid:
-            local_nb_samples = int(nb_samples/len(graph_grid)) + 1
-            entry.append((filename, [], strong_mapping, timeout, GP, GTsmall, E, B, A, maxGAPdistance, local_nb_samples, respect_injectivity, D, Distancer))
-        with Pool(nb_procs) as pool:
-            resu_big = list(pool.imap_unordered(wrapper_main, entry))
-        resu.append(fusion_resu_cube(resu_big))
-    compact_resu = [(i,j,k) for (i,j,k,_) in resu]
-    print("compact_resu", compact_resu)
-    print("\n resu", resu)
-    return resu
-
-
-
-
-def newmain2(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_perfect_mapping_index_filename_chain_entry_strong_mapping):
-    (GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, index, filename, chain_entry, strong_mapping) = GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_perfect_mapping_index_filename_chain_entry_strong_mapping
-    proportion = []
-    def pro():
-        return main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1, D = D)
-    timer = time.time()
-    try:
-        mapping = func_timeout.func_timeout(timeout, pro)
-    except: #func_timeout.FunctionTimedOut:
-        mapping = []
-    timer = time.time() - timer
-    if isinstance(mapping, Exception):
-        mapping = []
-    elif mapping:
-        #We compute the proportion of mappings that correspond to the "perfect mapping"
-        if DEBUG:
-            print('mapping_first', mapping[0])
-        for mapper in new_perfect_mapping[index]:
-            if motifs_mapping:
-                local_mapping = []
-                new_motifs_mapping = [-1 for i in range(len(motifs_mapping) + 1)]
-                for (k, l) in motifs_mapping:
-                    new_motifs_mapping[l] = k
-                pre_local_mapping = mapper
-                for (num, stay) in pre_local_mapping:
-                    local_mapping.append((new_motifs_mapping[num], stay))
-            else:
-                local_mapping = mapper
-        if DEBUG:
-            print("local_mapping", local_mapping)
-        #if strong_mapping == 1:
-        #    proportion.append(len([mapp for mapp in mapping if similar_mapping(local_mapping, mapp, GT) ])/len(mapping))
-        #else:
-        proportion.append(len([mapp for mapp in mapping if weak_similar_mapping(local_mapping, mapp, GT, strong_mapping) ])/len(mapping))
-    filename = (filename.split('/'))[-1]
-    if DEBUG:
-        print("filename, proportion, time", (filename[:-9] + chain_entry, proportion, timer))
-    return (filename[:-9] + chain_entry, proportion, timer, mapping)
-
-
-def newmain3(GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_perfect_mapping_index_filename_chain_entry_strong_mapping_pattern_name):
-    (GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, index, filename, chain_entry, strong_mapping, pattern_name) = GP_GT_E_B_A_maxGAPdistance_nb_samples_D_timeout_motifs_mapping_new_perfect_mapping_index_filename_chain_entry_strong_mapping_pattern_name
-    if len(GT.nodes()) <= 1200:
-        print("Reasonnable graph", filename)
-        return newmain2((GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, index, filename, chain_entry, strong_mapping))
-    proportion = []
-    graph_grid, Distancer = slicer(GP, GT,  size_cube_versus_radius=1, filename=filename) #instead of 0.5 for now to have less cubes
-    print("len_graph_grid", len(graph_grid))
-    def pro():
-        resu = []
-        for ind_debug, GTsmall in enumerate(graph_grid):
-            try:
-                resuloc = main(GP, GTsmall, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=1, D = D, Distancer_preprocessed=Distancer)
-                resu+=resuloc
-                print(filename, "I got a cube done", ind_debug, "len:", len(resuloc), "\n")
-            except:
-                print(filename, "I got a void cube done",ind_debug, "\n")
-                pass
-            #if resu != []:
-            #    return resu
-        return resu
-    timer = time.time()
-    try:
-        mapping = func_timeout.func_timeout(timeout, pro)
-    except: #func_timeout.FunctionTimedOut:
-        mapping = []
-    timer = time.time() - timer
-    if isinstance(mapping, Exception):
-        mapping = []
-    elif mapping:
-        #We compute the proportion of mappings that correspond to the "perfect mapping"
-        if DEBUG:
-            print('mapping_first', mapping[0])
-        for mapper in new_perfect_mapping[index]:
-            if motifs_mapping:
-                local_mapping = []
-                new_motifs_mapping = [-1 for i in range(len(motifs_mapping) + 1)]
-                for (k, l) in motifs_mapping:
-                    new_motifs_mapping[l] = k
-                pre_local_mapping = mapper
-                for (num, stay) in pre_local_mapping:
-                    local_mapping.append((new_motifs_mapping[num], stay))
-            else:
-                local_mapping = mapper
-        if DEBUG:
-            print("local_mapping", local_mapping)
-        #if strong_mapping == 1:
-        #    proportion.append(len([mapp for mapp in mapping if similar_mapping(local_mapping, mapp, GT) ])/len(mapping))
-        #else:
-        proportion.append(len([mapp for mapp in mapping if weak_similar_mapping(local_mapping, mapp, GT, strong_mapping) ])/len(mapping))
-    filename = (filename.split('/'))[-1]
-    if DEBUG:
-        print("filename, proportion, time", (filename[:-9] + chain_entry, proportion, timer))
-    return (filename[:-9] + chain_entry, proportion, timer, mapping)
-
 
 def initialise_perfect_mapping(perfect_mapping, motifs_mapping):
     if motifs_mapping:
@@ -276,11 +122,35 @@ def initialise_perfect_mapping(perfect_mapping, motifs_mapping):
             new_perfect_mapping[(perfect_mapping[index][0], chains)] =new_perfect_mapping[(perfect_mapping[index][0], chains)] + [local_mapping]
         else:
             new_perfect_mapping[(perfect_mapping[index][0], chains)] = [local_mapping]
-        return new_perfect_mapping
-def test_perfect_mapping_multiprocess_multiple_occurences_sliced(perfect_mapping, GPpath, pattern_name, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=10, remove_near=True, timeout=800, D = 5, motifs_mapping = [], strong_mapping = 1):
+    return new_perfect_mapping
+
+
+
+def test_mapping(GPpath, GTpath, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}):
+    GP = open_graph(GPpath)
+    GT = open_graph(GTpath)
+    timer = time.time()
+    mapping = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed)
+    timer = time.time() - timer
+    if DEBUG:
+        print("\nmapping", mapping)
+        print("\ntime", timer)
+    return mapping
+
+def test_varna(name_file,GPpath, GTpath, show=1, output_format='png', E = 0, B = 0, A = 0, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}, mapping = []):
+    GP = open_graph(GPpath)
+    GT = open_graph(GTpath)
+    if mapping:
+        print_mapping_on_target_graph([], GT, mapping=mapping, output_format = output_format, name_file = name_file, show=show)
+    else:
+        print_mapping_on_target_graph(GP, GT, mapping = [], output_format = output_format, name_file = name_file, show=show, E=E, B=B, A=A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D)
+
+
+
+def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=1000, remove_near=True, timeout=-1, D = 5, nb_procs = 32, perfect_mapping = [], motifs_mapping = []):
     """
     Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
-           - A perfect_mapping that icontains the list of RNA Target Graphs, but also for each of them the "perfect mapping" that we want to find nad that is indicated in the RNA data.
+           - A list of RNA Target Graphs GTlist as a folder of files GTlistfolder. For each of these GT, we are looking for GP or a fuzzy version of GP in it.
            - The Fuzzy Parameters E, B, A that are respectively threshold on sum of isostericity, number of edges and sum of gap distances.
            - maxGAPdistance and D, fuzzy parameter about how far we allow to look respectively for gaps and missing edges.
            - number of samples done for each searched pattern nb_samples
@@ -288,52 +158,72 @@ def test_perfect_mapping_multiprocess_multiple_occurences_sliced(perfect_mapping
            - As we have no return when the process fails, we put a timeout
     Output: returns a list of triplets(filename, mapping, time) with mapping, a mapping from the ones sample by the process. Left empty if no mapping where found in time.
     """
-
-    with open(GPpath,'rb') as fP:
-        GP = pickle.load(fP)
-    path = os.path.abspath(os.getcwd()) + "/bigRNAstorage/"
-    path_list = []
-    for (RNAname, chains) in new_perfect_mapping.keys():
-        path_list.append((path+ RNAname + '.nxpickle', RNAname, list(chains)))
+    #TODO : update doc string
+    GP = open_graph(GPpath)
+    path = os.path.abspath(os.getcwd()) + "/" + GTlistfolder
+    smallGT = []
+    bigGT = []
+    if perfect_mapping:
+        perfect_mapping = initialise_perfect_mapping(perfect_mapping, motifs_mapping)
+        path_list = []
+        chains_list = []
+        RNA_list = []
+        for (RNAname, chains) in perfect_mapping.keys():
+            path_list.append(path+ "/" + RNAname + '.nxpickle')
+            RNA_list.append(RNAname)
+            chains_list.append(list(chains))
+    else:
+        path_list = glob.glob(os.path.join(path, '*.nxpickle'))
     if DEBUG:
-        print("perfect_mapping", new_perfect_mapping)
-        print("list of studied RNA files", path_list)
-    resu = []
+        if perfect_mapping:
+            print("Perfect_mapping", perfect_mapping)
+        print("File exploration", path_list)
+    for num_list, filename in enumerate(path_list):
+        GT = open_graph(os.path.join(os.getcwd(), filename))
+        compact_filename = (filename.split('/'))[-1][:-9]
+        local_mapping = []
+        if remove_near: #We remove the near edges only if requested.
+            GT = near_removal(GT)
+             
+        if perfect_mapping:
+            chains = chains_list[num_list]
+            GT = outer_chain_removal(GT, chains)
+            local_mapping = perfect_mapping[(RNA_list[num_list], tuple(chains))]
+        if len(list(GT.nodes())) > threshold_bigGT:
+            if DEBUG:
+                print("Big GT", compact_filename, "size", len(GT.nodes()), "\n")
+            bigGT.append((compact_filename, GT.copy(), local_mapping))
+        else:
+            if DEBUG:
+                print("Small GT", compact_filename, "size", len(GT.nodes()), "\n")
+            smallGT.append((compact_filename, GT.copy(), local_mapping))
     entry = []
-    for index, (filename, RNAname, chains) in enumerate(path_list):
-        with open(filename, 'rb') as fT:
-            GT = pickle.load(fT)
-            if remove_near: #We reove the near edges only if requested.
-                edges_to_remove = [(i, j) for (i, j, t) in GT.edges.data() if t['near'] == True]
-                if DEBUG:
-                    print("size of near removal", len(edges_to_remove))
-                for (i, j) in edges_to_remove:
-                    GT.remove_edge(i, j)
-            if DEBUG:
-                print("nb_nodes_GT_before", len(GT.nodes.data()),"nb_edges_GT_before", len(GT.edges.data()))
-            Gnew=nx.DiGraph() #Initiate the new GT graph.
-            for ((i, ii),t) in GT.nodes.data():
-                if i in chains:
-                    Gnew.add_node((i, ii), pdb_position = t['pdb_position'], atoms = t['atoms'])
-            for ((i, ii),(j, jj),t) in GT.edges.data():
-                if i in chains and j in chains:
-                    Gnew.add_edge((i, ii),(j, jj), label=t['label'], near=t['near'])
-            GT = Gnew
-            if DEBUG:
-                print("nb_nodes_GT_after", len(GT.nodes.data()),"nb_edges_GT_after", len(GT.edges.data()))
-            #We use an auxiliary process to be able to carry on even if we timeout.
-            chain_entry = ""
-            for c in chains:
-                chain_entry+= ',' + c 
-            entry.append((GP, GT, E, B, A, maxGAPdistance, nb_samples, D, timeout, motifs_mapping, new_perfect_mapping, (RNAname, tuple(chains)), filename,chain_entry, strong_mapping, pattern_name))
-    with Pool(NB_PROCS) as pool:
-        resu = list(pool.imap_unordered(newmain3, entry))
-    allresu = []
-    allmapping = []
-    for (namer, proportion, timer, mapping) in resu:
-        allresu.append((namer, proportion, timer))
-        allmapping.append((namer, mapping))
-    return allresu, allmapping
+    for (filename, GT, local_mapping) in smallGT:
+        entry.append((filename, local_mapping, strong_mapping, timeout, GP, GT, E, B, A, maxGAPdistance, nb_samples, respect_injectivity, D, {}))
+    with Pool(nb_procs) as pool:
+        resu = list(pool.imap_unordered(wrapper_main, entry))
+    for (filename, GT, local_mapping) in bigGT:
+        entry = []
+        graph_grid, Distancer = slicer(GP, GT,  size_cube_versus_radius=1, filename=filename) #instead of 0.5 for now to have less cubes
+        for GTsmall in graph_grid:
+            local_nb_samples = int(nb_samples/len(graph_grid)) + 1
+            entry.append((filename, local_mapping, strong_mapping, timeout, GP, GTsmall, E, B, A, maxGAPdistance, local_nb_samples, respect_injectivity, D, Distancer))
+        with Pool(nb_procs) as pool:
+            resu_big = list(pool.imap_unordered(wrapper_main, entry))
+        resu.append(fusion_resu_cube(resu_big))
+    compact_resu = [(i,j,k) for (i,j,k,_) in resu]
+    print("compact_resu", compact_resu)
+    print("\n resu", resu)
+    return resu
+
+
+
+
+
+
+
+
+
 
 def newmain4(GP_GTsmall_ind_debug_E_B_A_maxGAPdistance_nb_samples_D_Distancer):
     (GP, GTsmall, ind_debug, E, B, A, maxGAPdistance, nb_samples, D, Distancer) = GP_GTsmall_ind_debug_E_B_A_maxGAPdistance_nb_samples_D_Distancer
@@ -446,7 +336,7 @@ def bar_graph_3proportions_1time_by_filename(resu, title, bar_length = 0.3):
     if max_proportion > 3:
         print("TOO MUCH PROPORTION TO HANDLE LIMITED TO 3 FOR NOW")
         return 
-    for (name, proportion, time) in resu:
+    for (name, time, porportion, _) in resu:
         if len(proportion) >= 1:
             y11.append(proportion[0])
         else:
