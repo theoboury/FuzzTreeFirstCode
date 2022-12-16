@@ -19,7 +19,7 @@ def work(test = 1):
     if test == 3:
         perfect_mapping = csv_parse("IL_29549.9", [(5,6)])
         #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['4V88']]
-        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout= 3600, D = 5, nb_procs = 32, perfect_mapping=perfect_mapping)
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout= 900, D = 5, nb_procs = 32, perfect_mapping=perfect_mapping)
         print("resu", resu)
         resu1 = resu[:10] 
         resu2 = resu[10:20] 

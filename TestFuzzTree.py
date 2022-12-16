@@ -75,8 +75,10 @@ def wrapper_main(filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGA
     if local_mapping:
         proportion = []
         for loc_mapp in local_mapping:
-            print("HERE", local_mapping)
-            proportion.append(len([mapp for mapp in mapping if weak_similar_mapping(loc_mapp, mapp, GT, strong_mapping) ])/len(mapping))
+            if mapping:
+                proportion.append(len([mapp for mapp in mapping if weak_similar_mapping(loc_mapp, mapp, GT, strong_mapping) ])/len(mapping))
+            else:
+                proportion.append(0)
     else:
         proportion = [1.01] #It means here that we have no way to verify that the mappings are the ones that we want here.
     if DEBUG:
