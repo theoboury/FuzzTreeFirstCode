@@ -108,7 +108,7 @@ def extract_small_sphere_graph(GT, list_nodes):
             Gnew.add_edge((i, ii),(j, jj), label=t['label'], near=t['near'])
     return Gnew
 
-def slicer(GP, GT, size_cube_versus_radius=0.5, filename = ""):
+def slicer(GP, GT, size_cube_versus_radius=0.5, filename = "", D = 5):
     """
     Input : - A pattern graph GP and a target graph GT.
             - size_cube_versus_radius serves to quantify the size of the buce compare to the radius of sphere as we are free 
@@ -122,7 +122,7 @@ def slicer(GP, GT, size_cube_versus_radius=0.5, filename = ""):
     if DEBUG:
         print("Diameter", diam, "Radius", rad)
     Distancer = precompute_distance(GT)
-    grid = full_allocate_cube_and_sphere(GT, size_cube_versus_radius*rad, rad, Distancer)
+    grid = full_allocate_cube_and_sphere(GT, size_cube_versus_radius*rad, rad + D, Distancer)
     if DEBUG:
         print("filename", filename, "Number of cubes", len(grid), "Max size cube", max([len(grid[i]) for i in grid.keys()]), "Size of each cube", ([len(grid[i]) for i in grid.keys()]))
     pre_graph_grid = [grid[i] for i in grid.keys()]
