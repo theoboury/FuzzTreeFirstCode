@@ -208,7 +208,7 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
         entry = []
         graph_grid, Distancer = slicer(GP, GT,  size_cube_versus_radius=1, filename=filename) #instead of 0.5 for now to have less cubes
         for GTsmall in graph_grid:
-            local_nb_samples = int(nb_samples/len(graph_grid)) + 1
+            local_nb_samples = max(10, int(nb_samples/len(graph_grid)) + 1)
             entry.append((filename, local_mapping, strong_mapping, timeout, GP, GTsmall, E, B, A, maxGAPdistance, local_nb_samples, respect_injectivity, D, Distancer))
         with Pool(nb_procs) as pool:
             resu_big = list(pool.imap_unordered(wrapper_main, entry))
