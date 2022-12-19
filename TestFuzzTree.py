@@ -206,7 +206,7 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
         resu = list(pool.imap_unordered(wrapper_main, entry))
     for (filename, GT, local_mapping) in bigGT:
         entry = []
-        graph_grid, Distancer = slicer(GP, GT, nb_procs, size_cube_versus_radius=size_cube_versus_radius, filename=filename, D = D) #instead of 0.5 for now to have less cubes
+        graph_grid, Distancer = slicer(GP, GT, nb_procs, size_cube_versus_radius=size_cube_versus_radius, filename=filename, D = D, A = A) #instead of 0.5 for now to have less cubes
         for GTsmall in graph_grid:
             local_nb_samples = max(10, int(nb_samples/len(graph_grid)) + 1) 
             #TODO: Is the maximum necessary here to avoid unlucky mismatch ? Furthermore, should we remove multiple indentical samples. In this case, by what should we replace the proportion ?
