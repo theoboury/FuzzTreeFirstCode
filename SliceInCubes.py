@@ -129,5 +129,8 @@ def slicer(GP, GT, size_cube_versus_radius=0.5, filename = ""):
     pre_graph_grid.sort(key=len)
     graph_grid = []
     for list_nodes in pre_graph_grid:
-        graph_grid.append(extract_small_sphere_graph(GT, list_nodes))
+        if len(list_nodes) < len(GP.nodes.data()):
+            graph_grid.append(extract_small_sphere_graph(GT, list_nodes))
+    if DEBUG:
+        print("filename", filename, "Number of cubes after", len(graph_grid), "Max size cube after", max([len(graph_grid[i].nodes.data()) for i in range(len(graph_grid))]), "Size of each cube after", [len(graph_grid[i].nodes.data()) for i in range(len(graph_grid))])
     return graph_grid, Distancer
