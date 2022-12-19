@@ -5,6 +5,7 @@ import networkx as nx
 #!export PYTHONPATH="${PYTHONPATH}:/home/uqamportable/miniconda3/lib/python3.9/site-packages/infrared/"
 import infrared as ir
 from infrared import def_constraint_class, def_function_class
+from multiprocessing import Pool
 
 DEBUG = 0
 #infinite = 1000
@@ -152,7 +153,7 @@ def distance(node1, node2, GT):
             dist = min(dist, preL2distance(atom1['position'], atom2['position']))
     return math.sqrt(dist)
 
-def precompute_distance(GT):
+def precompute_distance_old(GT):
     Distancer = {}
     for node1 in GT.nodes():
         loc_distance = {}
@@ -167,6 +168,29 @@ def precompute_distance(GT):
         Distancer[node1] = loc_distance.copy()
     return Distancer
 
+def wrapper_distance(node1_node2_GT):
+    (node1, node2, GT) = node1_node2_GT
+    value = distance(node1, node2, GT)
+    return [(node1, node2, value), (node2, node1, value)]
+
+def precompute_distance(GT, nb_procs):
+    Distancer = {}
+    list_couples = []
+    for node1 in GT.nodes():
+        for node2 in GT.nodes():
+            if ((node1, node2) not in list_couples) and ((node2, node1) not in list_couples):
+                list_couples.append((node1, node2))
+    entry = []
+    for (node1, node2) in list_couples:
+        entry.append((node1, node2, GT))
+    with Pool(nb_procs) as pool:
+        resu= list(pool.imap_unordered(wrapper_distance, entry))
+    for li in resu:
+        for (node1, node2, value) in li:
+                if node1 not in Distancer.keys():
+                    Distancer[node1] = {}
+                Distancer[node1][node2] = value
+    return Distancer
 
 def _EdgeRespect(x, y, label_edge_ij, nodes_target, edges_target, Distancer, B, D):
     """
