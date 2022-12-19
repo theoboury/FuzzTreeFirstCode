@@ -149,7 +149,7 @@ def test_varna(name_file,GPpath, GTpath, show=1, output_format='png', E = 0, B =
 
 
 
-def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=1000, remove_near=True, timeout=-1, D = 5, nb_procs = 32, perfect_mapping = [], motifs_mapping = []):
+def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=1000, remove_near=True, timeout=-1, D = 5, nb_procs = 32, perfect_mapping = [], motifs_mapping = [], size_cube_versus_radius = 1):
     """
     Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
            - A list of RNA Target Graphs GTlist as a folder of files GTlistfolder. For each of these GT, we are looking for GP or a fuzzy version of GP in it.
@@ -206,9 +206,10 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
         resu = list(pool.imap_unordered(wrapper_main, entry))
     for (filename, GT, local_mapping) in bigGT:
         entry = []
-        graph_grid, Distancer = slicer(GP, GT,  size_cube_versus_radius=1, filename=filename) #instead of 0.5 for now to have less cubes
+        graph_grid, Distancer = slicer(GP, GT,  size_cube_versus_radius=size_cube_versus_radius, filename=filename) #instead of 0.5 for now to have less cubes
         for GTsmall in graph_grid:
-            local_nb_samples = max(10, int(nb_samples/len(graph_grid)) + 1)
+            local_nb_samples = max(10, int(nb_samples/len(graph_grid)) + 1) 
+            #TODO: Is the maximum necessary here to avoid unlucky mismatch ? Furthermore, should we remove multiple indentical samples. In this case, by what should we replace the proportion ?
             entry.append((filename, local_mapping, strong_mapping, timeout, GP, GTsmall, E, B, A, maxGAPdistance, local_nb_samples, respect_injectivity, D, Distancer))
         with Pool(nb_procs) as pool:
             resu_big = list(pool.imap_unordered(wrapper_main, entry))
@@ -338,7 +339,7 @@ def bar_graph_3proportions_1time_by_filename(resu, title, bar_length = 0.3):
     if max_proportion > 3:
         print("TOO MUCH PROPORTION TO HANDLE LIMITED TO 3 FOR NOW")
         return 
-    for (name, time, porportion, _) in resu:
+    for (name, time, proportion, _) in resu:
         if len(proportion) >= 1:
             y11.append(proportion[0])
         else:
@@ -353,7 +354,7 @@ def bar_graph_3proportions_1time_by_filename(resu, title, bar_length = 0.3):
             y13.append(0)
         y2.append(time)
         graph_names.append(name)
-
+    print(y11, y12, y13)
     x1 = range(len(y11)) 
 
     x2 = [i + bar_length for i in x1]
