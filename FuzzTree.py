@@ -184,7 +184,7 @@ def precompute_distance(GT, nb_procs):
     li = list(GT.nodes())
     for k1, node1 in enumerate(li):
             entry.append((node1, GT, k1, li))
-    print("entry done\n", entry)
+    print("entry done\n")
     with Pool(nb_procs) as pool:
         resu= list(pool.imap_unordered(wrapper_distance, entry))
     print("resu done\n")
