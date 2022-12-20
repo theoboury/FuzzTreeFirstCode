@@ -77,7 +77,7 @@ def full_allocate_cube(GT, cutoff_cube):
 def wrapper_sphere(row_grid_GT_Distancer_cutoff_sphere):
     (row, grid, GT, Distancer, cutoff_sphere) = row_grid_GT_Distancer_cutoff_sphere
     preresu = [node for node in GT.nodes() if distance_cube(node, grid[row], Distancer) <= cutoff_sphere]
-    return list(set(grid[row] + preresu))
+    return (row, list(set(grid[row] + preresu)))
 
 def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer, nb_procs):
     """
@@ -96,7 +96,8 @@ def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer, nb_
     print("Entry sphere done\n")
     with Pool(nb_procs) as pool:
         resu= list(pool.imap_unordered(wrapper_sphere, entry))
-    for li in resu:
+    print("Resu sphere done\n")
+    for (row, li) in resu:
         sphere_grid[row] = li
     print("Sphere done\n")
     return sphere_grid
