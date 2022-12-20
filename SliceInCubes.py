@@ -16,7 +16,7 @@ def distance_cube(node, cube, Distancer):
     """
     dist = math.inf
     for node_cube in cube:
-            dist = min(dist, Distancer[node][node_cube])
+            dist = min(dist, Distancer[node_cube][node]) #Warning here : Distancer[node][node_cube] is not necessarely allocated here to spare some computations and search in the list
     return dist
 
 
@@ -74,10 +74,10 @@ def full_allocate_cube(GT, cutoff_cube):
                 grid[row].append(id)
     return grid
 
-def wrapper_sphere(row_grid_GT_Distancer_cutoff_sphere):
-    (row, grid, GT, Distancer, cutoff_sphere) = row_grid_GT_Distancer_cutoff_sphere
-    preresu = [node for node in GT.nodes() if distance_cube(node, grid[row], Distancer) <= cutoff_sphere]
-    return (row, list(set(grid[row] + preresu)))
+def wrapper_sphere(row_cube_GT_Distancer_cutoff_sphere):
+    (row, cube, GT, Distancer, cutoff_sphere) = row_cube_GT_Distancer_cutoff_sphere
+    preresu = [node for node in GT.nodes() if distance_cube(node, cube, Distancer) <= cutoff_sphere]
+    return (row, list(set(cube + preresu)))
 
 def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer, nb_procs):
     """
@@ -92,8 +92,12 @@ def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer, nb_
     entry = []
     print("Starting sphere\n")
     for row in grid:
-        entry.append((row, grid, GT, Distancer, cutoff_sphere))
-    print("Entry sphere done", entry[0], entry[1] , "\n nb_procs :", nb_procs)
+        Distancer_loc = {}
+        cube = grid[row]
+        for node_cube in cube:
+            Distancer_loc[node_cube] = Distancer[node_cube].copy()
+        entry.append((row, cube, GT, Distancer_loc.copy(), cutoff_sphere))
+    print("Entry sphere done", len(entry) , "\n nb_procs :", nb_procs)
     with Pool(nb_procs) as pool:
         resu= list(pool.imap_unordered(wrapper_sphere, entry))
     print("Resu sphere done\n")
