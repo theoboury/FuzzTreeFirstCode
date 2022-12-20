@@ -168,28 +168,34 @@ def precompute_distance(GT):
         Distancer[node1] = loc_distance.copy()
     return Distancer
 
-def wrapper_distance(node1_node2_GT):
-    (node1, node2, GT) = node1_node2_GT
-    value = distance(node1, node2, GT)
-    return [(node1, node2, value), (node2, node1, value)]
+def wrapper_distance(node1_GT_k1):
+    (node1, GT, k1) = node1_GT_k1
+    resu = []
+    for k2, node2 in enumerate(list(GT.nodes())):
+        if k2 > k1:
+            value = distance(node1, node2, GT)
+            resu.append((node1, node2, value))
+    return resu
 
-def precompute_distance_bugged(GT, nb_procs):
+def precompute_distance_multiprocess(GT, nb_procs):
     Distancer = {}
-    list_couples = []
-    for node1 in GT.nodes():
-        for node2 in GT.nodes():
-            if (node1 != node2) and ((node1, node2) not in list_couples) and ((node2, node1) not in list_couples):
-                list_couples.append((node1, node2))
     entry = []
-    for (node1, node2) in list_couples:
-        entry.append((node1, node2, GT))
+    print("start\n")
+    for k1, node1 in enumerate(list(GT.nodes())):
+            entry.append((node1, GT, k1))
+    print("entry done\n", entry)
     with Pool(nb_procs) as pool:
         resu= list(pool.imap_unordered(wrapper_distance, entry))
+    print("resu done\n")
     for li in resu:
         for (node1, node2, value) in li:
-                if node1 not in Distancer.keys():
-                    Distancer[node1] = {}
-                Distancer[node1][node2] = value
+            if node1 not in Distancer.keys():
+                Distancer[node1] = {}
+            if node2 not in Distancer.keys():
+                Distancer[node2] = {}
+            Distancer[node1][node2] = value
+            Distancer[node2][node1] = value
+    print("Distancer done\n")
     return Distancer
 
 def _EdgeRespect(x, y, label_edge_ij, nodes_target, edges_target, Distancer, B, D):
