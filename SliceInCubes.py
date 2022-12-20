@@ -92,11 +92,12 @@ def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer, nb_
     entry = []
     print("Starting sphere\n")
     for row in grid:
-        Distancer_loc = {}
         cube = grid[row]
-        for node_cube in cube:
-            Distancer_loc[node_cube] = Distancer[node_cube].copy()
-        entry.append((row, cube, GT, Distancer_loc.copy(), cutoff_sphere))
+        if len(cube) > 0:
+            Distancer_loc = {}
+            for node_cube in cube:
+                Distancer_loc[node_cube] = Distancer[node_cube].copy()
+            entry.append((row, cube, GT, Distancer_loc.copy(), cutoff_sphere))
     print("Entry sphere done", len(entry) , "\n nb_procs :", nb_procs)
     with Pool(nb_procs) as pool:
         resu= list(pool.imap_unordered(wrapper_sphere, entry))
