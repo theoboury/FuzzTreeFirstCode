@@ -93,7 +93,7 @@ def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer, nb_
     print("Starting sphere\n")
     for row in grid:
         entry.append((row, grid, GT, Distancer, cutoff_sphere))
-    print("Entry sphere done\n")
+    print("Entry sphere done", entry , "\n nb_procs :", nb_procs)
     with Pool(nb_procs) as pool:
         resu= list(pool.imap_unordered(wrapper_sphere, entry))
     print("Resu sphere done\n")
