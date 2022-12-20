@@ -121,7 +121,7 @@ def slicer(GP, GT, nb_procs, size_cube_versus_radius=0.5, filename = "", D = 5, 
     rad = get_radius(GP)
     if DEBUG:
         print("Diameter", diam, "Radius", rad)
-    Distancer = precompute_distance(GT, nb_procs)
+    Distancer = precompute_distance(GT)#, nb_procs)
     grid = full_allocate_cube_and_sphere(GT, size_cube_versus_radius*rad, rad + A + D, Distancer)
     if DEBUG:
         print("filename", filename, "Number of cubes", len(grid), "Max size cube", max([len(grid[i]) for i in grid.keys()]), "Size of each cube", ([len(grid[i]) for i in grid.keys()]))

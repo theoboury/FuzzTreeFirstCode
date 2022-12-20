@@ -153,7 +153,7 @@ def distance(node1, node2, GT):
             dist = min(dist, preL2distance(atom1['position'], atom2['position']))
     return math.sqrt(dist)
 
-def precompute_distance_old(GT):
+def precompute_distance(GT):
     Distancer = {}
     for node1 in GT.nodes():
         loc_distance = {}
@@ -173,12 +173,12 @@ def wrapper_distance(node1_node2_GT):
     value = distance(node1, node2, GT)
     return [(node1, node2, value), (node2, node1, value)]
 
-def precompute_distance(GT, nb_procs):
+def precompute_distance_bugged(GT, nb_procs):
     Distancer = {}
     list_couples = []
     for node1 in GT.nodes():
         for node2 in GT.nodes():
-            if ((node1, node2) not in list_couples) and ((node2, node1) not in list_couples):
+            if (node1 != node2) and ((node1, node2) not in list_couples) and ((node2, node1) not in list_couples):
                 list_couples.append((node1, node2))
     entry = []
     for (node1, node2) in list_couples:
