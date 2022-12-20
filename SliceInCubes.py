@@ -7,7 +7,9 @@ from multiprocessing import Pool
 DEBUG = 1
 
 
-def distance_cube(node, cube, Distancer):
+
+
+def distance_cube_old(node, cube, Distancer):
     """
     Input : - One node and one cube in GT.
             - Preprocessed distance between nodes of GT, Distancer.
@@ -74,12 +76,34 @@ def full_allocate_cube(GT, cutoff_cube):
                 grid[row].append(id)
     return grid
 
-def wrapper_sphere(row_cube_GT_Distancer_cutoff_sphere):
-    (row, cube, GT, Distancer, cutoff_sphere) = row_cube_GT_Distancer_cutoff_sphere
-    preresu = [node for node in GT.nodes() if distance_cube(node, cube, Distancer) <= cutoff_sphere]
-    return (row, list(set(cube + preresu)))
+def wrapper_sphere(row_GT_Distancer_cube_cutoff_sphere):
+    (row, GT, Distancer_cube, cutoff_sphere) = row_GT_Distancer_cube_cutoff_sphere
+    preresu = [node for node in GT.nodes() if Distancer_cube[node] <= cutoff_sphere]
+    return (row, list(set(preresu)))
 
 def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer, nb_procs):
+    """
+    Input : - A target graph GT.
+            - cutoff_cube to define the size of the cube.
+            - cutoff_sphere to define the size of the sphere around the cuve.
+    Output :  We output a grid that contains multiple list of nodes that are all the cubes of size GT that pave GT extended by the sphere around each cube.
+    """
+    print("Starting grid\n")
+    sphere_grid = {}
+    entry = []
+    print("Starting sphere\n")
+    for node in GT.nodes.data():
+        entry.append((row, GT, Distancer[node[0]].copy(), cutoff_sphere))
+    print("Entry sphere done", len(entry) , "\n nb_procs :", nb_procs)
+    with Pool(nb_procs) as pool:
+        resu= list(pool.imap_unordered(wrapper_sphere, entry))
+    print("Resu sphere done\n")
+    for (row, li) in resu:
+        sphere_grid[row] = li
+    print("Sphere done\n")
+    return sphere_grid
+
+def full_allocate_cube_and_sphere_also_old(GT, cutoff_cube, cutoff_sphere, Distancer, nb_procs):
     """
     Input : - A target graph GT.
             - cutoff_cube to define the size of the cube.
