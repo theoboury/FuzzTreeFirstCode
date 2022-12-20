@@ -92,7 +92,7 @@ def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer, nb_
     entry = []
     print("Starting sphere\n")
     for row in grid:
-        entry.append(row, grid, GT, Distancer, cutoff_sphere)
+        entry.append((row, grid, GT, Distancer, cutoff_sphere))
     print("Entry sphere done\n")
     with Pool(nb_procs) as pool:
         resu= list(pool.imap_unordered(wrapper_sphere, entry))
@@ -146,8 +146,8 @@ def slicer(GP, GT, nb_procs, size_cube_versus_radius=0.5, filename = "", D = 5, 
     rad = get_radius(GP)
     if DEBUG:
         print("Diameter", diam, "Radius", rad)
-    Distancer = precompute_distance(GT, nb_procs)
-    grid = full_allocate_cube_and_sphere(GT, size_cube_versus_radius*rad, rad + A + D, Distancer, nb_procs)
+    Distancer = precompute_distance(GT, nb_procs) 
+    grid = full_allocate_cube_and_sphere(GT, size_cube_versus_radius*rad, 20, Distancer, nb_procs)#rad + A + D
     if DEBUG:
         print("filename", filename, "Number of cubes", len(grid), "Max size cube", max([len(grid[i]) for i in grid.keys()]), "Size of each cube", ([len(grid[i]) for i in grid.keys()]))
     pre_graph_grid = [grid[i] for i in grid.keys()]
