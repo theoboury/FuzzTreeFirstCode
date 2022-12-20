@@ -153,7 +153,7 @@ def distance(node1, node2, GT):
             dist = min(dist, preL2distance(atom1['position'], atom2['position']))
     return math.sqrt(dist)
 
-def precompute_distance(GT):
+def precompute_distance_old(GT):
     Distancer = {}
     for node1 in GT.nodes():
         loc_distance = {}
@@ -168,21 +168,22 @@ def precompute_distance(GT):
         Distancer[node1] = loc_distance.copy()
     return Distancer
 
-def wrapper_distance(node1_GT_k1):
-    (node1, GT, k1) = node1_GT_k1
+def wrapper_distance(node1_GT_k1_li):
+    (node1, GT, k1, li) = node1_GT_k1_li
     resu = []
-    for k2, node2 in enumerate(list(GT.nodes())):
+    for k2, node2 in enumerate(li): #TODO : list(GT.nodes()) should be consistent here !
         if k2 > k1:
             value = distance(node1, node2, GT)
             resu.append((node1, node2, value))
     return resu
 
-def precompute_distance_multiprocess(GT, nb_procs):
+def precompute_distance(GT, nb_procs):
     Distancer = {}
     entry = []
     print("start\n")
-    for k1, node1 in enumerate(list(GT.nodes())):
-            entry.append((node1, GT, k1))
+    li = list(GT.nodes())
+    for k1, node1 in enumerate(li):
+            entry.append((node1, GT, k1, li))
     print("entry done\n", entry)
     with Pool(nb_procs) as pool:
         resu= list(pool.imap_unordered(wrapper_distance, entry))
@@ -292,7 +293,7 @@ def_function_class('GapRespect', lambda i, j, nodes_target, edges_target, GT, A:
             module=__name__)
 
 
-def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}): 
+def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}, nb_procs = 1): 
     """
     Input : - Two graphs, the pattern graph GP and the target graph GT.
             - E, the threshold in term of sum of isostericity allowed
@@ -323,7 +324,7 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
     if Distancer_preprocessed != {}:
         Distancer = Distancer_preprocessed
     else:
-        Distancer = precompute_distance(GT)
+        Distancer = precompute_distance(GT, nb_procs)
 
     #We enrich the target Graph with False Edges that account for gaps
     GT = augment_graph(GT, maxGAPdistance, Distancer)

@@ -57,15 +57,15 @@ def weak_similar_mapping(mapping_ref, mapping, GT, strong_mapping):
     else:
         return 0
 
-def wrapper_main(filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGAPdistance_nb_samples_respect_injectivity_D_Distancer_preprocessed):
-    (filename, local_mapping, strong_mapping, timeout, GP, GT, E, B, A, maxGAPdistance, nb_samples, respect_injectivity, D, Distancer_preprocessed) = filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGAPdistance_nb_samples_respect_injectivity_D_Distancer_preprocessed
+def wrapper_main(filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGAPdistance_nb_samples_respect_injectivity_D_Distancer_preprocessed_nb_procs):
+    (filename, local_mapping, strong_mapping, timeout, GP, GT, E, B, A, maxGAPdistance, nb_samples, respect_injectivity, D, Distancer_preprocessed, nb_procs) = filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGAPdistance_nb_samples_respect_injectivity_D_Distancer_preprocessed_nb_procs
     timer = time.time()
     if timeout == -1:
-        mapping = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed)
+        mapping = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = nb_procs)
         mapping = [mapp for (mapp, _) in mapping]
     else:
         def computation():
-            loc = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed)
+            loc = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = nb_procs)
             return [mapp for (mapp, _) in loc]
         try:
             mapping = func_timeout.func_timeout(timeout, computation)
@@ -128,11 +128,11 @@ def initialise_perfect_mapping(perfect_mapping, motifs_mapping):
 
 
 
-def test_mapping(GPpath, GTpath, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}):
+def test_mapping(GPpath, GTpath, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}, nb_procs = 1):
     GP = open_graph(GPpath)
     GT = open_graph(GTpath)
     timer = time.time()
-    mapping = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed)
+    mapping = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = nb_procs)
     timer = time.time() - timer
     if DEBUG:
         print("\nmapping", mapping)
@@ -201,7 +201,7 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
             smallGT.append((compact_filename, GT.copy(), local_mapping))
     entry = []
     for (filename, GT, local_mapping) in smallGT:
-        entry.append((filename, local_mapping, strong_mapping, timeout, GP, GT, E, B, A, maxGAPdistance, nb_samples, respect_injectivity, D, {}))
+        entry.append((filename, local_mapping, strong_mapping, timeout, GP, GT, E, B, A, maxGAPdistance, nb_samples, respect_injectivity, D, {}, nb_procs))
     with Pool(nb_procs) as pool:
         resu = list(pool.imap_unordered(wrapper_main, entry))
     for (filename, GT, local_mapping) in bigGT:
@@ -210,7 +210,7 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
         for GTsmall in graph_grid:
             local_nb_samples = max(10, int(nb_samples/len(graph_grid)) + 1) 
             #TODO: Is the maximum necessary here to avoid unlucky mismatch ? Furthermore, should we remove multiple indentical samples. In this case, by what should we replace the proportion ?
-            entry.append((filename, local_mapping, strong_mapping, timeout, GP, GTsmall, E, B, A, maxGAPdistance, local_nb_samples, respect_injectivity, D, Distancer))
+            entry.append((filename, local_mapping, strong_mapping, timeout, GP, GTsmall, E, B, A, maxGAPdistance, local_nb_samples, respect_injectivity, D, Distancer, nb_procs))
         with Pool(nb_procs) as pool:
             resu_big = list(pool.imap_unordered(wrapper_main, entry))
         resu.append(fusion_resu_cube(resu_big))
