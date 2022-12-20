@@ -172,7 +172,7 @@ def wrapper_distance(node1_GT_k1_li):
     (node1, GT, k1, li) = node1_GT_k1_li
     resu = []
     for k2, node2 in enumerate(li): #TODO : list(GT.nodes()) should be consistent here !
-        if k2 > k1:
+        if k2 >= k1:
             value = distance(node1, node2, GT)
             resu.append((node1, node2, value))
     return resu

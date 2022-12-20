@@ -3,6 +3,7 @@ import math
 import networkx as nx
 import itertools
 from FuzzTree import preL2distance, precompute_distance
+from multiprocessing import Pool
 DEBUG = 1
 
 
@@ -73,8 +74,33 @@ def full_allocate_cube(GT, cutoff_cube):
                 grid[row].append(id)
     return grid
 
+def wrapper_sphere(row_grid_GT_Distancer_cutoff_sphere):
+    (row, grid, GT, Distancer, cutoff_sphere) = row_grid_GT_Distancer_cutoff_sphere
+    preresu = [node for node in GT.nodes() if distance_cube(node, grid[row], Distancer) <= cutoff_sphere]
+    return list(set(grid[row] + preresu))
 
-def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer):
+def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer, nb_procs):
+    """
+    Input : - A target graph GT.
+            - cutoff_cube to define the size of the cube.
+            - cutoff_sphere to define the size of the sphere around the cuve.
+    Output :  We output a grid that contains multiple list of nodes that are all the cubes of size GT that pave GT extended by the sphere around each cube.
+    """
+    print("Starting grid\n")
+    grid = full_allocate_cube(GT, cutoff_cube)
+    sphere_grid = {}
+    entry = []
+    print("Starting sphere\n")
+    for row in grid:
+        entry.append(row, grid, GT, Distancer, cutoff_sphere)
+    print("Entry sphere done\n")
+    with Pool(nb_procs) as pool:
+        resu= list(pool.imap_unordered(wrapper_sphere, entry))
+    for li in resu:
+        sphere_grid[row] = li
+    print("Sphere done\n")
+    return sphere_grid
+def full_allocate_cube_and_sphere_old(GT, cutoff_cube, cutoff_sphere, Distancer):
     """
     Input : - A target graph GT.
             - cutoff_cube to define the size of the cube.
@@ -92,7 +118,6 @@ def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer):
                 resu = list(set(sphere_grid[row] + preresu))
                 sphere_grid[row] = resu
     return sphere_grid
-
 def extract_small_sphere_graph(GT, list_nodes):
     """
     Input : - A target graph GT.
@@ -122,7 +147,7 @@ def slicer(GP, GT, nb_procs, size_cube_versus_radius=0.5, filename = "", D = 5, 
     if DEBUG:
         print("Diameter", diam, "Radius", rad)
     Distancer = precompute_distance(GT, nb_procs)
-    grid = full_allocate_cube_and_sphere(GT, size_cube_versus_radius*rad, rad + A + D, Distancer)
+    grid = full_allocate_cube_and_sphere(GT, size_cube_versus_radius*rad, rad + A + D, Distancer, nb_procs)
     if DEBUG:
         print("filename", filename, "Number of cubes", len(grid), "Max size cube", max([len(grid[i]) for i in grid.keys()]), "Size of each cube", ([len(grid[i]) for i in grid.keys()]))
     pre_graph_grid = [grid[i] for i in grid.keys()]
