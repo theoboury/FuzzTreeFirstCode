@@ -76,10 +76,10 @@ def full_allocate_cube(GT, cutoff_cube):
                 grid[row].append(id)
     return grid
 
-def wrapper_sphere(row_GT_Distancer_cube_cutoff_sphere):
-    (row, GT, Distancer_cube, cutoff_sphere) = row_GT_Distancer_cube_cutoff_sphere
+def wrapper_sphere(GT_Distancer_cube_cutoff_sphere):
+    (GT, Distancer_cube, cutoff_sphere) = GT_Distancer_cube_cutoff_sphere
     preresu = [node for node in GT.nodes() if Distancer_cube[node] <= cutoff_sphere]
-    return (row, list(set(preresu)))
+    return list(set(preresu))
 
 def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer, nb_procs):
     """
@@ -89,17 +89,17 @@ def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer, nb_
     Output :  We output a grid that contains multiple list of nodes that are all the cubes of size GT that pave GT extended by the sphere around each cube.
     """
     print("Starting grid\n")
-    sphere_grid = {}
+    sphere_grid = []
     entry = []
     print("Starting sphere\n")
     for node in GT.nodes.data():
-        entry.append((row, GT, Distancer[node[0]].copy(), cutoff_sphere))
+        entry.append((GT, Distancer[node[0]].copy(), cutoff_sphere))
     print("Entry sphere done", len(entry) , "\n nb_procs :", nb_procs)
     with Pool(nb_procs) as pool:
         resu= list(pool.imap_unordered(wrapper_sphere, entry))
     print("Resu sphere done\n")
-    for (row, li) in resu:
-        sphere_grid[row] = li
+    for li in resu:
+        sphere_grid.append(li)
     print("Sphere done\n")
     return sphere_grid
 
@@ -180,8 +180,8 @@ def slicer(GP, GT, nb_procs, size_cube_versus_radius=0.5, filename = "", D = 5, 
     Distancer = precompute_distance(GT, nb_procs) 
     grid = full_allocate_cube_and_sphere(GT, size_cube_versus_radius*rad, 20, Distancer, nb_procs)#rad + A + D
     if DEBUG:
-        print("filename", filename, "Number of cubes", len(grid), "Max size cube", max([len(grid[i]) for i in grid.keys()]), "Size of each cube", ([len(grid[i]) for i in grid.keys()]))
-    pre_graph_grid = [grid[i] for i in grid.keys()]
+        print("filename", filename, "Number of cubes", len(grid), "Max size cube", max([len(grid[i]) for i in range(len(grid))]), "Size of each cube", ([len(grid[i]) for i in range(len(grid))]))
+    pre_graph_grid = [grid[i] for i in range(len(grid))]
     pre_graph_grid.sort(key=len)
     graph_grid = []
     for list_nodes in pre_graph_grid:
