@@ -88,6 +88,7 @@ def full_allocate_cube_and_sphere(GT, cutoff_cube, cutoff_sphere, Distancer, nb_
     """
     print("Starting grid\n")
     grid = full_allocate_cube(GT, cutoff_cube)
+    print("WHAT", grid)
     sphere_grid = {}
     entry = []
     print("Starting sphere\n")
