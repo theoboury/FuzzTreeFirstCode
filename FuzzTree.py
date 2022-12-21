@@ -153,22 +153,11 @@ def distance(node1, node2, GT):
             dist = min(dist, preL2distance(atom1['position'], atom2['position']))
     return math.sqrt(dist)
 
-def precompute_distance_old(GT):
-    Distancer = {}
-    for node1 in GT.nodes():
-        loc_distance = {}
-        for node2 in GT.nodes():
-            if node2 in Distancer.keys():
-                if node1 in Distancer[node2].keys():
-                    loc_distance[node2] = Distancer[node2][node1]
-                else:
-                    loc_distance[node2] = distance(node1, node2, GT)
-            else:
-                loc_distance[node2] = distance(node1, node2, GT)
-        Distancer[node1] = loc_distance.copy()
-    return Distancer
 
 def wrapper_distance(node1_GT_k1_li):
+    """
+    A wrapper to compute distance with multiprocessing between each pairs of nodes
+    """
     (node1, GT, k1, li) = node1_GT_k1_li
     resu = []
     for k2, node2 in enumerate(li): #TODO : list(GT.nodes()) should be consistent here !
@@ -178,16 +167,19 @@ def wrapper_distance(node1_GT_k1_li):
     return resu
 
 def precompute_distance(GT, nb_procs):
+    """
+    Input : - The target graph GT on which we preprocess the distances between each node.
+            - The number of processors nb_procs to multiprocess the distance precomputing.
+    Output : Return the Distancer dictionnary that contains dictionnary such as 
+             Distancer[node1][node2] is the distance in Angstrom between the two nodes.
+    """
     Distancer = {}
     entry = []
-    print("start\n")
     li = list(GT.nodes())
     for k1, node1 in enumerate(li):
             entry.append((node1, GT, k1, li))
-    print("entry done\n")
     with Pool(nb_procs) as pool:
         resu= list(pool.imap_unordered(wrapper_distance, entry))
-    print("resu done\n")
     for li in resu:
         for (node1, node2, value) in li:
             if node1 not in Distancer.keys():
@@ -196,7 +188,8 @@ def precompute_distance(GT, nb_procs):
                 Distancer[node2] = {}
             Distancer[node1][node2] = value
             Distancer[node2][node1] = value
-    print("Distancer done\n")
+    if DEBUG:
+        print("Distancer precomputing done\n")
     return Distancer
 
 def _EdgeRespect(x, y, label_edge_ij, nodes_target, edges_target, Distancer, B, D):
