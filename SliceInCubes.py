@@ -46,7 +46,8 @@ def allocate_sphere(GT, cutoff_sphere, Distancer, nb_procs):
     with Pool(nb_procs) as pool:
         resu= list(pool.imap_unordered(wrapper_sphere, entry))
     for li in resu:
-        lili = li.sort()
+        lili = li
+        lili.sort()
         if lili not in sphere_grid:
             sphere_grid.append(lili)
     if DEBUG:
