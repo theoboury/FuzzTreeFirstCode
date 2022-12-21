@@ -50,6 +50,15 @@ def allocate_sphere(GT, cutoff_sphere, Distancer, nb_procs):
         lili.sort()
         if lili not in sphere_grid:
             sphere_grid.append(lili)
+    banned = []        
+    for li1 in sphere_grid:
+        for li2 in sphere_grid:
+            if li1 != li2:
+                if li1 in li2:
+                    banned.append(li1)
+                elif li2 in li1:
+                    banned.append(li2)
+    sphere_grid = [elem for elem in sphere_grid if elem not in banned]
     if DEBUG:
         print("Sphere grid done\n")
     return sphere_grid
