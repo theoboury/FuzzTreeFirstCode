@@ -43,7 +43,7 @@ First init conda locally and link it to avoid to replace your python by conda :
 
 ```bash
 conda config --set auto_activate_base False
-ln -s your/path/to/conda/conda
+ln -s your/path/to/conda/conda conda
 ```
 
 Make sure to create a virtual environnement for conda called FuzzTreeEnv :
