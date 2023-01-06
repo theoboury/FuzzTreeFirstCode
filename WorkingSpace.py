@@ -38,11 +38,18 @@ def work(test = 1):
         bar_graph_3proportions_1time_by_filename(resu1, "22IL_29549.9into5J7L--familyIL29549.9\nE=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, timeout=3600, D = 5")
     if test == 6:
         from TestFuzzTree import open_graph
-        GT = open_graph("/home/uqamportable/Documents/FuzzTreeFirstCode/ALLkinkturntarget/12IL_29549.9into4V88.nxpickle")
         from SliceInCubes import get_radius
+        GT = open_graph("/home/uqamportable/Documents/FuzzTreeFirstCode/ALLkinkturntarget/12IL_29549.9into4V88.nxpickle")
+        
         print(get_radius(GT))
-
-work(test = 4)
+        GT = open_graph("/home/uqamportable/Documents/FuzzTreeFirstCode/ALLkinkturntarget/31IL_29549.9into4V88.nxpickle")
+        print(get_radius(GT))
+    if test == 7:
+        perfect_mapping = csv_parse("IL_29549.9", [(5,6)])
+        perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['4V88']]
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout= 747*2, D = 5, nb_procs = 32, perfect_mapping=perfect_mapping)
+        print("resu", resu)
+work(test = 7)
 
 
 
