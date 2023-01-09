@@ -55,7 +55,7 @@ def work(test = 1):
         """Now detected all mappings of 12 nucleotides ordre 1"""
         csv_parse("IL_29549.9", [(5,6)])
         perfect_mapping = csv_parse("IL_68057.1", [(7,8)])
-        resubis = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 3, perfect_mapping=perfect_mapping, motifs_mapping = [(1, 8), (2, 9), (3, 10), (4, 11), (5, 12), (6, 1), (7, 2), (8, 3), (9, 4), (10, 5), (11, 6), (12, 7)]) 
+        resubis = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 32, perfect_mapping=perfect_mapping, motifs_mapping = [(1, 8), (2, 9), (3, 10), (4, 11), (5, 12), (6, 1), (7, 2), (8, 3), (9, 4), (10, 5), (11, 6), (12, 7)]) 
         print("resu_temp", resubis)
         perfect_mapping = csv_parse("IL_29549.9", [(5,6)])
         #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['4V88']]
