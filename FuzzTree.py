@@ -178,8 +178,13 @@ def precompute_distance(GT, nb_procs):
     li = list(GT.nodes())
     for k1, node1 in enumerate(li):
             entry.append((node1, GT, k1, li))
-    with Pool(nb_procs) as pool:
-        resu= list(pool.imap_unordered(wrapper_distance, entry))
+    if nb_procs == 1:
+        resu = []
+        for elem in entry:
+            resu.append(wrapper_distance(elem))
+    else:
+        with Pool(nb_procs) as pool:
+            resu= list(pool.imap_unordered(wrapper_distance, entry))
     for li in resu:
         for (node1, node2, value) in li:
             if node1 not in Distancer.keys():
@@ -313,7 +318,6 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
     [16.2, 11.9, 11.1, 13.1, 14.6, 17.1, 10.6, 14.7, 9.6, 9.0, 3.8, 9.0],
     [14.0, 11.4, 15.5, 15.8, 17.7, 19.0, 10.8, 14.9, 14.4, 14.4, 9.0, 4.0]]
 
-   
     if Distancer_preprocessed != {}:
         Distancer = Distancer_preprocessed
     else:
@@ -321,14 +325,12 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
 
     #We enrich the target Graph with False Edges that account for gaps
     GT = augment_graph(GT, maxGAPdistance, Distancer)
-    
     #We quotient IDI_matrix by the isostericity distance allowed by the user to obtain a metric between 0 and 1.
     if E != 0:
         for i in range(len(IDI_matrix)):
             storage = IDI_matrix[i][i]
             for j in range(len(IDI_matrix[0])):
                 IDI_matrix[i][j] = (IDI_matrix[i][j]- storage)
-    
     #Intialisation.
     n_pattern = len(GP.nodes)
     n_target = len(GT.nodes)
@@ -342,7 +344,6 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
     label_edge_pattern = [t['label'] for (_, _, t) in GP.edges.data()]
     label_edge_target = [t['label'] for (_, _, t) in GT.edges.data()]
     #No label on vertices for now, can be introduced if needed.
-
     if DEBUG: #To print graph infos at each call to main
         print("Graphs Infos\n n_pattern:", n_pattern, "\n n_target:", 
     n_target,"\n edges_pattern:", edges_pattern,"\n edges_target:", 

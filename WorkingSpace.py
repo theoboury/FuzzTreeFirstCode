@@ -49,7 +49,33 @@ def work(test = 1):
         perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['4V88']]
         resu = test_GP_into_multiples_GT("ALLkinkturnpattern/22IL_29549.9into5J7L.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=0 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout= 747*2, D = 5, nb_procs = 32, perfect_mapping=perfect_mapping)
         print("resu", resu)
-work(test = 7)
+    if test == 8:
+        timeout = 2000#747*2
+        #TODO: We must fix the radius before launching that !!!
+        """Now detected all mappings of 12 nucleotides ordre 1"""
+        csv_parse("IL_29549.9", [(5,6)])
+        perfect_mapping = csv_parse("IL_68057.1", [(7,8)])
+        resubis = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 3, perfect_mapping=perfect_mapping, motifs_mapping = [(1, 8), (2, 9), (3, 10), (4, 11), (5, 12), (6, 1), (7, 2), (8, 3), (9, 4), (10, 5), (11, 6), (12, 7)]) 
+        print("resu_temp", resubis)
+        perfect_mapping = csv_parse("IL_29549.9", [(5,6)])
+        #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['4V88']]
+
+        perfect_mappingbis = csv_parse("IL_68780.2", [(5,6)])
+        perfect_mapping += perfect_mappingbis
+        perfect_mappingbis = csv_parse("IL_35904.1", [(4,5)])#TODO: aucune chance sans une notion de weak mapping
+        perfect_mapping += perfect_mappingbis
+        perfect_mappingbis = csv_parse("IL_16456.1", [(5,6)])
+        perfect_mapping += perfect_mappingbis
+        perfect_mappingbis = csv_parse("IL_76900.1", [(6,7)])
+        perfect_mapping += perfect_mappingbis
+        perfect_mappingbis = csv_parse("IL_90922.1", [(5,6)])
+        perfect_mapping += perfect_mappingbis
+        print("perfect mapping", perfect_mapping)
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout= timeout, D = 5, nb_procs = 32, perfect_mapping=perfect_mapping)
+        print("resu", resu)
+    if test == 9:
+        test_mapping("ALLkinkturnpattern/0IL_68057.1into3NVI.pickle", "bigRNAstorage/3NVI.nxpickle", 10, 4, 20, maxGAPdistance=10, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}, nb_procs = 1)
+work(test = 8)
 
 
 
