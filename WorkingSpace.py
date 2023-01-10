@@ -4,7 +4,7 @@ from VarnaDrawing import print_mapping_on_target_graph
 from TestFuzzTree import test_mapping, test_varna
 from TestFuzzTree import test_GP_into_multiples_GT
 from RIN import import_rin
-from Extractor import  csv_parse
+from Extractor import  csv_parse, csv_parse_full
 from TestFuzzTree import bar_graph_3proportions_1time_by_filename
  
 def work(test = 1):
@@ -53,9 +53,11 @@ def work(test = 1):
         timeout = 2000#747*2
         #TODO: We must fix the radius before launching that !!!
         """Now detected all mappings of 12 nucleotides ordre 1"""
+        #perfect_mapping = csv_parse("kink_turn", -1)
+        #print("\nHOLE", perfect_mapping)
         csv_parse("IL_29549.9", [(5,6)])
         perfect_mapping = csv_parse("IL_68057.1", [(7,8)])
-        resubis = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 32, perfect_mapping=perfect_mapping, motifs_mapping = [(1, 8), (2, 9), (3, 10), (4, 11), (5, 12), (6, 1), (7, 2), (8, 3), (9, 4), (10, 5), (11, 6), (12, 7)]) 
+        resubis = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.9, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 3, perfect_mapping=perfect_mapping, motifs_mapping = [(1, 8), (2, 9), (3, 10), (4, 11), (5, 12), (6, 1), (7, 2), (8, 3), (9, 4), (10, 5), (11, 6), (12, 7)]) 
         print("resu_temp", resubis)
         perfect_mapping = csv_parse("IL_29549.9", [(5,6)])
         #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['4V88']]
@@ -75,7 +77,14 @@ def work(test = 1):
         print("resu", resu)
     if test == 9:
         test_mapping("ALLkinkturnpattern/0IL_68057.1into3NVI.pickle", "bigRNAstorage/3NVI.nxpickle", 10, 4, 20, maxGAPdistance=10, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}, nb_procs = 1)
-work(test = 8)
+    if test == 10:
+        perfect_mapping = csv_parse("IL_37722.1", [(6,7)])
+        resubis = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= 100, D = 5, nb_procs = 3, perfect_mapping=perfect_mapping) 
+        print("resu_temp", resubis)
+    if test == 11:
+        perfect_mapping = csv_parse("kink_turn", -1)
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 64, perfect_mapping=perfect_mapping) 
+work(test = 11)
 
 
 

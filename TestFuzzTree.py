@@ -49,23 +49,54 @@ def outer_chain_removal(GT, chains):
         print("nb_nodes_GT_after", len(Gnew.nodes.data()),"nb_edges_GT_after", len(Gnew.edges.data()))
     return Gnew
 
+def exact_similar_mapping(mapping_ref, mapping, GT):
+    """
+    Input: - mapping_ref, the perfect mapping that we want to compare with. 
+           - mapping, a mapping that was found in the RNA sampled by the algorithm.
+           - GT, the graph target.
+    Output: Returns 1, if the mappings are exactly the same with same number of nucleotides and 0 otherwise.
+    """
+    for (i, j) in mapping:
+        ii,t = [(ii, tt['pdb_position']) for ((ii,jj), tt) in GT.nodes.data() if (ii,jj) == j][0]
+        if (i, (ii, t)) not in mapping_ref:
+            return 0
+    return 1
+
+
 def weak_similar_mapping(mapping_ref, mapping, GT, strong_mapping):
     """
-    Input: - mapping_ref, the perfect mapping that we wan to compare with. 
+    Input: - mapping_ref, the perfect mapping that we want to compare with. 
            - mapping, a mapping that was found in the RNA sampled by the algorithm.
            - GT, the graph target.
            - strong_mapping, the proportio, of the mapping that we ensure to correspond exactly to say that the mapping are "weakly" similar
     Output: Returns 1, if the mappings are weakly the same given a proportion and 0 otherwise.
     """
     quantity_nodes_valid = 0
+    ref_len = len(mapping_ref)
+    motif_len = len(mapping)
+    mapping_unfold = []
     for (i, j) in mapping:
         ii,t = [(ii, tt['pdb_position']) for ((ii,jj), tt) in GT.nodes.data() if (ii,jj) == j][0]
-        if (i, (ii, t)) in mapping_ref:
+        mapping_unfold.append((ii, t))
+    mapping_unfold = list(set(mapping_unfold))
+    ref_unfold = [j for (i, j) in mapping_ref]
+    for i in mapping_unfold:
+        if i in ref_unfold:
             quantity_nodes_valid +=1
-    if quantity_nodes_valid >= strong_mapping*len(mapping):
+    if quantity_nodes_valid >= strong_mapping*min(ref_len, motif_len):
         return 1
     else:
         return 0
+
+def best_effort_similar_mapping(mapping_ref, mapping, GT):
+    """
+    Input: - mapping_ref, the perfect mapping that we want to compare with. 
+           - mapping, a mapping that was found in the RNA sampled by the algorithm.
+           - GT, the graph target.
+    Output: Returns 1, if the mappings are cover each others depending on which one is the larger one and 0 otherwise.
+    """
+    return weak_similar_mapping(mapping_ref, mapping, GT, 1)
+         
 
 def wrapper_main(filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGAPdistance_nb_samples_respect_injectivity_D_Distancer_preprocessed):
     """
@@ -91,11 +122,14 @@ def wrapper_main(filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGA
         proportion = []
         for loc_mapp in local_mapping:
             if mapping:
-                proportion.append(len([mapp for mapp in mapping if weak_similar_mapping(loc_mapp, mapp, GT, strong_mapping) ])/len(mapping))
+                exact = len([mapp for mapp in mapping if exact_similar_mapping(loc_mapp, mapp, GT)])/len(mapping)
+                best_effort = len([mapp for mapp in mapping if best_effort_similar_mapping(loc_mapp, mapp, GT)])/len(mapping)
+                weak = len([mapp for mapp in mapping if weak_similar_mapping(loc_mapp, mapp, GT, strong_mapping)])/len(mapping)
+                proportion.append([exact, best_effort, weak])
             else:
-                proportion.append(0)
+                proportion.append([0, 0, 0])
     else:
-        proportion = [1.01] #It means here that we have no way to verify that the mappings are the ones that we want here.
+        proportion = [[1.01, 1.01, 1.01]] #It means here that we have no way to verify that the mappings are the ones that we want here.
     if DEBUG:
         print("filename", filename, "timer", timer, "proportion", proportion, "number_mapping", len(mapping))
     return (filename, timer, proportion, mapping)
@@ -110,14 +144,16 @@ def fusion_resu_cube(resu): #resu empty never happens
     full_filename = resu[0][0]
     full_timer = max([timer for (_, timer, _, _) in resu])
     full_mapping = []
-    full_proportion = [0]*len(resu[0][2])
+    full_proportion = [[0, 0, 0]]*len(resu[0][2])
     for (_, _, proportion, mapping) in resu:
         for k in range(len(proportion)):
-            full_proportion[k] += proportion[k] * len(mapping)
+            for l in range(3):
+                full_proportion[k][l] += proportion[k][l] * len(mapping)
         full_mapping+= mapping
     if full_mapping:
         for k in range(len(full_proportion)):
-            full_proportion[k] = full_proportion[k]/len(full_mapping)
+            for l in range(3):
+                full_proportion[k][l] = full_proportion[k][l]/len(full_mapping)
     return (full_filename, full_timer, full_proportion, full_mapping)
 
 def initialise_perfect_mapping(perfect_mapping, motifs_mapping):
@@ -277,13 +313,22 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
     return resu
 
     
-def bar_graph_3proportions_1time_by_filename(resu, title, bar_length = 0.3):
+def bar_graph_3proportions_1time_by_filename(resu, title, proportion_choice='exact', bar_length = 0.3):
     """
     Input: - resu, the list of triplets (filename, time, proportion, mappings) obtained during the test.
            - title, a title for the plot.
            - bar_length, size of bar drawn.
     Output: returns a bar plot for the proportion and the time for each RNA studied during the tests.
     """
+    if proportion_choice == 'exact':
+        ind_pro = 0
+    elif proportion_choice == 'best_effort':
+        ind_pro = 1
+    elif proportion_choice == 'weak':
+        ind_pro = 2
+    else:
+        print('Not a valid choice of proportion !\n')
+        return
     plt.rc('xtick', labelsize=7)
     y11 = []
     y12 = []
@@ -300,15 +345,15 @@ def bar_graph_3proportions_1time_by_filename(resu, title, bar_length = 0.3):
         return 
     for (name, time, proportion, _) in resu:
         if len(proportion) >= 1:
-            y11.append(proportion[0])
+            y11.append(proportion[0][ind_pro])
         else:
             y11.append(0)
         if len(proportion) >= 2:
-            y12.append(proportion[1])
+            y12.append(proportion[1][ind_pro])
         else:
             y12.append(0)
         if len(proportion) >= 3:
-            y13.append(proportion[2])
+            y13.append(proportion[2][ind_pro])
         else:
             y13.append(0)
         y2.append(time)
