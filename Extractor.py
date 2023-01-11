@@ -81,9 +81,12 @@ def csv_parse(family_name, break_list_entry, RNAstorage = "bigRNAstorage/", csvl
         resu = []
         for k,prerow in enumerate(reader):
             if annotated:
-                prebreak = prerow[-1].split('|')
+                for i, e in enumerate(prerow):
+                    if e != '':
+                        prebreak = e.split('|')
+                        stoper = i
                 break_list = [int(elem) for elem in prebreak]
-                row = prerow[:-1]
+                row = prerow[:stoper]
             else:
                 break_list = [i for (i, j) in break_list_entry]
                 row = prerow

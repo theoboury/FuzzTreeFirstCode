@@ -83,7 +83,7 @@ def work(test = 1):
         print("resu_temp", resubis)
     if test == 11:
         perfect_mapping = csv_parse("kink_turn", -1)
-        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 64, perfect_mapping=perfect_mapping) 
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= 10, D = 5, nb_procs = 3, perfect_mapping=perfect_mapping) 
     if test == 12:
         timeout = 2000#747*2
         #TODO: We must fix the radius before launching that !!!
