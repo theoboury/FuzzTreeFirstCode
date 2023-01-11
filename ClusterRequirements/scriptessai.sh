@@ -3,8 +3,8 @@
 #SBATCH --account=def-vreinhar
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=64
-#SBATCH --mem=2009G
+#SBATCH --cpus-per-task=3
+#SBATCH --mem=25G
 
 module load cmake
 module load gcc/11.3.0
