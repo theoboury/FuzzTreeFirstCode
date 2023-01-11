@@ -12,6 +12,6 @@ module load gengetopt
 module load python/3.10.2
 module load python-build-bundle/2022a
 source ../../ENV/bin/activate
-export PYTHONPATH="${PYTHONPATH}:/home/tboury/Infrared-master/src/infrared/"
+export PYTHONPATH="${PYTHONPATH}:/home/tboury/Infrared-master/build/lib.linux-x86_64-3.10/infrared"
 python3 -u WorkingSpace.py
 deactivate
