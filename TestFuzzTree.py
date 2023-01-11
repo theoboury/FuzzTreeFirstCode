@@ -333,6 +333,8 @@ def bar_graph_3proportions_1time_by_filename(resu, title, proportion_choice='exa
     y11 = []
     y12 = []
     y13 = []
+    y14 = []
+    y15 = []
     y2 = []
     graph_names = []
     max_proportion = 1
@@ -340,8 +342,8 @@ def bar_graph_3proportions_1time_by_filename(resu, title, proportion_choice='exa
     for (name, time, proportion, _) in resu:
         max_proportion = max(max_proportion, len(proportion))
         max_time = max(max_time, time)
-    if max_proportion > 3:
-        print("TOO MUCH PROPORTION TO HANDLE LIMITED TO 3 FOR NOW\n")
+    if max_proportion > 5:
+        print("TOO MUCH PROPORTION TO HANDLE LIMITED TO 5 FOR NOW\n")
         return 
     for (name, time, proportion, _) in resu:
         if len(proportion) >= 1:
@@ -356,9 +358,17 @@ def bar_graph_3proportions_1time_by_filename(resu, title, proportion_choice='exa
             y13.append(proportion[2][ind_pro])
         else:
             y13.append(0)
+        if len(proportion) >= 4:
+            y14.append(proportion[3][ind_pro])
+        else:
+            y14.append(0)
+        if len(proportion) >= 5:
+            y15.append(proportion[4][ind_pro])
+        else:
+            y15.append(0)
         y2.append(time)
         graph_names.append(name)
-    print(y11, y12, y13)
+    print(y11, y12, y13, y14, y15)
     x1 = range(len(y11)) 
 
     x2 = [i + bar_length for i in x1]
@@ -374,6 +384,8 @@ def bar_graph_3proportions_1time_by_filename(resu, title, proportion_choice='exa
     ax1.bar(x1, y11, width = bar_length, color = 'orange', edgecolor = 'black', linewidth = 2)
     ax1.bar(x1, y12, width = bar_length, color = 'green', bottom=y11, edgecolor = 'black', linewidth = 2)
     ax1.bar(x1, y13, width = bar_length, color = 'red', bottom=[y11[i] + y12[i] for i in range(len(y11))], edgecolor = 'black', linewidth = 2)
+    ax1.bar(x1, y14, width = bar_length, color = 'blue', bottom=[y11[i] + y12[i] + y13[i] for i in range(len(y11))], edgecolor = 'black', linewidth = 2)
+    ax1.bar(x1, y15, width = bar_length, color = 'pink', bottom=[y11[i] + y12[i] + y13[i] + y14[i] for i in range(len(y11))], edgecolor = 'black', linewidth = 2)
     ax2.bar(x2, y2, width = bar_length, color = 'blue', edgecolor = 'black', linewidth = 2, log = True)
     ax1.set_facecolor(color='white')
     ax2.set_facecolor(color='white')

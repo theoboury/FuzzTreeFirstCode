@@ -1,4 +1,5 @@
 
+import argparse
 from FuzzTree import main
 from VarnaDrawing import print_mapping_on_target_graph
 from TestFuzzTree import test_mapping, test_varna
@@ -94,6 +95,20 @@ def work(test = 1):
         perfect_mapping = csv_parse("IL_68057.1", [(7,8)])
         resubis = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.9, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 3, perfect_mapping=perfect_mapping, motifs_mapping = [(1, 8), (2, 9), (3, 10), (4, 11), (5, 12), (6, 1), (7, 2), (8, 3), (9, 4), (10, 5), (11, 6), (12, 7)]) 
         print("resu_temp", resubis)
+    if test == 13:
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--number', type=str, required=True)
+        args = parser.parse_args()
+        print('Pib number:', args.number)
+        pid = int(args.number)
+        filelist= ["smallRNA", "4CS1", "4LFB", "4V9F", "4V88", "4WF9", "5J7L", "5TBW", "6CZR", "7A0S", "7RQB"]
+        file = filelist[pid] + ".csv"
+
+        timeout = 3600
+        csv_parse("IL_29549.9", [(5,6)])
+        perfect_mapping = csv_parse(file, -1, csvlocation="RNAcsv/byRNA/")
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 64, perfect_mapping=perfect_mapping) 
+        print("\nresu", resu)
 work(test = 12)
 
 
