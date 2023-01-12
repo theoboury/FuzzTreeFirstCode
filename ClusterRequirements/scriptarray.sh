@@ -12,6 +12,9 @@ module load gengetopt
 module load python/3.10.2
 module load python-build-bundle/2022a
 source ../../ENV/bin/activate
-export PYTHONPATH="${PYTHONPATH}:/home/tboury/Infrared-master/src/infrared/"
+export PYTHONPATH="${PYTHONPATH}:/home/tboury/Infrared-master/build/lib.linux-x86_64-3.10/infrared/"
+export PYTHONPATH="${PYTHONPATH}:/home/tboury/Infrared-master/build/lib.linux-x86_64-3.10/infrared"
+export PYTHONPATH="${PYTHONPATH}:/home/tboury/Infrared-master/build/lib.linux-x86_64-3.10/"
+export PYTHONPATH="${PYTHONPATH}:/home/tboury/Infrared-master/build/lib.linux-x86_64-3.10"
 python3 -u WorkingSpace.py --number $SLURM_ARRAY_TASK_ID
 deactivate
