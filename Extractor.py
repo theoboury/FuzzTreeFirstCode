@@ -34,7 +34,64 @@ def extract_with_pdb_number(G, list_nodes, list_nodes_clean, cutting_edges):
             Gnewnx.add_edge(list_nodes_clean[i], list_nodes_clean[i + 1], label='B53', near=False)
     return Gnew, Gnewnx
 
-def extractor(Gpath, Gnewname, list_nodes, cutting_edges, pattern_place="kinkturnpattern/", target_place ="kinkturntarget/", list_nodes_clean = []):
+
+def extract_with_pdb_number_and_gaps(G, list_nodes, list_nodes_clean, cutting_edges):
+    """
+    Input : - G, the graph from which we extract the pattern graph. 
+            - list_nodes, the list of the nodes that we want to extract using pdb format
+            - list_nodes_clean, the list of the nodes that we want to extract but still as exctrated in the FR3D UNIT format, useful for labelling.
+            - cutting_edges, the place where the backbone B53 is broken in the pattern that we want to extract expressed as a list of couples in [|1, n|]**2.
+    Output : Twos graphs, the Gnew graph serves directly as pattern and the Gnewnx graph serves as target for research of pattern inside other patterns.
+    """
+    Gnew=nx.DiGraph()
+    #list_nodes_pdb = {}
+    node_list = [-1]
+    index = 1
+    for (i, j) in list_nodes:
+        k, t = [(kk,tt) for ((ii, kk), tt) in G.nodes.data() if tt['pdb_position'] == j and i == ii][0]
+        Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'])
+        node_list.append((i, k))
+        #list_nodes_pdb[(i, j)] = (i, k)
+        if (list_nodes.index((i, j)) + 1, list_nodes.index((i, j)) + 2) in cutting_edges or (i, j) == list_nodes[-1]:
+            iter_node = None
+        else:
+            B53_neighbors=[n for n in G.successors((i, k)) if G[(i, k)][n]['label'] == 'B53']
+            if len(B53_neighbors) > 1: #It means that two backbones start from iter_node, which is not biologically admissible.
+                print("THE WORLD BLOWS UP")
+            if len(B53_neighbors) == 0: 
+                print("THE WORLD BLOWS UP")
+            iter_node = B53_neighbors[0]
+            succ = list_nodes[list_nodes.index((i,j)) + 1]
+        index +=1
+        while iter_node:
+            c1, blub = iter_node
+            t = [tt for (ii, tt) in G.nodes.data() if ii == iter_node][0]
+            Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'])     
+            #list_nodes_pdb[(c1, t['pdb_position'])] = iter_node
+            node_list.append(iter_node)
+            index +=1
+            if iter_node == succ:
+                iter_node = None
+            else:
+                B53_neighbors=[n for n in G.successors(iter_node) if G[iter_node][n]['label'] == 'B53']
+                if len(B53_neighbors) > 1: #It means that two backbones start from iter_node, which is not biologically admissible.
+                    print("THE WORLD BLOWS UP")
+                if len(B53_neighbors) == 0: 
+                    print("THE WORLD BLOWS UP")
+                iter_node = B53_neighbors[0]
+    for i in node_list:
+        for j in node_list:
+            potential_edge = [(ii,jj,tt) for (ii,jj,tt) in G.edges.data() if i==ii and j==jj]
+            if len(potential_edge) ==  1:
+                (i,j,t) = [(ii,jj,tt) for (ii,jj,tt) in G.edges.data() if i==ii and j==jj][0]
+                indexi = node_list.index(i)
+                indexj = node_list.index(j)
+                Gnew.add_edge(indexi, indexj, label=t['label'], near=t['near'])
+            elif len(potential_edge) > 1:
+                print("THE WORLD BLOWS UP")
+    return Gnew, Gnew
+
+def extractor(Gpath, Gnewname, list_nodes, cutting_edges, pattern_place="kinkturnpattern/", target_place ="kinkturntarget/", list_nodes_clean = [], withgaps = 0):
     """
     Input : - Gpath, the graph path from which we extract the pattern graph. 
             - Gnewname, the name for the pattern and target graphs that we are extracted
@@ -48,7 +105,10 @@ def extractor(Gpath, Gnewname, list_nodes, cutting_edges, pattern_place="kinktur
         G = pickle.load(fG)
         if DEBUG:
             print("Gpath", Gpath)
-    Gnew, Gnewnx = extract_with_pdb_number(G, list_nodes, list_nodes_clean, cutting_edges)
+    if withgaps:
+        Gnew, Gnewnx = extract_with_pdb_number_and_gaps(G, list_nodes, list_nodes_clean, cutting_edges)
+    else:
+        Gnew, Gnewnx = extract_with_pdb_number(G, list_nodes, list_nodes_clean, cutting_edges)
     if DEBUG:
         print([(i) for (i,t) in Gnew.nodes.data()])
         #print([(i,j, t['label']) for (i,j,t) in Gnew.edges.data() if t['label'] != 'B53'])
@@ -61,7 +121,7 @@ def extractor(Gpath, Gnewname, list_nodes, cutting_edges, pattern_place="kinktur
     with open(target_place + Gnewname + ".nxpickle", 'wb') as ff2:
         pickle.dump(Gnewnx, ff2)
 
-def csv_parse(family_name, break_list_entry, RNAstorage = "bigRNAstorage/", csvlocation = "RNAcsv/", pattern_place="ALLkinkturnpattern/", target_place ="ALLkinkturntarget/"):
+def csv_parse(family_name, break_list_entry, RNAstorage = "bigRNAstorage/", csvlocation = "RNAcsv/", pattern_place="ALLkinkturnpattern/", target_place ="ALLkinkturntarget/", withgaps = 0):
     """
     Input : - family_name, the name of the family of RNA from which we extract the graphs
             - Gnewname, the name for the pattern and target graphs that we are extracted
@@ -113,7 +173,7 @@ def csv_parse(family_name, break_list_entry, RNAstorage = "bigRNAstorage/", csvl
             for i in break_list:
                 cutting_edges.append((list_nodes[i - 1], list_nodes[i]))
             if symmetry == 0:
-                extractor(Gpath, str(k) + family_name + 'into' + RNAtarget, list_nodes, cutting_edges, pattern_place=pattern_place, target_place =target_place, list_nodes_clean = list_nodes_clean)
+                extractor(Gpath, str(k) + family_name + 'into' + RNAtarget, list_nodes, cutting_edges, pattern_place=pattern_place, target_place =target_place, list_nodes_clean = list_nodes_clean, withgaps = withgaps)
                 resu.append((RNAtarget, perfect_mapping))
             else:
                 if DEBUG:

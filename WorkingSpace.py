@@ -101,15 +101,33 @@ def work(test = 1):
         args = parser.parse_args()
         print('Pib number:', args.number)
         pid = int(args.number)
-        filelist= ["smallRNA", "4CS1", "4LFB", "4V9F", "4V88", "4WF9", "5J7L", "5TBW", "6CZR", "7A0S", "7RQB"]
-        file = filelist[pid] + ".csv"
-
-        timeout = 3600
+        filelist= ["smallRNA", "4LFB", "4V9F", "4V88", "4WF9", "5J7L", "5TBW", "6CZR", "7A0S", "7RQB"] #'4CS1' skipped due to symmetry
+        file = filelist[pid]
+        if pid == 0:
+            timeout = 36000 * 3
+        else:
+            timeout = 2000 #3600
         csv_parse("IL_29549.9", [(5,6)])
         perfect_mapping = csv_parse(file, -1, csvlocation="RNAcsv/byRNA/")
-        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 64, perfect_mapping=perfect_mapping) 
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 64, perfect_mapping=perfect_mapping)
         print("\nresu", resu)
-work(test = 12)
+    if test == 14:
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--number', type=str, required=True)
+        args = parser.parse_args()
+        print('Pib number:', args.number)
+        pid = int(args.number)
+        filelist= ["IL_37722.1", "IL_37722.1"]
+        file = filelist[pid]
+
+        timeout = 100
+        csv_parse("IL_29549.9", [(5,6)])
+        perfect_mapping = csv_parse(file, [(6,7)])
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 3, perfect_mapping=perfect_mapping) 
+        print("\nresu", resu)
+
+
+work(test = 13)
 
 
 

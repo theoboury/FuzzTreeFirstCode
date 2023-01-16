@@ -1,10 +1,11 @@
+  GNU nano 4.6                                                                        ClusterRequirements/scriptarray.sh                                                                                   
 #!/bin/bash
-#SBATCH --array=0,1,2,3,4,5,6,7,8,9,10
-#SBATCH --time=48:00:00
+#SBATCH --array=0,1,2,3,4,5,6,7,8,9
+#SBATCH --time=72:00:00
 #SBATCH --account=def-vreinhar
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=64
-#SBATCH --mem=2009G
+#SBATCH --mem=2000G
 
 module load cmake
 module load gcc/11.3.0
@@ -18,3 +19,5 @@ export PYTHONPATH="${PYTHONPATH}:/home/tboury/Infrared-master/build/lib.linux-x8
 export PYTHONPATH="${PYTHONPATH}:/home/tboury/Infrared-master/build/lib.linux-x86_64-3.10"
 python3 -u WorkingSpace.py --number $SLURM_ARRAY_TASK_ID
 deactivate
+
+

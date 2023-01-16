@@ -304,7 +304,7 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
             local_nb_samples = max(10, int(nb_samples/len(graph_grid)) + 1) 
             #TODO: Is the maximum necessary here to avoid unlucky mismatch ? Furthermore, should we remove multiple indentical samples. In this case, by what should we replace the proportion ?
             entry.append((filename, local_mapping, strong_mapping, timeout, GP, GTsmall, E, B, A, maxGAPdistance, local_nb_samples, respect_injectivity, D, Distancer))
-        with Pool(nb_procs) as pool:
+        with Pool(nb_procs, maxtasksperchild=1) as pool:
             resu_big = list(pool.imap_unordered(wrapper_main, entry))
         resu.append(fusion_resu_cube(resu_big))
     compact_resu = [(i,j,k) for (i,j,k,_) in resu]
