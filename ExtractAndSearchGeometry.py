@@ -1,7 +1,61 @@
 import networkx as nx 
 import networkx.algorithms.isomorphism as iso
 import pickle
+from TestFuzzTree import outer_chain_removal
+from collections import defaultdict
+        
 
+
+
+def edge_match(d_g1, d_g2):
+    return d_g1['label'][:3] == d_g2['label'][:3]
+
+
+def line_graph_to_graph(mapping, g):
+    new_g = nx.DiGraph()
+    for k, v in mapping.items():
+        new_g.add_edge(k[0], k[1], **g.get_edge_data(*k))
+    d = {}
+    for n in new_g.nodes():
+        d[n] = g.nodes(data=True)[n]
+        #new_g.node[n] = g.node[n]
+    nx.set_node_attributes(new_g, d)
+
+    return new_g
+
+
+def make_line_graph(g):
+    lg = nx.line_graph(g)
+    d = {n:g.get_edge_data(*n)['label'] for n in lg.nodes}
+    nx.set_node_attributes(lg, values=d, name='label')
+    return lg
+
+
+def has_subgraph(g1, g2):
+    """G2 is included in G1"""
+    M = nx.isomorphism.DiGraphMatcher(make_line_graph(g1),
+                                        make_line_graph(g2), node_match=edge_match)
+    return M.subgraph_is_isomorphic()
+
+
+def find_all_subgraph(g, subgraph):
+    found = set()
+    new_data = []
+    M = nx.isomorphism.DiGraphMatcher(make_line_graph(g),
+                                      make_line_graph(subgraph),
+                                      node_match=edge_match)
+    for m in M.subgraph_isomorphisms_iter():
+        iso = line_graph_to_graph(m, g)
+
+        name = tuple(sorted(iso.edges()))
+        if name not in found:
+            found.add(name)
+            new_data.append(iso)
+
+    return new_data
+
+def VF2(GP, GT):
+    return find_all_subgraph(GT, GP)
 
 def eliminate_similar_geometry(motifs_to_search):
     """
@@ -50,7 +104,7 @@ def abstract_in_geometry(GT, mappings, cutting_edges):#, GTlistfolder = "bigRNAs
         index = 1
         for i in mapp:
             t = [tt for (ii, tt) in GT.nodes.data() if ii == i][0]
-            Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'])
+            Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'])
             node_list.append(i)
             if mapp.index(i) + 1 in cutting_edges or i == mapp[-1]:
                 iter_node = None
@@ -65,12 +119,12 @@ def abstract_in_geometry(GT, mappings, cutting_edges):#, GTlistfolder = "bigRNAs
             index +=1
             while iter_node:
                 t = [tt for (ii, tt) in GT.nodes.data() if ii == iter_node][0]
-                Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'])     
-                node_list.append(iter_node)
-                index +=1
                 if iter_node == succ:
                     iter_node = None
                 else:
+                    Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'])     
+                    node_list.append(iter_node)
+                    index +=1
                     B53_neighbors=[n for n in GT.successors(iter_node) if GT[iter_node][n]['label'] == 'B53']
                     if len(B53_neighbors) > 1: #It means that two backbones start from iter_node, which is not biologically admissible.
                         print("THE WORLD BLOWS UP")
@@ -95,7 +149,7 @@ def abstract_in_geometry(GT, mappings, cutting_edges):#, GTlistfolder = "bigRNAs
     print(len(motifs_to_search))
     return motifs_to_search
 
-def look_at_all_occurences(GTpath, mappings, cutting_edges, GTlistfolder = "bigRNAstorage/"):
+def look_at_all_occurences(GTpath, chains, mappings, cutting_edges, GTlistfolder = "bigRNAstorage/"):
     """
     Input: - The graph target GT.
            - The list of mappings obtained as a request from a pattern graph in a target graph.
@@ -105,11 +159,23 @@ def look_at_all_occurences(GTpath, mappings, cutting_edges, GTlistfolder = "bigR
     GTpath = GTlistfolder + GTpath + ".nxpickle"
     with open(GTpath,'rb') as f:
         GT = pickle.load(f)
+    GT = outer_chain_removal(GT, chains)
     motifs_to_search = abstract_in_geometry(GT, mappings, cutting_edges)#, GTlistfolder)
     resu = []
     for GP in motifs_to_search:
-        resu += VF2(GT) #TODO : VF2 to be implemented
-    #TODO ; still have to purge "doublons"
+        print(GP.nodes())
+        inst = VF2(GP, GT) 
+        for G in inst:
+            print(G.nodes())
+            local_mapping = []
+            falseind = 0
+            for (((i, j), t)) in G.nodes.data():
+                local_mapping.append((falseind,(i, j)))
+                falseind+=1
+        resu.append(local_mapping.copy())
+        #TODO : VF2 to be implemented
+    #TODO ; still have to purge "doublons" ? not sure as geometric form are distinct.
+    print("resu", resu)
     return resu
 
 def compute_metrics(perfect_mapping, occurences, strong_mapping = 1, GTlistfolder = "bigRNAstorage/"):
@@ -134,5 +200,7 @@ example = [[(12, ('A', 10)), (11, ('A', 9)), (6, ('A', 2)), (7, ('A', 3)), (5, (
 from Extractor import csv_parse
 perfect_mapping = csv_parse("IL_29549.9", [(5,6)])
 perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['5G4T']]
-print(perfect_mapping)
-compute_metrics(perfect_mapping, example, strong_mapping = 1, GTlistfolder = "bigRNAstorage/")
+
+occ = look_at_all_occurences('5G4T', ['A', 'B'], example, [5], GTlistfolder = "bigRNAstorage/")
+print("\nperfect", perfect_mapping)
+compute_metrics(perfect_mapping, occ, strong_mapping = 1, GTlistfolder = "bigRNAstorage/")
