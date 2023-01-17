@@ -44,6 +44,7 @@ def extract_with_pdb_number_and_gaps(G, list_nodes, list_nodes_clean, cutting_ed
     Output : Twos graphs, the Gnew graph serves directly as pattern and the Gnewnx graph serves as target for research of pattern inside other patterns.
     """
     Gnew=nx.DiGraph()
+    print("listnodesentry", list_nodes)
     #list_nodes_pdb = {}
     node_list = [-1]
     index = 1
@@ -52,32 +53,37 @@ def extract_with_pdb_number_and_gaps(G, list_nodes, list_nodes_clean, cutting_ed
         Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'])
         node_list.append((i, k))
         #list_nodes_pdb[(i, j)] = (i, k)
-        if (list_nodes.index((i, j)) + 1, list_nodes.index((i, j)) + 2) in cutting_edges or (i, j) == list_nodes[-1]:
+        print("cutting edges", cutting_edges)
+        if (i, j) == list_nodes[-1]:
+            iter_node = None
+        elif ((i,j),list_nodes[list_nodes.index((i, j)) + 1]) in cutting_edges:
             iter_node = None
         else:
             B53_neighbors=[n for n in G.successors((i, k)) if G[(i, k)][n]['label'] == 'B53']
             if len(B53_neighbors) > 1: #It means that two backbones start from iter_node, which is not biologically admissible.
-                print("THE WORLD BLOWS UP")
+                print("THE WORLD BLOWS UP1")
             if len(B53_neighbors) == 0: 
-                print("THE WORLD BLOWS UP")
+                print("THE WORLD BLOWS UP2")
             iter_node = B53_neighbors[0]
-            succ = list_nodes[list_nodes.index((i,j)) + 1]
+            succ1, succ2 = list_nodes[list_nodes.index((i,j)) + 1]
+            succ = (succ1, int(succ2))
         index +=1
+        print("iternode", iter_node, (i, k), succ)
         while iter_node:
             c1, blub = iter_node
             t = [tt for (ii, tt) in G.nodes.data() if ii == iter_node][0]
-            Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'])     
-            #list_nodes_pdb[(c1, t['pdb_position'])] = iter_node
-            node_list.append(iter_node)
-            index +=1
-            if iter_node == succ:
+            if (c1, int(t['pdb_position'])) == succ:
                 iter_node = None
             else:
+                Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'])     
+            #list_nodes_pdb[(c1, t['pdb_position'])] = iter_node
+                node_list.append(iter_node)
+                index +=1
                 B53_neighbors=[n for n in G.successors(iter_node) if G[iter_node][n]['label'] == 'B53']
                 if len(B53_neighbors) > 1: #It means that two backbones start from iter_node, which is not biologically admissible.
-                    print("THE WORLD BLOWS UP")
+                    print("THE WORLD BLOWS UP3")
                 if len(B53_neighbors) == 0: 
-                    print("THE WORLD BLOWS UP")
+                    print("THE WORLD BLOWS UP4")
                 iter_node = B53_neighbors[0]
     for i in node_list:
         for j in node_list:
@@ -89,6 +95,7 @@ def extract_with_pdb_number_and_gaps(G, list_nodes, list_nodes_clean, cutting_ed
                 Gnew.add_edge(indexi, indexj, label=t['label'], near=t['near'])
             elif len(potential_edge) > 1:
                 print("THE WORLD BLOWS UP")
+    print("nodelist", node_list)
     return Gnew, Gnew
 
 def extractor(Gpath, Gnewname, list_nodes, cutting_edges, pattern_place="kinkturnpattern/", target_place ="kinkturntarget/", list_nodes_clean = [], withgaps = 0):
