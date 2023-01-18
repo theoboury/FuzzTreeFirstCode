@@ -10,14 +10,15 @@ import matplotlib.pyplot as plt
 
 
 
-def wrapper(GPsrc_GTsrc_Lmax_Emax_Gmax_Dedgemax_Dgapmax):
-    (GPsrc, GTsrc, Lmax, Emax, Gmax, Dedgemax, Dgapmax) = GPsrc_GTsrc_Lmax_Emax_Gmax_Dedgemax_Dgapmax
+def wrapper(GPsrc_GTsrc_Lmax_Emax_Gmax_Dedgemax_Dgapmax_filename):
+    (GPsrc, GTsrc, Lmax, Emax, Gmax, Dedgemax, Dgapmax, filename) = GPsrc_GTsrc_Lmax_Emax_Gmax_Dedgemax_Dgapmax_filename
     GP, GT = GPsrc, GTsrc
     if len(GPsrc.nodes()) > len(GTsrc.nodes()):
         GP, GT = GTsrc, GPsrc
     print("lenGP", len(GPsrc.nodes()), "lenGT" , len(GTsrc.nodes()))
     mappings = main(GP, GT, Lmax, Emax, Gmax, maxGAPdistance=Dgapmax, D = Dedgemax)
     if len(mappings) == 0:
+        print("BLUB")
         return (-1,-1,-1)
     else:
         left = 0
@@ -54,7 +55,7 @@ def wrapper(GPsrc_GTsrc_Lmax_Emax_Gmax_Dedgemax_Dgapmax):
         print("G", left, right)
         Gfinal = right
         print("param", (Lfinal, Efinal, Gfinal))
-        return (Lfinal, Efinal, Gfinal)
+        return (filename, (Lfinal, Efinal, Gfinal))
 
 def fromorigincartograph(graphname, Lmax, Emax, Gmax, Dedgemax, Dgapmax, nb_procs=32):
     GTlist = []
@@ -62,16 +63,16 @@ def fromorigincartograph(graphname, Lmax, Emax, Gmax, Dedgemax, Dgapmax, nb_proc
     GPsrc = open_graph("ALLkinkturnpatternwithgaps/" + graphname + ".pickle")
     path = os.path.abspath(os.getcwd()) + "/" + "ALLkinkturntargetwithgaps"
     path_list = glob.glob(os.path.join(path, '*.nxpickle'))
-    for filename in path_list:
-        GTlist.append(open_graph(filename))
+    for filename in path_list[:3]:
+        GTlist.append((filename, open_graph(filename)))
     entry = []
-    for GTsrc in GTlist:
-        entry.append((GPsrc, GTsrc, Lmax, Emax, Gmax, Dedgemax, Dgapmax))
+    for filename, GTsrc in GTlist:
+        entry.append((GPsrc, GTsrc, Lmax, Emax, Gmax, Dedgemax, Dgapmax, filename))
     with Pool(nb_procs) as pool:
         resu = list(pool.imap_unordered(wrapper, entry))
     print("resu", resu)
     return resu
-#fromorigincartograph("20kink_turninto5TBW", 50, 12, 50, 20, 20, 32)
+#fromorigincartograph("20kink_turninto5TBW", 50, 12, 50, 20, 20, 3)
 
 from random import random
 
@@ -86,7 +87,9 @@ def plot(resu, title, precolor, xlabel = "", ylabel = "", zlabel = "", param_plo
         for indi2, (i2, j2, k2) in enumerate(resu):
             if indi2 > indi1:
                 if i1 == i2 and j1 == j2 and k1 == k2:
-                    resu[indi2] = (i2 + (0.5 - random()), j2 + (0.5 - random())*0.5, k2 + (1 - random())*0.5) #avoid number to be exactly at the same position
+                    resu[indi2] = (i2 + (0.5 - random())*5, j2 + (0.5 - random())*2, k2 + (1 - random())*2) #avoid number to be exactly at the same position
+                    (i3, j3, k3)= resu[indi2]  
+                    resu[indi2] = (max(i3, 0), max(j3, 0), max(k3, 0))
     ind = [i for i in range(len(param_plotted)) if param_plotted[i] == True]
     if len(ind) == 1:
         print("1D not supported for now")
@@ -105,9 +108,11 @@ def plot(resu, title, precolor, xlabel = "", ylabel = "", zlabel = "", param_plo
     plt.rc('xtick', labelsize=7)
     color = []
     family = []
-    for (fam, col, nb) in precolor:
+    marker_list = []
+    for (fam, col, nb, form) in precolor:
         color += [col]*nb
         family += [fam]*nb
+        marker_list += [form]*nb
     print("len", len(resu), len(color))
     fig, ax1 = plt.subplots()
     ax1.set_xlabel(xlabel, color='black')
@@ -121,7 +126,7 @@ def plot(resu, title, precolor, xlabel = "", ylabel = "", zlabel = "", param_plo
         else:
             lab = None
         ax1.plot(x[i], y[i], color = color[i],
-            markerfacecolor='None',linestyle = 'None', marker='o', label= lab)
+            markerfacecolor='None',linestyle = 'None', marker=marker_list[i], label= lab)
 
     ax1.set_facecolor(color='white')
     fig.set_facecolor(color='white')
@@ -138,6 +143,8 @@ color = [('IL_29549.9', 'orange', 32), ('IL_51265.1', 'blue', 6), ('IL_90538.3',
 ('IL_16456.1', 'darkblue', 2), ("IL_37722.1", 'darkkhaki', 2), ("IL_93094.1", 'grey', 1), ("IL_22436.1", 'violet', 1),
 ('IL_34780.1', "bisque", 1), ("IL_65876.1", "lightgreen", 1), ("IL_76900.1", "dodgerblue", 1), ('IL_95993.1', 'indigo', 1), ("IL_90922.1", "lime", 1)]
 
+color = [('IL_29549.9', 'orange', 32, "o"), ('IL_29549.9', 'blue', 11, "x"), ('IL_68780.2', 'green', 3, "s"),
+('Others families', 'blue', 25, "x")]
 #'IL_68780.2' number of instance reduced by one due to symmetry
 
 #plot([(0,1,2), (1,2,3), (3,5,6)], "Essai", [("IL32", 'red', 1), ("IL33", 'blue', 2)], param_plotted = [True, False, True])

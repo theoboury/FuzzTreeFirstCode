@@ -128,7 +128,7 @@ def extractor(Gpath, Gnewname, list_nodes, cutting_edges, pattern_place="kinktur
     with open(target_place + Gnewname + ".nxpickle", 'wb') as ff2:
         pickle.dump(Gnewnx, ff2)
 
-def csv_parse(family_name, break_list_entry, RNAstorage = "bigRNAstorage/", csvlocation = "RNAcsv/", pattern_place="ALLkinkturnpattern/", target_place ="ALLkinkturntarget/", withgaps = 0):
+def csv_parse(family_name, break_list_entry, RNAstorage = "bigRNAstorage/", csvlocation = "RNAcsv/", pattern_place="ALLkinkturnpattern/", target_place ="ALLkinkturntarget/", withgaps = 0, return_cutting_edges=0):
     """
     Input : - family_name, the name of the family of RNA from which we extract the graphs
             - Gnewname, the name for the pattern and target graphs that we are extracted
@@ -146,6 +146,8 @@ def csv_parse(family_name, break_list_entry, RNAstorage = "bigRNAstorage/", csvl
     with open(csvlocation + family_name + '.csv', newline='', encoding='utf-8') as f:
         reader = csv.reader(f)
         resu = []
+        if return_cutting_edges:
+            full_cut = []
         for k,prerow in enumerate(reader):
             if annotated:
                 for i, e in enumerate(prerow):
@@ -182,9 +184,13 @@ def csv_parse(family_name, break_list_entry, RNAstorage = "bigRNAstorage/", csvl
             if symmetry == 0:
                 extractor(Gpath, str(k) + family_name + 'into' + RNAtarget, list_nodes, cutting_edges, pattern_place=pattern_place, target_place =target_place, list_nodes_clean = list_nodes_clean, withgaps = withgaps)
                 resu.append((RNAtarget, perfect_mapping))
+                if return_cutting_edges:
+                    full_cut.append((RNAtarget, [i for i in break_list]))
             else:
                 if DEBUG:
                     print("SKIPPED DUE TO SYMMETRY")
+        if return_cutting_edges:
+            return resu, full_cut
         return resu
 
 def csv_parse_full(family_name, RNAstorage = "bigRNAstorage/", csvlocation = "RNAcsv/", pattern_place="ALLkinkturnpattern/", target_place ="ALLkinkturntarget/"):
