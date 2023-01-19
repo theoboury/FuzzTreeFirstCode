@@ -123,6 +123,8 @@ def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder
             #print("index", index, iter_node, succ)
             index +=1
             while iter_node:
+                if [tt for (ii, tt) in GT.nodes.data() if ii == iter_node] == []:
+                    print("AH", iter_node, succ)
                 t = [tt for (ii, tt) in GT.nodes.data() if ii == iter_node][0]
                 if iter_node == succ:
                     iter_node = None
