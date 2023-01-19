@@ -181,6 +181,8 @@ def look_at_all_occurences(GT, chains, mappings, cutting_edges):
 
 
 def compute_metrics(ref_mappings, GT, occurences):
+    if len(occurences) == 0:
+        return (0, 0, 0)
     ref_unfold = []
     mapping_unfold = []
     TP = 0
