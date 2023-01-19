@@ -103,7 +103,7 @@ def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder
         Gnew=nx.DiGraph()
         node_list = [-1]
         index = 1
-        print("mapp", mapp, "cutting_edges", cutting_edges)
+        #print("mapp", mapp, "cutting_edges", cutting_edges)
         for i in mapp:
             c, blub = i
             t = [tt for (ii, tt) in GT.nodes.data() if ii == i][0]
@@ -112,7 +112,7 @@ def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder
             if mapp.index(i) + 1 in cutting_edges or i == mapp[-1]: #mapp.index(i) + 1(c, t['pdb_position'])
                 iter_node = None
             else:
-                print('i', i)
+                #print('i', i)
                 B53_neighbors=[n for n in GT.successors(i) if GT[i][n]['label'] == 'B53']
                 if len(B53_neighbors) > 1: #It means that two backbones start from iter_node, which is not biologically admissible.
                     print("THE WORLD BLOWS UP1", RNA_listi)
@@ -120,7 +120,7 @@ def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder
                     print("THE WORLD BLOWS UP2", RNA_listi)
                 iter_node = B53_neighbors[0]
                 succ = mapp[mapp.index(i) + 1]
-            print("index", index, iter_node, succ)
+            #print("index", index, iter_node, succ)
             index +=1
             while iter_node:
                 t = [tt for (ii, tt) in GT.nodes.data() if ii == iter_node][0]
