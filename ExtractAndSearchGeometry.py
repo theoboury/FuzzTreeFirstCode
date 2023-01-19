@@ -103,6 +103,7 @@ def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder
         Gnew=nx.DiGraph()
         node_list = [-1]
         index = 1
+        print("mapp", mapp, "cutting_edges", cutting_edges)
         for i in mapp:
             c, blub = i
             t = [tt for (ii, tt) in GT.nodes.data() if ii == i][0]
@@ -111,6 +112,7 @@ def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder
             if mapp.index(i) + 1 in cutting_edges or i == mapp[-1]: #mapp.index(i) + 1(c, t['pdb_position'])
                 iter_node = None
             else:
+                print('i', i)
                 B53_neighbors=[n for n in GT.successors(i) if GT[i][n]['label'] == 'B53']
                 if len(B53_neighbors) > 1: #It means that two backbones start from iter_node, which is not biologically admissible.
                     print("THE WORLD BLOWS UP1", RNA_listi)
@@ -118,6 +120,7 @@ def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder
                     print("THE WORLD BLOWS UP2", RNA_listi)
                 iter_node = B53_neighbors[0]
                 succ = mapp[mapp.index(i) + 1]
+            print("index", index, iter_node, succ)
             index +=1
             while iter_node:
                 t = [tt for (ii, tt) in GT.nodes.data() if ii == iter_node][0]
@@ -208,10 +211,10 @@ def wrapper_metrics(mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RN
     print("\ntemp", (RNA_listi, chains_listi,loc))
     return (RNA_listi, chains_listi,loc)
         
-def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", nb_procs = 1):
+def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", nb_procs = 1, cutting_edge = []):
     resu = [("specificity", "sensitivity", "F")]
     perfect_mapping, full_cut = csv_parse("kink_turn", -1, return_cutting_edges=1)
-    #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['4LFB']]
+    perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['3SIU']]
     perfect_mapping = initialise_perfect_mapping(perfect_mapping, [])
     GT_list = []
     chains_list = []
@@ -235,7 +238,7 @@ def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", nb_procs = 1):
     for i in range(len(GT_list)):
         mappings = dict_mappings[RNA_list[i]]
         ref_mappings = perfect_mapping[(RNA_list[i], tuple(chains_list[i]))]
-        entry.append((mappings, ref_mappings, GT_list[i], chains_list[i], cutting_list[i], RNA_list[i]))
+        entry.append((mappings, ref_mappings, GT_list[i], chains_list[i], cutting_edge, RNA_list[i]))
     with Pool(nb_procs) as pool:
         resu = list(pool.imap_unordered(wrapper_metrics, entry))
     print("\nresu", resu)
@@ -250,5 +253,6 @@ list_resu = example2()
 dicto = {}
 for (name, blub1, blub2, mappings) in list_resu:
     print("mynameis", name)
-    dicto[name] = mappings
-full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 32)
+    if name == '3SIU':
+        dicto[name] = mappings
+full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 1, cutting_edge = [5])
