@@ -80,7 +80,7 @@ def ff(tuple):
     (a,b) = tuple
     return a
 
-def abstract_in_geometry(GT, mappings, cutting_edges):#, GTlistfolder = "bigRNAstorage/"):
+def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder = "bigRNAstorage/"):
     """
     Input: - The graph target GT.
            - The list of mappings obtained as a request from a pattern graph in a target graph.
@@ -113,9 +113,9 @@ def abstract_in_geometry(GT, mappings, cutting_edges):#, GTlistfolder = "bigRNAs
             else:
                 B53_neighbors=[n for n in GT.successors(i) if GT[i][n]['label'] == 'B53']
                 if len(B53_neighbors) > 1: #It means that two backbones start from iter_node, which is not biologically admissible.
-                    print("THE WORLD BLOWS UP")
+                    print("THE WORLD BLOWS UP1", RNA_listi)
                 if len(B53_neighbors) == 0: 
-                    print("THE WORLD BLOWS UP")
+                    print("THE WORLD BLOWS UP2", RNA_listi)
                 iter_node = B53_neighbors[0]
                 succ = mapp[mapp.index(i) + 1]
             index +=1
@@ -129,9 +129,9 @@ def abstract_in_geometry(GT, mappings, cutting_edges):#, GTlistfolder = "bigRNAs
                     index +=1
                     B53_neighbors=[n for n in GT.successors(iter_node) if GT[iter_node][n]['label'] == 'B53']
                     if len(B53_neighbors) > 1: #It means that two backbones start from iter_node, which is not biologically admissible.
-                        print("THE WORLD BLOWS UP")
+                        print("THE WORLD BLOWS UP3", RNA_listi)
                     if len(B53_neighbors) == 0: 
-                        print("THE WORLD BLOWS UP")
+                        print("THE WORLD BLOWS UP4", RNA_listi)
                     iter_node = B53_neighbors[0]
         for i in node_list:
             for j in node_list:
@@ -151,7 +151,7 @@ def abstract_in_geometry(GT, mappings, cutting_edges):#, GTlistfolder = "bigRNAs
     print(len(motifs_to_search))
     return motifs_to_search
 
-def look_at_all_occurences(GT, chains, mappings, cutting_edges):
+def look_at_all_occurences(GT, chains, mappings, cutting_edges, RNA_listi):
     """
     Input: - The graph target GT.
            - The list of mappings obtained as a request from a pattern graph in a target graph.
@@ -160,7 +160,7 @@ def look_at_all_occurences(GT, chains, mappings, cutting_edges):
     """
     #GTpath = GTlistfolder + GTpath + ".nxpickle"
 
-    motifs_to_search = abstract_in_geometry(GT, mappings, cutting_edges)#, GTlistfolder)
+    motifs_to_search = abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi)#, GTlistfolder)
     resu = []
     for GP in motifs_to_search:
         print(GP.nodes())
@@ -203,7 +203,7 @@ def compute_metrics(ref_mappings, GT, occurences):
 
 def wrapper_metrics(mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RNA_listi):
     (mappings, ref_mappings, GT_listi, chains_listi, cutting_listi, RNA_listi) = mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RNA_listi
-    occ = look_at_all_occurences(GT_listi, chains_listi, mappings, cutting_listi)
+    occ = look_at_all_occurences(GT_listi, chains_listi, mappings, cutting_listi, RNA_listi)
     loc = compute_metrics(ref_mappings, GT_listi, occ)
     print("\ntemp", (RNA_listi, chains_listi,loc))
     return (RNA_listi, chains_listi,loc)
