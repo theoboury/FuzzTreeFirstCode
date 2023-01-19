@@ -231,7 +231,7 @@ def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", nb_procs = 1, cu
     perfect_mapping = {}
     for RNAname in new_perfect_mapping.keys():
         (cha, mapper) = new_perfect_mapping[RNAname]
-    perfect_mapping[(RNAname, cha)] = mapper
+        perfect_mapping[(RNAname, cha)] = mapper
     print("perfect_mapping", perfect_mapping)
     GT_list = []
     chains_list = []
@@ -273,4 +273,4 @@ for (name, blub1, blub2, mappings) in list_resu:
     print("mynameis", name)
     #if name == '5J7L':
     dicto[name] = mappings
-full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 32, cutting_edge = [5])
+full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 1, cutting_edge = [5])
