@@ -106,8 +106,8 @@ def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder
         #print("mapp", mapp, "cutting_edges", cutting_edges)
         for i in mapp:
             c, blub = i
-            if [tt for (ii, tt) in GT.nodes.data() if ii == i] == []:
-                print("AH", i)
+            #if [tt for (ii, tt) in GT.nodes.data() if ii == i] == []:
+            #    print("AH", i, GT.nodes())
             t = [tt for (ii, tt) in GT.nodes.data() if ii == i][0]
             Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'])
             node_list.append(i)
@@ -218,8 +218,21 @@ def wrapper_metrics(mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RN
 def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", nb_procs = 1, cutting_edge = []):
     resu = [("specificity", "sensitivity", "F")]
     perfect_mapping, full_cut = csv_parse("kink_turn", -1, return_cutting_edges=1)
-    #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['3SIU']]
+    #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['5J7L']]
     perfect_mapping = initialise_perfect_mapping(perfect_mapping, [])
+    new_perfect_mapping = {}
+    for (RNAname, chains) in perfect_mapping.keys():
+        new_mapping = perfect_mapping[(RNAname, chains)]
+        if RNAname in new_perfect_mapping.keys():
+            (cha, mapper) = new_perfect_mapping[RNAname]
+            new_perfect_mapping[RNAname] = (tuple(list(cha) + list(chains)), mapper + new_mapping)
+        else:
+            new_perfect_mapping[RNAname] = (chains, new_mapping)
+    perfect_mapping = {}
+    for RNAname in new_perfect_mapping.keys():
+        (cha, mapper) = new_perfect_mapping[RNAname]
+    perfect_mapping[(RNAname, cha)] = mapper
+    print("perfect_mapping", perfect_mapping)
     GT_list = []
     chains_list = []
     RNA_list = []
@@ -228,6 +241,7 @@ def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", nb_procs = 1, cu
     for (RNAname, chains) in perfect_mapping.keys():
         with open(path+ "/" + RNAname + '.nxpickle','rb') as f:
             GT = pickle.load(f)
+            print("chains", chains)
         GT = outer_chain_removal(GT, chains)
         GT_list.append(GT)
         RNA_list.append(RNAname)
@@ -257,6 +271,6 @@ list_resu = example2()
 dicto = {}
 for (name, blub1, blub2, mappings) in list_resu:
     print("mynameis", name)
-    #if name == '3SIU':
+    #if name == '5J7L':
     dicto[name] = mappings
 full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 32, cutting_edge = [5])
