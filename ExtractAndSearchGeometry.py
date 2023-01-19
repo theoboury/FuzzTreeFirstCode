@@ -106,16 +106,16 @@ def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder
         #print("mapp", mapp, "cutting_edges", cutting_edges)
         for i in mapp:
             c, blub = i
-            #if [tt for (ii, tt) in GT.nodes.data() if ii == i] == []:
-            #    print("AH", i)
-            ii = [(cc,ii) for ((cc, ii), tt) in GT.nodes.data() if tt['pdb_position'] == blub and cc = c][0]
+            if [tt for (ii, tt) in GT.nodes.data() if ii == i] == []:
+                print("AH", i)
+            t = [tt for (ii, tt) in GT.nodes.data() if ii == i][0]
             Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'])
             node_list.append(i)
             if mapp.index(i) + 1 in cutting_edges or i == mapp[-1]: #mapp.index(i) + 1(c, t['pdb_position'])
                 iter_node = None
             else:
                 #print('i', i)
-                B53_neighbors=[n for n in GT.successors(ii) if GT[ii][n]['label'] == 'B53']
+                B53_neighbors=[n for n in GT.successors(i) if GT[i][n]['label'] == 'B53']
                 if len(B53_neighbors) > 1: #It means that two backbones start from iter_node, which is not biologically admissible.
                     print("THE WORLD BLOWS UP1", RNA_listi)
                 if len(B53_neighbors) == 0: 
