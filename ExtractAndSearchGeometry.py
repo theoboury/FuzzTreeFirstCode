@@ -214,7 +214,7 @@ def wrapper_metrics(mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RN
 def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", nb_procs = 1, cutting_edge = []):
     resu = [("specificity", "sensitivity", "F")]
     perfect_mapping, full_cut = csv_parse("kink_turn", -1, return_cutting_edges=1)
-    perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['3SIU']]
+    #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['3SIU']]
     perfect_mapping = initialise_perfect_mapping(perfect_mapping, [])
     GT_list = []
     chains_list = []
@@ -253,6 +253,6 @@ list_resu = example2()
 dicto = {}
 for (name, blub1, blub2, mappings) in list_resu:
     print("mynameis", name)
-    if name == '3SIU':
-        dicto[name] = mappings
-full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 1, cutting_edge = [5])
+    #if name == '3SIU':
+    dicto[name] = mappings
+full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 32, cutting_edge = [5])
