@@ -202,10 +202,13 @@ def compute_metrics(ref_mappings, GT, occurences):
             mapping_unfold.append((ii, t))
     mapping_unfold = list(set(mapping_unfold))
     TP = len([i for i in mapping_unfold if i in ref_unfold])
-    specificity = TP / len(mapping_unfold)
+    TN = len([i for i in ref_unfold if i not in mapping_unfold])
+    precision = TP / len(mapping_unfold)
+    specificity = TN / TN + (len(mapping_unfold) - TP)
     sensitivity = TP / len(ref_unfold)
     F = 2 * TP /(len(mapping_unfold) + len(ref_unfold))
-    return (specificity, sensitivity, F)
+    Fbis = 2 * specificity * sensitivity / (specificity + sensitivity)
+    return (precision, specificity, sensitivity, F, Fbis)
 
 
 def wrapper_metrics(mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RNA_listi):
@@ -273,4 +276,5 @@ for (name, blub1, blub2, mappings) in list_resu:
     print("mynameis", name)
     #if name == '5J7L':
     dicto[name] = mappings
-full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 1, cutting_edge = [5])
+full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 32, cutting_edge = [5])
+
