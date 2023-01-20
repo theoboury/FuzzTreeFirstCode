@@ -204,6 +204,7 @@ def compute_metrics(ref_mappings, GT, occurences):
     TP = len([i for i in mapping_unfold if i in ref_unfold])
     TN = len([i for i in ref_unfold if i not in mapping_unfold])
     precision = TP / len(mapping_unfold)
+    print("TN", TN, "reste", (len(mapping_unfold) - TP))
     specificity = TN / TN + (len(mapping_unfold) - TP)
     sensitivity = TP / len(ref_unfold)
     F = 2 * TP /(len(mapping_unfold) + len(ref_unfold))
