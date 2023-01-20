@@ -189,7 +189,7 @@ def look_at_all_occurences(GT, chains, mappings, cutting_edges, RNA_listi):
 
 def compute_metrics(ref_mappings, GT, occurences):
     if len(occurences) == 0:
-        return (0, 0, 0)
+        return (0, 0, 0, 0)
     ref_unfold = []
     mapping_unfold = []
     TP = 0
@@ -202,13 +202,13 @@ def compute_metrics(ref_mappings, GT, occurences):
             mapping_unfold.append((ii, t))
     mapping_unfold = list(set(mapping_unfold))
     TP = len([i for i in mapping_unfold if i in ref_unfold])
-    TN = len([i for i in ref_unfold if i not in mapping_unfold])
+    FP = len(mapping_unfold) - TP
+    NotReferenced = len(GT.nodes()) - len(ref_unfold)
     precision = TP / len(mapping_unfold)
-    specificity = TN / (TN + (len(mapping_unfold) - TP))
+    specificity = (NotReferenced - FP)/ NotReferenced
     sensitivity = TP / len(ref_unfold)
     F = 2 * TP /(len(mapping_unfold) + len(ref_unfold))
-    Fbis = 2 * specificity * sensitivity / (specificity + sensitivity)
-    return (precision, specificity, sensitivity, F, Fbis)
+    return (precision, specificity, sensitivity, F)
 
 
 def wrapper_metrics(mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RNA_listi):
@@ -219,7 +219,7 @@ def wrapper_metrics(mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RN
     return (RNA_listi, chains_listi,loc)
         
 def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", nb_procs = 1, cutting_edge = []):
-    resu = [("specificity", "sensitivity", "F")]
+    resu = [("precision", "specificity", "sensitivity", "F")]
     perfect_mapping, full_cut = csv_parse("kink_turn", -1, return_cutting_edges=1)
     #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['5J7L']]
     perfect_mapping = initialise_perfect_mapping(perfect_mapping, [])
