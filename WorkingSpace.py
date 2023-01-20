@@ -5,8 +5,10 @@ from VarnaDrawing import print_mapping_on_target_graph
 from TestFuzzTree import test_mapping, test_varna
 from TestFuzzTree import test_GP_into_multiples_GT
 from RIN import import_rin
-from Extractor import  csv_parse, csv_parse_full
+from Extractor import  csv_parse
 from TestFuzzTree import bar_graph_3proportions_1time_by_filename
+from ExtractAndSearchGeometry import full_metrics
+from Cartography import fromorigincartograph, plot_cartography
  
 def work(test = 1):
     if test == 1:
@@ -125,9 +127,35 @@ def work(test = 1):
         perfect_mapping = csv_parse(file, [(6,7)])
         resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 3, perfect_mapping=perfect_mapping) 
         print("\nresu", resu)
+    if test == 15:
+        from example2 import example2
+        list_resu = example2()
+        dicto = {}
+        for (name, blub1, blub2, mappings) in list_resu:
+            dicto[name] = mappings
+        full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 1, cutting_edge = [5])
+    if test == 16:
+        csv_parse("kink_turn", -1, RNAstorage = "bigRNAstorage/", csvlocation = "RNAcsv/", pattern_place="ALLkinkturnpatternwithgaps/", target_place ="ALLkinkturntargetwithgaps/", withgaps = 1)
+        fromorigincartograph("20kink_turninto5TBW", 50, 12, 50, 20, 20, 1)
+    if test == 17:
+        li = [(48, (-1, -1, -1)), (49,(-1, -1, -1)), (61,(-1, -1, -1)), (15, (0, 0, 0)), (53, (13, 0, 0)), (16, (0, 4, 0)), (5, (0, 4, 0)), (17, (0, 4, 0)), (8, (0, 2, 0)), (13, (0, 2, 0)), (0, (0, 2, 0)), (14, (0, 2, 0)), (44, (0, 2, 0)), (54, (13, 2, 0)), (66, (-1, -1, -1)), (18, (0, 2, 0)), (23, (0, 0, 0)), (9, (0, 8, 0)), (69, (-1, -1, -1)), (4, (0, 2, 0)), (19, (0, 2, 0)), (68, (0, 6, 0)), (3, (0, 4, 0)), (12, (0, 6, 0)), (71, (16, 2, 0)), (26, (0, 4, 0)), (22, (0, 2, 0)), (7, (0, 4, 0)), (51, (0, 2, 0)), (62, (0, 8, 0)), (21, (0, 2, 0)), (24, (0, 4, 0)), (6, (0, 4, 0)), (55, (13, 0, 0)), (65, (24, 0, 8)), (2, (0, 2, 0)), (11, (0, 4, 0)), (20, (0, 0, 0)), (43, (0, 2, 0)), (1, (0, 6, 0)), (10, (0, 4, 0)), (70, (14, 6, 2)), (34, (0, 0, 10)), (35, (0, 0, 10)), (33, (0, 0, 8)), (32, (0, 0, 8)), (28, (0, 6, 2)), (30, (0, 6, 2)), (25, (0, 6, 2)), (37, (0, 0, 8)), (27, (0, 6, 2)), (36, (0, 0, 8)), (31, (0, 6, 2)), (41, (0, 6, 5)), (64, (16, 4, 6)), (46, (0, 4, 2)), (40, (0, 4, 5)), (29, (0, 4, 2)), (39, (0, 4, 5)), (63, (16, 2, 9)), (42, (0, 4, 5)), (57, (0, 0, 5)), (38, (0, 4, 5)), (56, (0, 0, 5)), (47, (0, 2, 6)), (58, (0, 2, 5)), (50, (28, 2, 9)), (67, (25, 4, 11)), (52, (0, 2, 11)), (60, (31, 2, 20)), (59, (31, 2, 19))]
+        li.sort()
+        li = [j for (i, j) in li]
+        print(len(li))
+        resu = [(-1, -1, -1), (-1, -1, -1), (-1, -1, -1), (0, 0, 0), (13, 0, 0), (0, 4, 0), (0, 2, 0), (0, 2, 0), (0, 4, 0), (0, 4, 0), (0, 6, 0), (0, 2, 0), (0, 2, 0), (0, 2, 0), (0, 2, 0), (0, 0, 0), (0, 2, 0), (-1, -1, -1), (-1, -1, -1), (0, 8, 0), (13, 2, 0), (0, 6, 0), (0, 2, 0), (0, 4, 0), (16, 2, 0), (0, 2, 0), (0, 4, 0), (0, 4, 0), (0, 2, 0), (0, 8, 0), (24, 0, 8), (0, 4, 0), (0, 2, 0), (0, 4, 0), (13, 0, 0), (0, 2, 0), (0, 4, 0), (0, 0, 0), (0, 2, 0), (0, 6, 0), (0, 4, 0), (14, 6, 2), (0, 0, 10), (0, 0, 8), (0, 0, 10), (0, 6, 2), (0, 0, 8), (0, 6, 2), (0, 0, 8), (0, 0, 8), (0, 6, 2), (0, 6, 2), (0, 6, 5), (0, 6, 2), (16, 4, 6), (0, 4, 2), (0, 4, 5), (16, 2, 9), (0, 4, 5), (0, 4, 2), (0, 4, 5), (0, 0, 5), (0, 4, 5), (0, 0, 5), (0, 2, 6), (0, 2, 5), (27, 2, 9), (25, 4, 11), (0, 2, 11), (31, 2, 20), (31, 2, 19)]
+        color = [('IL_29549.9', 'orange', 32), ('IL_51265.1', 'blue', 6), ('IL_90538.3', 'green', 5), ('IL_68780.2', 'pink', 3), ('IL_35904.1', 'brown', 3), ("IL_64900.1", 'cyan', 3), ('IL_68057.1', 'olive', 3), ('IL_74051.1', 'purple', 3), ("IL_53581.1", 'sienna', 2),('IL_16456.1', 'darkblue', 2), ("IL_37722.1", 'darkkhaki', 2), ("IL_93094.1", 'grey', 1), ("IL_22436.1", 'violet', 1),('IL_34780.1', "bisque", 1), ("IL_65876.1", "lightgreen", 1), ("IL_76900.1", "dodgerblue", 1), ('IL_95993.1', 'indigo', 1), ("IL_90922.1", "lime", 1)]
+        print(len(resu))
+        resu = li
+        color = [('IL_29549.9', 'orange', 32, "o"), ('IL_29549.9', 'blue', 11, "x"), ('IL_68780.2', 'green', 3, "s"), ('Others families', 'blue', 25, "x")]
+#'IL_68780.2' number of instance reduced by one due to symmetry
 
-
-work(test = 13)
+#plot([(0,1,2), (1,2,3), (3,5,6)], "Essai", [("IL32", 'red', 1), ("IL33", 'blue', 2)], param_plotted = [True, False, True])
+        plot_cartography(resu, "Label and edge distances cartography from IL_5TBW_059", color, xlabel="Label distance (Isostericity)", ylabel = "Edge distance (Number)", zlabel="Gap distance (Angstrom)", param_plotted=[True, True, True])
+        plot_cartography(resu, "Label and gap distances cartography from IL_5TBW_059", color,   xlabel="Label distance (Isostericity)", ylabel = "Gap distance (Angstrom)", param_plotted=[True, False, True])
+        plot_cartography(resu, "Label and edge distances cartography from IL_5TBW_059", color, xlabel="Label distance (Isostericity)", ylabel = "Edge distance (Number)", param_plotted=[True, True, False])
+        plot_cartography(resu, "Edge and gap distances cartography from IL_5TBW_059", color, xlabel = "Edge distance (Number)", ylabel = "Gap distance (Angstrom)", param_plotted=[False, True, True])
+#work(test = 13)
+work(test = 17)
 
 
 

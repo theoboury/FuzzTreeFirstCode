@@ -6,7 +6,7 @@ from TestFuzzTree import outer_chain_removal, initialise_perfect_mapping
 from Extractor import csv_parse
 import os 
 
-
+DEBUG=1
 
 def edge_match(d_g1, d_g2):
     return d_g1['label'][:3] == d_g2['label'][:3]
@@ -76,20 +76,14 @@ def eliminate_similar_geometry(motifs_to_search):
             resu.append(G1)
     return resu
 
-def ff(tuple):
-    (a,b) = tuple
-    return a
 
-def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder = "bigRNAstorage/"):
+def abstract_in_geometry(GT, mappings, cutting_edges):
     """
     Input: - The graph target GT.
            - The list of mappings obtained as a request from a pattern graph in a target graph.
            - cutting_edges, list of numbers where the backbone has to be separated.
     Output: A minimal list of geometry that can serve as motif to be search exhaustievely in same RNA and in others RNAs. 
     """
-    #GTpath = GTlistfolder + GTpath + ".nxpickle"
-    #with open(GTpath,'rb') as f:
-    #    GT = pickle.load(f)
     new_mappings = []
     for mapp in mappings:
         mapp.sort()
@@ -103,30 +97,22 @@ def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder
         Gnew=nx.DiGraph()
         node_list = [-1]
         index = 1
-        #print("mapp", mapp, "cutting_edges", cutting_edges)
         for i in mapp:
-            c, blub = i
-            #if [tt for (ii, tt) in GT.nodes.data() if ii == i] == []:
-            #    print("AH", i, GT.nodes())
             t = [tt for (ii, tt) in GT.nodes.data() if ii == i][0]
             Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'])
             node_list.append(i)
-            if mapp.index(i) + 1 in cutting_edges or i == mapp[-1]: #mapp.index(i) + 1(c, t['pdb_position'])
+            if mapp.index(i) + 1 in cutting_edges or i == mapp[-1]: 
                 iter_node = None
             else:
-                #print('i', i)
                 B53_neighbors=[n for n in GT.successors(i) if GT[i][n]['label'] == 'B53']
                 if len(B53_neighbors) > 1: #It means that two backbones start from iter_node, which is not biologically admissible.
-                    print("THE WORLD BLOWS UP1", RNA_listi)
+                    print("THE WORLD BLOWS UP")
                 if len(B53_neighbors) == 0: 
-                    print("THE WORLD BLOWS UP2", RNA_listi)
+                    print("THE WORLD BLOWS UP")
                 iter_node = B53_neighbors[0]
                 succ = mapp[mapp.index(i) + 1]
-            #print("index", index, iter_node, succ)
             index +=1
             while iter_node:
-                if [tt for (ii, tt) in GT.nodes.data() if ii == iter_node] == []:
-                    print("AH", iter_node, succ)
                 t = [tt for (ii, tt) in GT.nodes.data() if ii == iter_node][0]
                 if iter_node == succ:
                     iter_node = None
@@ -136,9 +122,9 @@ def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder
                     index +=1
                     B53_neighbors=[n for n in GT.successors(iter_node) if GT[iter_node][n]['label'] == 'B53']
                     if len(B53_neighbors) > 1: #It means that two backbones start from iter_node, which is not biologically admissible.
-                        print("THE WORLD BLOWS UP3", RNA_listi)
+                        print("THE WORLD BLOWS UP")
                     if len(B53_neighbors) == 0: 
-                        print("THE WORLD BLOWS UP4", RNA_listi)
+                        print("THE WORLD BLOWS UP")
                     iter_node = B53_neighbors[0]
         for i in node_list:
             for j in node_list:
@@ -150,39 +136,29 @@ def abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi):#, GTlistfolder
                     Gnew.add_edge(indexi, indexj, label=t['label'], near=t['near'])
                 elif len(potential_edge) > 1:
                     print("THE WORLD BLOWS UP")
-
         motifs_to_search.append(Gnew)
-    print(len(mappings))
-    print(len(motifs_to_search))
     motifs_to_search = eliminate_similar_geometry(motifs_to_search)
-    print(len(motifs_to_search))
     return motifs_to_search
 
-def look_at_all_occurences(GT, chains, mappings, cutting_edges, RNA_listi):
+def look_at_all_occurences(GT, chains, mappings, cutting_edges):
     """
     Input: - The graph target GT.
            - The list of mappings obtained as a request from a pattern graph in a target graph.
            - cutting_edges, list of numbers where the backbone has to be separated.
     Output: Seach with VF2 all occurences of the minimal list of geometry obtained from mappings. 
     """
-    #GTpath = GTlistfolder + GTpath + ".nxpickle"
-
-    motifs_to_search = abstract_in_geometry(GT, mappings, cutting_edges, RNA_listi)#, GTlistfolder)
+    motifs_to_search = abstract_in_geometry(GT, mappings, cutting_edges)
     resu = []
     for GP in motifs_to_search:
-        print(GP.nodes())
         inst = VF2(GP, GT) 
         for G in inst:
-            print(G.nodes())
             local_mapping = []
             falseind = 0
             for (((i, j), t)) in G.nodes.data():
                 local_mapping.append((falseind,(i, j)))
                 falseind+=1
         resu.append(local_mapping.copy())
-        #TODO : VF2 to be implemented
-    #TODO ; still have to purge "doublons" ? not sure as geometric form are distinct.
-    print("resu", resu)
+    #No need to purge "doublons" as geometric forms are distinct.
     return resu
 
 
@@ -213,15 +189,15 @@ def compute_metrics(ref_mappings, GT, occurences):
 
 def wrapper_metrics(mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RNA_listi):
     (mappings, ref_mappings, GT_listi, chains_listi, cutting_listi, RNA_listi) = mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RNA_listi
-    occ = look_at_all_occurences(GT_listi, chains_listi, mappings, cutting_listi, RNA_listi)
+    occ = look_at_all_occurences(GT_listi, chains_listi, mappings, cutting_listi)
     loc = compute_metrics(ref_mappings, GT_listi, occ)
-    print("\ntemp", (RNA_listi, chains_listi,loc))
+    if DEBUG:
+        print("\nresu_temp", (RNA_listi, chains_listi,loc))
     return (RNA_listi, chains_listi,loc)
         
-def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", nb_procs = 1, cutting_edge = []):
+def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", csvtostudy = "kink_turn",nb_procs = 1, cutting_edge = []):
     resu = [("precision", "specificity", "sensitivity", "F")]
-    perfect_mapping, full_cut = csv_parse("kink_turn", -1, return_cutting_edges=1)
-    #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['5J7L']]
+    perfect_mapping = csv_parse(csvtostudy, -1)
     perfect_mapping = initialise_perfect_mapping(perfect_mapping, [])
     new_perfect_mapping = {}
     for (RNAname, chains) in perfect_mapping.keys():
@@ -235,46 +211,30 @@ def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", nb_procs = 1, cu
     for RNAname in new_perfect_mapping.keys():
         (cha, mapper) = new_perfect_mapping[RNAname]
         perfect_mapping[(RNAname, cha)] = mapper
-    print("perfect_mapping", perfect_mapping)
     GT_list = []
     chains_list = []
     RNA_list = []
-    cutting_list = []
     path = os.path.abspath(os.getcwd()) + "/" + GTlistfolder
     for (RNAname, chains) in perfect_mapping.keys():
         with open(path+ "/" + RNAname + '.nxpickle','rb') as f:
             GT = pickle.load(f)
-            print("chains", chains)
         GT = outer_chain_removal(GT, chains)
         GT_list.append(GT)
         RNA_list.append(RNAname)
         chains_list.append(list(chains))
-        precut = [li for (nam, li) in full_cut if nam == RNAname]
-        cut = [ ]
-        for li in precut:
-            cut+=li
-        cutting_list.append(cut)
-    print("BLUB", GT_list, chains_list, RNA_list, cutting_list)
+    if DEBUG:
+        print("Temporary lists to study", GT_list, chains_list, RNA_list)
     entry = []
     for i in range(len(GT_list)):
         mappings = dict_mappings[RNA_list[i]]
         ref_mappings = perfect_mapping[(RNA_list[i], tuple(chains_list[i]))]
         entry.append((mappings, ref_mappings, GT_list[i], chains_list[i], cutting_edge, RNA_list[i]))
     with Pool(nb_procs) as pool:
-        resu = list(pool.imap_unordered(wrapper_metrics, entry))
-    print("\nresu", resu)
+        resu += list(pool.imap_unordered(wrapper_metrics, entry))
+    if DEBUG:
+        print("\nresu", resu)
     return resu
 
-#dicto = {}
-#dicto['5G4T'] = example
-#full_metrics( dicto, GTlistfolder = "bigRNAstorage")
 
-from example2 import example2
-list_resu = example2()
-dicto = {}
-for (name, blub1, blub2, mappings) in list_resu:
-    print("mynameis", name)
-    #if name == '5J7L':
-    dicto[name] = mappings
-full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 32, cutting_edge = [5])
+
 
