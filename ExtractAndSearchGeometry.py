@@ -149,15 +149,17 @@ def look_at_all_occurences(GT, chains, mappings, cutting_edges):
     """
     motifs_to_search = abstract_in_geometry(GT, mappings, cutting_edges)
     resu = []
+    #print("motifs to search", [G.nodes() for G in motifs_to_search])
     for GP in motifs_to_search:
         inst = VF2(GP, GT) 
+        #print("inst", [G.nodes() for G in inst])
         for G in inst:
             local_mapping = []
             falseind = 0
             for (((i, j), t)) in G.nodes.data():
                 local_mapping.append((falseind,(i, j)))
                 falseind+=1
-        resu.append(local_mapping.copy())
+            resu.append(local_mapping.copy())
     #No need to purge "doublons" as geometric forms are distinct.
     return resu
 
@@ -165,13 +167,19 @@ def look_at_all_occurences(GT, chains, mappings, cutting_edges):
 
 def compute_metrics(ref_mappings, GT, occurences):
     if len(occurences) == 0:
-        return (0, 0, 0, 0)
+        return (0, 0, 0, 0, 0, [])
     ref_unfold = []
     mapping_unfold = []
     TP = 0
     for mapping_ref in ref_mappings:
         ref_unfold+= [j for (i,j) in mapping_ref]
     ref_unfold = list(set(ref_unfold))
+    occ_clean = []
+    for mapping in occurences:
+        mapping_bis = mapping.copy()
+        mapping_bis.sort()
+        if mapping_bis not in occ_clean:
+            occ_clean.append(mapping_bis)
     for mapping in occurences:
         for (i, j) in mapping:
             ii,t = [(ii, tt['pdb_position']) for ((ii,jj), tt) in GT.nodes.data() if (ii,jj) == j][0]
@@ -184,26 +192,32 @@ def compute_metrics(ref_mappings, GT, occurences):
     specificity = (NotReferenced - FP)/ NotReferenced
     sensitivity = TP / len(ref_unfold)
     F = 2 * TP /(len(mapping_unfold) + len(ref_unfold))
-    return (precision, specificity, sensitivity, F)
+    return (precision, specificity, sensitivity, F, len(occ_clean), occ_clean)
 
 
 def wrapper_metrics(mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RNA_listi):
     (mappings, ref_mappings, GT_listi, chains_listi, cutting_listi, RNA_listi) = mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RNA_listi
     occ = look_at_all_occurences(GT_listi, chains_listi, mappings, cutting_listi)
+    #print("occ", occ)
     loc = compute_metrics(ref_mappings, GT_listi, occ)
     if DEBUG:
         print("\nresu_temp", (RNA_listi, chains_listi,loc))
     return (RNA_listi, chains_listi,loc)
         
 def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", csvtostudy = "kink_turn",nb_procs = 1, cutting_edge = []):
-    resu = [("precision", "specificity", "sensitivity", "F")]
+    resu = [("precision", "specificity", "sensitivity", "F", "nb_found_motifs", "found_motifs")]
     perfect_mapping = csv_parse(csvtostudy, -1)
     perfect_mapping = initialise_perfect_mapping(perfect_mapping, [])
     new_perfect_mapping = {}
     for (RNAname, chains) in perfect_mapping.keys():
+        #if list(chains)[0] == 'B':
+        #    print("hole")
         new_mapping = perfect_mapping[(RNAname, chains)]
+        #else:
+        #    new_mapping = []
         if RNAname in new_perfect_mapping.keys():
             (cha, mapper) = new_perfect_mapping[RNAname]
+            #print("cha, mapper", cha, mapper)
             new_perfect_mapping[RNAname] = (tuple(list(cha) + list(chains)), mapper + new_mapping)
         else:
             new_perfect_mapping[RNAname] = (chains, new_mapping)
@@ -223,13 +237,13 @@ def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", csvtostudy = "ki
         RNA_list.append(RNAname)
         chains_list.append(list(chains))
     if DEBUG:
-        print("Temporary lists to study", GT_list, chains_list, RNA_list)
+        print("Temporary lists to study", [G.nodes() for G in GT_list], chains_list, RNA_list)
     entry = []
     for i in range(len(GT_list)):
         mappings = dict_mappings[RNA_list[i]]
         ref_mappings = perfect_mapping[(RNA_list[i], tuple(chains_list[i]))]
         entry.append((mappings, ref_mappings, GT_list[i], chains_list[i], cutting_edge, RNA_list[i]))
-    with Pool(nb_procs) as pool:
+    with Pool(nb_procs, maxtasksperchild=1) as pool:
         resu += list(pool.imap_unordered(wrapper_metrics, entry))
     if DEBUG:
         print("\nresu", resu)

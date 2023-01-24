@@ -132,8 +132,11 @@ def work(test = 1):
         list_resu = example2()
         dicto = {}
         for (name, blub1, blub2, mappings) in list_resu:
-            dicto[name] = mappings
-        full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 1, cutting_edge = [5])
+            if name in dicto.keys():
+                dicto[name] +=mappings
+            else:
+                dicto[name] = mappings
+        full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 32, cutting_edge = [5])
     if test == 16:
         csv_parse("kink_turn", -1, RNAstorage = "bigRNAstorage/", csvlocation = "RNAcsv/", pattern_place="ALLkinkturnpatternwithgaps/", target_place ="ALLkinkturntargetwithgaps/", withgaps = 1)
         fromorigincartograph("20kink_turninto5TBW", 50, 12, 50, 20, 20, 1)
@@ -154,8 +157,25 @@ def work(test = 1):
         plot_cartography(resu, "Label and gap distances cartography from IL_5TBW_059", color,   xlabel="Label distance (Isostericity)", ylabel = "Gap distance (Angstrom)", param_plotted=[True, False, True])
         plot_cartography(resu, "Label and edge distances cartography from IL_5TBW_059", color, xlabel="Label distance (Isostericity)", ylabel = "Edge distance (Number)", param_plotted=[True, True, False])
         plot_cartography(resu, "Edge and gap distances cartography from IL_5TBW_059", color, xlabel = "Edge distance (Number)", ylabel = "Gap distance (Angstrom)", param_plotted=[False, True, True])
+    if test == 18:
+
+        timeout = 3600
+
+        perfect_mapping = csv_parse("smallRNA", -1, csvlocation="RNAcsv/byRNA/")
+        perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['5XTM']]
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.1, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=100, remove_near=True, timeout= timeout, D = 5, nb_procs = 1, perfect_mapping=perfect_mapping)
+        print("\nresu", resu)
+        list_resu = resu
+        dicto = {}
+        for (name, blub1, blub2, mappings) in list_resu:
+            if name in dicto.keys():
+                dicto[name] +=mappings
+            else:
+                dicto[name] = mappings
+            #print("\ndicto", dicto[name])
+        full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 1, cutting_edge = [5], csvtostudy = "small5XTM")
 #work(test = 13)
-work(test = 17)
+work(test = 15)
 
 
 

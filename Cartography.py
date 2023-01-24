@@ -135,5 +135,6 @@ def plot_cartography(resu, title, precolor, xlabel = "", ylabel = "", zlabel = "
     else:
         ax1.legend()
     plt.title(title)
+    plt.savefig(title, format='pdf')
     plt.show()
 
