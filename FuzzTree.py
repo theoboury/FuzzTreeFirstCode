@@ -381,12 +381,12 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
         print("treewidth", sampler.treewidth())
     samples = []
     for _ in range(nb_samples):
-        try:
-            samples.append(sampler.targeted_sample())
-        except:
-            if DEBUG:
-                print("Inconsistancy error detected !")
-            return []
+        #try:
+        samples.append(sampler.targeted_sample())
+        #except:
+        #    if DEBUG:
+        #        print("Inconsistancy error detected !")
+        #    return []
     resu = [([(nodes_pattern[k], nodes_target[x]) for k,x in enumerate(sample.values())], len(list(set(sample.values())))) for sample in samples]
     
     #We postprocess now the gap procedure as shorcuted nodes must be left unaffected by the mapping.

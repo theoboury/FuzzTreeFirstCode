@@ -49,6 +49,41 @@ def outer_chain_removal(GT, chains):
         print("nb_nodes_GT_after", len(Gnew.nodes.data()),"nb_edges_GT_after", len(Gnew.edges.data()))
     return Gnew
 
+def rename_author_position(GT, GTref):
+    """
+    Input:  A target graph GT.
+    Output: Change name of author position in pdb_position
+    """
+    #print(GT.nodes.data())
+    #print(GTref.nodes.data())
+    Gnew=nx.DiGraph() #Initiate the new GT graph.
+    #print(GT[('A', 20)])
+    auth = {}
+    for ((i, j), t) in GT.nodes.data():
+        if 'author_position' in t.keys():
+            auth[i] = t['author_chain']
+    for ((i, j), t) in GT.nodes.data():
+        if 'author_position' not in t.keys():
+            authpos = GTref.nodes.data()[(auth[i], j)]['pdb_position']
+        else:
+            authpos = t['author_position']
+        if 'atoms' not in t.keys():
+            at = []
+        else:
+            #print("\nHOLE", t['atoms'])
+            at = []
+            for (type, label, blub, pos1, pos2, pos3) in t['atoms']:
+                tt = {}
+                tt['type'] = type
+                tt['label']= label
+                tt['position'] = (pos1, pos2, pos3)
+                at.append(tt)
+        Gnew.add_node((auth[i], j), pdb_position = authpos, atoms = at)
+    for ((i, ii), (j, jj), t) in GT.edges.data():
+        Gnew.add_edge((auth[i], ii), (auth[j], jj), label=t['label'], near=t['near'])
+    
+    return Gnew
+   
 def exact_similar_mapping(mapping_ref, mapping, GT):
     """
     Input: - mapping_ref, the perfect mapping that we want to compare with. 
@@ -238,7 +273,7 @@ def test_varna(name_file,GPpath, GTpath, show=1, output_format='png', E = 0, B =
 
 
 
-def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=1000, remove_near=True, timeout=-1, D = 5, nb_procs = 32, perfect_mapping = [], motifs_mapping = []):
+def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=1000, remove_near=True, timeout=-1, D = 5, nb_procs = 32, perfect_mapping = [], motifs_mapping = [], slice = -1):
     """
     Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
            - A list of RNA Target Graphs GTlist as a folder of files GTlistfolder. For each of these GT, we are looking for GP or a fuzzy version of GP in it.
@@ -256,30 +291,47 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
     """
     GP = open_graph(GPpath)
     path = os.path.abspath(os.getcwd()) + "/" + GTlistfolder
+    pathbis = os.path.abspath(os.getcwd()) + "/bigRNAstorage" 
     smallGT = []
     bigGT = []
+    if GTlistfolder == "bigRNAstorage":
+        addon = ".nxpickle"
+    else:
+        addon = ".pickle"
     if perfect_mapping:
         perfect_mapping = initialise_perfect_mapping(perfect_mapping, motifs_mapping)
         path_list = []
+        path_listbis = []
         chains_list = []
         RNA_list = []
         for (RNAname, chains) in perfect_mapping.keys():
-            path_list.append(path+ "/" + RNAname + '.nxpickle')
+            path_list.append(path+ "/" + RNAname + addon)
+            path_listbis.append(pathbis + "/" + RNAname + ".nxpickle")
             RNA_list.append(RNAname)
             chains_list.append(list(chains))
     else:
-        path_list = glob.glob(os.path.join(path, '*.nxpickle'))
+        path_list = glob.glob(os.path.join(path, '*' + addon))
+        path_listbis= glob.glob(os.path.join(path,  "*.nxpickle"))
     if DEBUG:
         if perfect_mapping:
             print("Perfect_mapping", perfect_mapping)
         print("File exploration", path_list)
     for num_list, filename in enumerate(path_list):
         GT = open_graph(os.path.join(os.getcwd(), filename))
-        compact_filename = (filename.split('/'))[-1][:-9]
+        GTref = open_graph(os.path.join(os.getcwd(), path_listbis[num_list]))
+        if GTlistfolder != "bigRNAstorage":
+            GT = rename_author_position(GT, GTref)
+            compact_filename = (filename.split('/'))[-1][:-7]
+        else:
+            compact_filename = (filename.split('/'))[-1][:-9]
+        #print("nodes", [i for (i, t) in GTref.nodes().data() if i not in GT.nodes()] +[i for (i, t) in GT.nodes().data() if i not in GTref.nodes()]  )     
+        #print("edges", [i for (i, j, t) in GTref.edges().data() if (i, j) not in GT.edges()] +[i for (i, j, t) in GT.edges().data() if (i, j) not in GTref.edges()] )
+        #print([t for (i, j, t) in GT.edges.data()])
+        #TODO : long range missing et albel bizarre à modifier
         local_mapping = []
         if remove_near: #We remove the near edges only if requested.
             GT = near_removal(GT)
-             
+         # #
         if perfect_mapping:
             chains = chains_list[num_list]
             GT = outer_chain_removal(GT, chains)
@@ -291,15 +343,21 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
         else:
             if DEBUG:
                 print("Small GT", compact_filename, "size", len(GT.nodes()), "\n")
+                
             smallGT.append((compact_filename, GT.copy(), local_mapping))
     entry = []
     for (filename, GT, local_mapping) in smallGT:
         entry.append((filename, local_mapping, strong_mapping, timeout, GP, GT, E, B, A, maxGAPdistance, nb_samples, respect_injectivity, D, {}))
     with Pool(nb_procs) as pool:
         resu = list(pool.imap_unordered(wrapper_main, entry))
+    #resu = []
+    #for ent in entry:
+    #    resu.append(wrapper_main(ent))
     for (filename, GT, local_mapping) in bigGT:
         entry = []
-        graph_grid, Distancer = slicer(GP, GT, nb_procs, filename=filename, D = A/4) #instead of 0.5 for now to have less cubes
+        if slice == -1:
+            slice = A/4
+        graph_grid, Distancer = slicer(GP, GT, nb_procs, filename=filename, D = slice) #instead of 0.5 for now to have less cubes
         for GTsmall in graph_grid:
             local_nb_samples = max(10, int(nb_samples/len(graph_grid)) + 1) 
             #TODO: Is the maximum necessary here to avoid unlucky mismatch ? Furthermore, should we remove multiple indentical samples. In this case, by what should we replace the proportion ?
