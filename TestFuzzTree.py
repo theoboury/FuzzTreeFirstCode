@@ -80,7 +80,8 @@ def rename_author_position(GT, GTref):
                 at.append(tt)
         Gnew.add_node((auth[i], j), pdb_position = authpos, atoms = at)
     for ((i, ii), (j, jj), t) in GT.edges.data():
-        Gnew.add_edge((auth[i], ii), (auth[j], jj), label=t['label'], near=t['near'])
+        if t['label'] in ['B53', 'CHH', 'TWH', 'THW', 'CWW', 'THS', 'TSH', 'CWS', 'CSW', 'CSS', 'CWH','CHW', 'CHS','CSH','TWS','TSW','TSS','TWW','THH']:
+            Gnew.add_edge((auth[i], ii), (auth[j], jj), label=t['label'], near=t['near'])
     
     return Gnew
    
