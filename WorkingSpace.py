@@ -111,7 +111,7 @@ def work(test = 1):
             timeout = 2000 #3600
         csv_parse("IL_29549.9", [(5,6)])
         perfect_mapping = csv_parse(file, -1, csvlocation="RNAcsv/byRNA/")
-        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=True, timeout= timeout, D = 5, nb_procs = 64, perfect_mapping=perfect_mapping)
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstoragenear", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=False, timeout= timeout, D = 5, nb_procs = 64, perfect_mapping=perfect_mapping)
         print("\nresu", resu)
     if test == 14:
         parser = argparse.ArgumentParser()
@@ -253,8 +253,8 @@ def work(test = 1):
         #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['3SIU']]
         resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstoragenear", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=False, timeout= timeout, D = 5, nb_procs = 32, perfect_mapping=perfect_mapping, slice = 10)
         print("\nresu", resu)
-#work(test = 13)
-work(test = 23)
+work(test = 13)
+#work(test = 23)
 
 
 
