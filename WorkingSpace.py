@@ -245,8 +245,16 @@ def work(test = 1):
             else:
                 dicto[name] = mappings
         full_metrics(dicto, GTlistfolder = "bigRNAstoragenear", nb_procs = 32, cutting_edge = [5])
+    if test == 23:
+        print("4AOB alone for debug")
+        timeout = 2000 * 5 #3600
+        csv_parse("IL_29549.9", [(5,6)])
+        perfect_mapping = csv_parse("smallRNA", -1, csvlocation="RNAcsv/byRNA/") #"7A0S"
+        #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['3SIU']]
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstoragenear", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=False, timeout= timeout, D = 5, nb_procs = 32, perfect_mapping=perfect_mapping, slice = 10)
+        print("\nresu", resu)
 #work(test = 13)
-work(test = 22)
+work(test = 23)
 
 
 

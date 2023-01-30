@@ -54,6 +54,7 @@ def rename_author_position(GT, GTref):
     Input:  A target graph GT.
     Output: Change name of author position in pdb_position
     """
+    GTref = near_removal(GTref)
     #print(GT.nodes.data())
     #print(GTref.nodes.data())
     Gnew=nx.DiGraph() #Initiate the new GT graph.
@@ -82,8 +83,14 @@ def rename_author_position(GT, GTref):
     for ((i, ii), (j, jj), t) in GT.edges.data():
         if t['label'] in ['B53', 'CHH', 'TWH', 'THW', 'CWW', 'THS', 'TSH', 'CWS', 'CSW', 'CSS', 'CWH','CHW', 'CHS','CSH','TWS','TSW','TSS','TWW','THH']:
             Gnew.add_edge((auth[i], ii), (auth[j], jj), label=t['label'], near=t['near'])
-    
-    return Gnew
+    for (i, j, t) in Gnew.edges.data():
+
+        if t['near'] == True:
+            if (i,j) not in GTref.edges():
+                #print("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH", GTref[i][j]['label'], Gnew[i][j]['label'])
+                GTref.add_edge(i, j, label = t['label'], near = t['near'])
+    return GTref
+    #return Gnew
    
 def exact_similar_mapping(mapping_ref, mapping, GT):
     """
@@ -318,10 +325,15 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
             print("Perfect_mapping", perfect_mapping)
         print("File exploration", path_list)
     for num_list, filename in enumerate(path_list):
+        #print("filnemae", filename)
+        #if  filename != "/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstoragenear/3SIU.pickle":
+        #    continue
         GT = open_graph(os.path.join(os.getcwd(), filename))
         GTref = open_graph(os.path.join(os.getcwd(), path_listbis[num_list]))
         if GTlistfolder != "bigRNAstorage":
+            
             GT = rename_author_position(GT, GTref)
+
             compact_filename = (filename.split('/'))[-1][:-7]
         else:
             compact_filename = (filename.split('/'))[-1][:-9]
@@ -335,8 +347,21 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
          # #
         if perfect_mapping:
             chains = chains_list[num_list]
+            #print("chains", chains)
             GT = outer_chain_removal(GT, chains)
+            #GTref = near_removal(GTref)
+            #GTref = outer_chain_removal(GTref, chains)
+            #print('GTnodes', [(i, t['atoms']) for (i, t) in GT.nodes.data()][:3])
+            #print('GTnodesref', [(i, t['atoms']) for (i, t) in GTref.nodes.data()][:3])
+            #print('GTB53', [(i, j) for (i, j, t) in GT.edges.data() if t['label'] == 'B53'])
+            #print('GTB53ref', [(i, j) for (i, j, t) in GTref.edges.data() if t['label'] == 'B53'])
+            #print('GTlink', len([(i, j, t['label']) for (i, j, t) in GT.edges.data() if t['label'] != 'B53']))
+            #print('GTlinkref', len([(i, j, t['label']) for (i, j, t) in GTref.edges.data() if t['label'] != 'B53']))
+            #print('GTnear', [(i, j) for (i, j, t) in GT.edges.data() if t['near'] == True])
+            #print('GTnearref', [(i, j) for (i, j, t) in GTref.edges.data() if t['near'] == True])
+            #GT = near_removal(GT)
             local_mapping = perfect_mapping[(RNA_list[num_list], tuple(chains))]
+            #print("loc", local_mapping)
         if len(list(GT.nodes())) > threshold_bigGT:
             if DEBUG:
                 print("Big GT", compact_filename, "size", len(GT.nodes()), "\n")
