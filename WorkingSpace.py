@@ -244,7 +244,7 @@ def work(test = 1):
                 dicto[name] +=mappings
             else:
                 dicto[name] = mappings
-        full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 32, cutting_edge = [5])
+        full_metrics(dicto, GTlistfolder = "bigRNAstoragenear", nb_procs = 32, cutting_edge = [5])
 #work(test = 13)
 work(test = 22)
 

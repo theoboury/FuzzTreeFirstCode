@@ -8,6 +8,8 @@ import os
 
 DEBUG=1
 
+from TestFuzzTree import rename_author_position
+
 def edge_match(d_g1, d_g2):
     return d_g1['label'][:3] == d_g2['label'][:3]
 
@@ -229,9 +231,17 @@ def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", csvtostudy = "ki
     chains_list = []
     RNA_list = []
     path = os.path.abspath(os.getcwd()) + "/" + GTlistfolder
+    pathbis = os.path.abspath(os.getcwd()) + "/bigRNAstorage"
     for (RNAname, chains) in perfect_mapping.keys():
-        with open(path+ "/" + RNAname + '.nxpickle','rb') as f:
-            GT = pickle.load(f)
+        if GTlistfolder != "bigRNAstorage": 
+            with open(path+ "/" + RNAname + '.pickle','rb') as f1:
+                GT = pickle.load(f1)
+            with open(pathbis + "/" + RNAname + '.nxpickle','rb') as f2:
+                GTref = pickle.load(f2)
+            GT = rename_author_position(GT, GTref)
+        else:
+            with open(path+ "/" + RNAname + '.nxpickle','rb') as f:
+                GT = pickle.load(f)
         GT = outer_chain_removal(GT, chains)
         GT_list.append(GT)
         RNA_list.append(RNAname)
