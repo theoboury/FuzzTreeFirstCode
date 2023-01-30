@@ -153,10 +153,10 @@ def work(test = 1):
 #'IL_68780.2' number of instance reduced by one due to symmetry
 
 #plot([(0,1,2), (1,2,3), (3,5,6)], "Essai", [("IL32", 'red', 1), ("IL33", 'blue', 2)], param_plotted = [True, False, True])
-        plot_cartography(resu, "Label and edge distances cartography from IL_5TBW_059", color, xlabel="Label distance (Isostericity)", ylabel = "Edge distance (Number)", zlabel="Gap distance (Angstrom)", param_plotted=[True, True, True])
-        plot_cartography(resu, "Label and gap distances cartography from IL_5TBW_059", color,   xlabel="Label distance (Isostericity)", ylabel = "Gap distance (Angstrom)", param_plotted=[True, False, True])
-        plot_cartography(resu, "Label and edge distances cartography from IL_5TBW_059", color, xlabel="Label distance (Isostericity)", ylabel = "Edge distance (Number)", param_plotted=[True, True, False])
-        plot_cartography(resu, "Edge and gap distances cartography from IL_5TBW_059", color, xlabel = "Edge distance (Number)", ylabel = "Gap distance (Angstrom)", param_plotted=[False, True, True])
+        plot_cartography(resu, "Label and edge differences cartography from IL_5TBW_059", color, xlabel="Label difference (Isostericity)", ylabel = "Edge difference (Number)", zlabel="Gap difference (Angstrom)", param_plotted=[True, True, True])
+        plot_cartography(resu, "Label and gap differences cartography from IL_5TBW_059", color,   xlabel="Label difference (Isostericity)", ylabel = "Gap difference (Angstrom)", param_plotted=[True, False, True])
+        plot_cartography(resu, "Label and edge differences cartography from IL_5TBW_059", color, xlabel="Label difference (Isostericity)", ylabel = "Edge difference (Number)", param_plotted=[True, True, False])
+        plot_cartography(resu, "Edge and gap differences cartography from IL_5TBW_059", color, xlabel = "Edge difference (Number)", ylabel = "Gap difference (Angstrom)", param_plotted=[False, True, True])
     if test == 18:
 
         timeout = 3600
@@ -188,8 +188,65 @@ def work(test = 1):
         perfect_mapping = csv_parse("7A0S", -1, csvlocation="RNAcsv/byRNA/") #
         resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=False, timeout= timeout, D = 5, nb_procs = 64, perfect_mapping=perfect_mapping, slice = 10)
         print("\nresu", resu)
+    if test == 21:
+        from example2 import postprocessresuwithoutnear
+        import matplotlib.pyplot as plt
+        resu = postprocessresuwithoutnear()
+        resu = resu[1:]
+        print("len", len(resu))
+        spec_list = []
+        name_list = []
+        sens_list = []
+        num= 0
+        for assez in resu:
+            (filename, chains, (precision, specificity, sensitivity, F, nb_found_motifs, found_motifs)) = assez
+            if sensitivity >= 0.75:
+                num+=1
+            spec_list.append(specificity)
+            sens_list.append(sensitivity)
+            file = filename
+            for cha in chains:
+                file = file + "_" + cha
+            name_list.append(file)
+        print("num", num)
+        fig, ax1 = plt.subplots()
+        ax1.set(xlim=(-0.1, 1.1), ylim=(-0.1, 1.1))
+        ax1.set_xlabel("Sensitivity", color='black')
+        ax1.set_ylabel("Specificity", color='black')
+        ax1.plot(sens_list, spec_list, color = 'blue', marker = 'o', markerfacecolor='None',linestyle = 'None')
+        offset = 0
+        for k in range(len(name_list)):
+            if sens_list[k] != 1:
+                addon = 0
+                if sens_list[k] < 0.1 and spec_list[k] < 0.1:
+                    addon = offset
+                elif name_list[k] == '4V88_A6':
+                    addon = -20
+                label = name_list[k]
+                plt.annotate(label, # this is the text
+                 (sens_list[k],spec_list[k]), # these are the coordinates to position the label
+                 textcoords="offset points", # how to position the text
+                 xytext=(0, 7 + addon), # distance from text to points (x,y)
+                 ha='center') 
+            if sens_list[k] < 0.1 and spec_list[k] < 0.1:
+                offset = offset + 11
+        ax1.set_facecolor(color='white')
+        fig.set_facecolor(color='white')
+        title = "Sensitivity and specificity of found mappings for the Kink Turn family"
+        plt.title(title)
+        plt.savefig(title + '.pdf', format='pdf')
+    if test == 22:
+        from example2 import example3
+        list_resu = example3()
+        dicto = {}
+        for (name, blub1, blub2, mappings) in list_resu:
+            if name in dicto.keys():
+                dicto[name] +=mappings
+            else:
+                dicto[name] = mappings
+        full_metrics(dicto, GTlistfolder = "bigRNAstorage", nb_procs = 32, cutting_edge = [5])
 #work(test = 13)
-work(test = 20)
+work(test = 22)
 
 
 
