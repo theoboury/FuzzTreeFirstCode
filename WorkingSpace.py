@@ -248,13 +248,73 @@ def work(test = 1):
     if test == 23:
         print("4AOB alone for debug")
         timeout = 2000 * 5 #3600
+        csv_parse("kink_turn", -1)
         csv_parse("IL_29549.9", [(5,6)])
         perfect_mapping = csv_parse("smallRNA", -1, csvlocation="RNAcsv/byRNA/") #"7A0S"
         #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['3SIU']]
-        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstoragenear", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=False, timeout= timeout, D = 5, nb_procs = 32, perfect_mapping=perfect_mapping, slice = 10)
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstoragenear", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=False, timeout= timeout, D = 5, nb_procs = 1, perfect_mapping=perfect_mapping, slice = 10)
         print("\nresu", resu)
-work(test = 13)
-#work(test = 23)
+    if test == 23:
+        print("4AOB alone for debug")
+        timeout = 2000 * 5 #3600
+        csv_parse("kink_turn", -1)
+        csv_parse("IL_29549.9", [(5,6)])
+        perfect_mapping = csv_parse("smallRNA", -1, csvlocation="RNAcsv/byRNA/") #"7A0S"
+        #perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in ['3SIU']]
+        resu = test_GP_into_multiples_GT("ALLkinkturnpattern/20IL_29549.9into5TBW.pickle", GTlistfolder = "bigRNAstoragenear", threshold_bigGT = 500, strong_mapping = 0.8, respect_injectivity=1, E=20 , B=4, A=20, maxGAPdistance = 10, nb_samples=1000, remove_near=False, timeout= timeout, D = 5, nb_procs = 1, perfect_mapping=perfect_mapping, slice = 10)
+        print("\nresu", resu)
+    if test == 24:
+        from random import random
+        import csv
+        li = [(48, (-1, -1, -1)), (49,(-1, -1, -1)), (61,(-1, -1, -1)), (15, (0, 0, 0)), (53, (13, 0, 0)), (16, (0, 4, 0)), (5, (0, 4, 0)), (17, (0, 4, 0)), (8, (0, 2, 0)), (13, (0, 2, 0)), (0, (0, 2, 0)), (14, (0, 2, 0)), (44, (0, 2, 0)), (54, (13, 2, 0)), (66, (-1, -1, -1)), (18, (0, 2, 0)), (23, (0, 0, 0)), (9, (0, 8, 0)), (69, (-1, -1, -1)), (4, (0, 2, 0)), (19, (0, 2, 0)), (68, (0, 6, 0)), (3, (0, 4, 0)), (12, (0, 6, 0)), (71, (16, 2, 0)), (26, (0, 4, 0)), (22, (0, 2, 0)), (7, (0, 4, 0)), (51, (0, 2, 0)), (62, (0, 8, 0)), (21, (0, 2, 0)), (24, (0, 4, 0)), (6, (0, 4, 0)), (55, (13, 0, 0)), (65, (24, 0, 8)), (2, (0, 2, 0)), (11, (0, 4, 0)), (20, (0, 0, 0)), (43, (0, 2, 0)), (1, (0, 6, 0)), (10, (0, 4, 0)), (70, (14, 6, 2)), (34, (0, 0, 10)), (35, (0, 0, 10)), (33, (0, 0, 8)), (32, (0, 0, 8)), (28, (0, 6, 2)), (30, (0, 6, 2)), (25, (0, 6, 2)), (37, (0, 0, 8)), (27, (0, 6, 2)), (36, (0, 0, 8)), (31, (0, 6, 2)), (41, (0, 6, 5)), (64, (16, 4, 6)), (46, (0, 4, 2)), (40, (0, 4, 5)), (29, (0, 4, 2)), (39, (0, 4, 5)), (63, (16, 2, 9)), (42, (0, 4, 5)), (57, (0, 0, 5)), (38, (0, 4, 5)), (56, (0, 0, 5)), (47, (0, 2, 6)), (58, (0, 2, 5)), (50, (28, 2, 9)), (67, (25, 4, 11)), (52, (0, 2, 11)), (60, (31, 2, 20)), (59, (31, 2, 19))]
+        li.sort()
+        li = [j for (i, j) in li]
+        for indi1,(i1, j1, k1) in enumerate(li):
+            for indi2, (i2, j2, k2) in enumerate(li):
+                if indi2 > indi1:
+                    if i1 == i2 and j1 == j2 and k1 == k2 and i1 != -1:
+                        li[indi2] = (i2 + (0.5 - random())*5, j2 + (0.5 - random())*2, k2 + (1 - random())*2) #avoid number to be exactly at the same position
+                        (i3, j3, k3)= li[indi2]  
+                        li[indi2] = (max(i3, 0), max(j3, 0), max(k3, 0))
+        print("li", li)
+        color = [('IL_29549.9', 32), ('Others families', 11), ('IL_68780.2', 3), ('Others families', 25)]
+        full_color = []
+        for (fam, num) in color:
+            full_color+= [fam]*num
+        full_li = []
+        nb = 0
+        for k in range(len(li)):
+            (a1, a2, a3) = li[k]
+            if a1 != -1:
+                full_li.append((a1, a2, a3, full_color[k]))
+            else:
+                nb += 1
+            print("full_li", full_li)
+        with open('carte1.csv', 'w') as f:
+            writer = csv.writer(f)
+            headers = ["Label Difference", "Edge Difference", "Gap difference", "Family"]
+            writer.writerow(headers)
+            for (a1, a2, a3, a4) in full_li:
+                data = [a1, a2, a3, a4]
+                writer.writerow(data)
+        import seaborn as sns
+        import pandas as pd
+
+        carte = pd.read_csv("carte1.csv")   
+        print("nb_link_turn_not_cartografied", nb) 
+        sns.pairplot(data=carte, hue="Family")
+    if test == 25:
+        from example2 import example4
+        list_resu = example4()
+        dicto = {}
+        for (name, blub1, blub2, mappings) in list_resu:
+            if name in dicto.keys():
+                dicto[name] +=mappings
+            else:
+                dicto[name] = mappings
+        full_metrics(dicto, GTlistfolder = "bigRNAstoragenear", nb_procs = 32, cutting_edge = [5])
+#work(test = 13)
+work(test = 25)
 
 
 
