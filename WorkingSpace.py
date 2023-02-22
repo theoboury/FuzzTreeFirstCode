@@ -313,8 +313,58 @@ def work(test = 1):
             else:
                 dicto[name] = mappings
         full_metrics(dicto, GTlistfolder = "bigRNAstoragenear", nb_procs = 32, cutting_edge = [5])
+    if test == 26:
+        print("blub\n")
+        from example2 import postprocessresuwithnear
+        print("blub2\n")
+        import matplotlib.pyplot as plt
+        resu = postprocessresuwithnear()
+        resu = resu[1:]
+        print("len", len(resu))
+        spec_list = []
+        name_list = []
+        sens_list = []
+        num= 0
+        for assez in resu:
+            (filename, chains, (precision, specificity, sensitivity, F, nb_found_motifs, found_motifs)) = assez
+            if sensitivity >= 0.75:
+                num+=1
+            spec_list.append(specificity)
+            sens_list.append(sensitivity)
+            file = filename
+            for cha in chains:
+                file = file + "_" + cha
+            name_list.append(file)
+        print("num", num)
+        fig, ax1 = plt.subplots()
+        ax1.set(xlim=(-0.1, 1.1), ylim=(-0.1, 1.1))
+        ax1.set_xlabel("Sensitivity", color='black')
+        ax1.set_ylabel("Specificity", color='black')
+        ax1.plot(sens_list, spec_list, color = 'blue', marker = 'o', markerfacecolor='None',linestyle = 'None')
+        offset = 0
+        for k in range(len(name_list)):
+            if sens_list[k] != 1:
+                addon = 0
+                if sens_list[k] < 0.1 and spec_list[k] < 0.1:
+                    addon = offset
+                elif name_list[k] == '4V88_A6':
+                    addon = -20
+                label = name_list[k]
+                plt.annotate(label, # this is the text
+                 (sens_list[k],spec_list[k]), # these are the coordinates to position the label
+                 textcoords="offset points", # how to position the text
+                 xytext=(0, 7 + addon), # distance from text to points (x,y)
+                 ha='center') 
+            if sens_list[k] < 0.1 and spec_list[k] < 0.1:
+                offset = offset + 11
+        ax1.set_facecolor(color='white')
+        fig.set_facecolor(color='white')
+        title = "Sensitivity and specificity of found mappings for the Kink Turn family with near"
+        plt.title(title)
+        plt.savefig(title + '.png', format='png')
+        plt.savefig(title + '.pdf', format='pdf')
 #work(test = 13)
-work(test = 25)
+work(test = 26)
 
 
 
