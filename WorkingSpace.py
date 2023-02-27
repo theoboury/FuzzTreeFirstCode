@@ -454,6 +454,7 @@ def work(test = 1):
                 if booleen:
                     new_resu_loc.append(mapp)
             new_resu.append((RNA, new_resu_loc.copy()))
+        print("\nnew_resu", new_resu)
 #work(test = 13)
 work(test = 30)
 
