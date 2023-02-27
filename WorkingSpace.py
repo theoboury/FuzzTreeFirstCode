@@ -434,7 +434,7 @@ def work(test = 1):
         perfect_mapping = csv_parse("kink_turn", -1)
         resu = postprocessresuwithnear()[1:]
         new_resu = []
-        for (RNA, blub2, blub3, blub4, blubx5, mappings) in resu:
+        for (RNA, chains, (blub1, blub2, blub3, blub4, blub5, mappings)) in resu:
             new_resu_loc = []
             loc_perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in [RNA]]
             local_nodes_pdb = []
