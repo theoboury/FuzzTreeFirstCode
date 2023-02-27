@@ -6,7 +6,7 @@ from TestFuzzTree import test_mapping, test_varna
 from TestFuzzTree import test_GP_into_multiples_GT
 from RIN import import_rin
 from Extractor import  csv_parse
-from TestFuzzTree import bar_graph_3proportions_1time_by_filename
+from TestFuzzTree import bar_graph_3proportions_1time_by_filename, bar_graph_time_by_filename
 from ExtractAndSearchGeometry import full_metrics
 from Cartography import fromorigincartograph, plot_cartography
  
@@ -363,8 +363,99 @@ def work(test = 1):
         plt.title(title)
         plt.savefig(title + '.png', format='png')
         plt.savefig(title + '.pdf', format='pdf')
+    if test == 27:
+        #time graph without near"
+        entry_raw = [('1E7K', 0.9891200065612793, [[0.0, 0.157, 0.709]]), ('5G4T', 1.1437277793884277, [[0.118, 0.118, 0.593]]), ('6HCT', 1.1279723644256592, [[0.0, 0.0, 0.492]]), ('3NVI', 1.203505277633667, [[0.48, 0.48, 1.0]]), ('3SIU', 1.604506254196167, [[0.0, 0.173, 0.751]]), ('4BW0', 1.7208876609802246, [[0.113, 0.113, 0.617]]), ('3NMU', 2.1028857231140137, [[0.3, 0.3, 1.0]]), ('1T0K', 2.616589069366455, [[0.0, 0.0, 0.422]]), ('5FJ4', 2.818898916244507, [[0.091, 0.091, 0.554]]), ('4C4W', 2.8795292377471924, [[0.0, 0.0, 0.255]]), ('2OZB', 4.376844882965088, [[0.0, 0.0, 0.0]]), ('5G4U', 4.467447519302368, [[0.0, 0.0, 0.0], [0.0, 0.0, 0.358]]), ('6HCT', 4.600372314453125, [[0.0, 0.0, 0.526], [0.0, 0.0, 0.0]]), ('5XTM', 5.748464822769165, [[0.0, 0.0, 1.0]]), ('3SIV', 8.21737289428711, [[0.0, 0.0, 0.0], [0.0, 0.165, 0.637]]), ('1U63', 9.44894528388977, [[0.0, 0.0, 0.835]]), ('5XTM', 13.136950254440308, [[0.0, 0.0, 1.0]]), ('3U4M', 20.403923988342285, [[0.06, 0.06, 0.487]]), ('5D8H', 20.6782124042511, [[0.0, 0.0, 0.279]]), ('3Q3Z', 21.08718967437744, [[0.223, 0.223, 0.682]]), ('5FJC', 30.549811601638794, [[0.103, 0.103, 0.586]]), ('4LCK', 35.4049026966095, [[0.0, 0.145, 0.728]]), ('6DVK', 38.29049301147461, [[0.0, 0.0, 0.228]]), ('6UFM', 43.587788581848145, [[0.0, 0.0, 0.556]]), ('3RW6', 62.94833707809448, [[0.084, 0.084, 0.444]]), ('4KQY', 71.06677460670471, [[0.0, 0.0, 0.416]]), ('3V7E', 84.64838099479675, [[0.0, 0.0, 0.577]]), ('6UFG', 176.6623773574829, [[0.0, 0.0, 0.444]]), ('4AOB', 182.92915296554565, [[0.311, 0.311, 0.899]]), ('6UFH', 187.40633749961853, [[0.0, 0.0, 0.308]]), ('2R8S', 344.2688467502594, [[0.0, 0.0, 0.0]]), ('1U6B', 398.7175359725952, [[0.0, 0.0, 0.0]]), ('4GXY', 447.5979459285736, [[0.0, 0.0, 0.408]]), ('6SY6', 1051.7494266033173, [[0, 0, 0]]), ('6SY4', 1430.0863449573517, [[0, 0, 0]]), ('2HW8', 3270.106005191803, [[0, 0, 0]]), ('5DCV', 3953.3911316394806, [[0, 0, 0]]), ('5Y7M', 4198.523247003555, [[0, 0, 0]]), ('2VPL', 6039.295374155045, [[0, 0, 0]])]
+        entry = []
+        for (name, time, prop) in entry_raw:
+            entry.append((name, time, "smallRNA"))
+        li_big_RNA = ["blub", "4LFB", "4V9F", "4V88", "4WF9", "5J7L", "5TBW", "6CZR", "7A0S", "7RQB"]
+        for i in range(1, 10):
+            booleen = 1
+            resu = []
+            val = 0
+            with open("Timegraphbrut/timewithoutnear"+ str(i) + ".txt", "r") as f:
+                for line in f.readlines():
+                    #print("line", line)
+                    if len(line) >= 3:
+                        if booleen:
+                            resu.append(float(line[:-2]))
+                        booleen = (booleen + 1) % 2
+            for num in resu:
+                val+= num
+            entry.append((li_big_RNA[i], val, "bigRNA"))
+        print("entry", entry)
+        small1 = [(i,j) for (i, j, k) in entry if k == "smallRNA"]
+        cut = (len(small1) + 1)/2
+        small2 = [elem for k, elem in enumerate(small1) if k >= cut]
+        small1 = [elem for k, elem in enumerate(small1) if k < cut]
+        bar_graph_time_by_filename(small1, "Time graph FuzzTree method part 1 out of 3", bar_length = 0.3)
+        bar_graph_time_by_filename(small2, "Time graph FuzzTree method part 2 out of 3", bar_length = 0.3)
+        bar_graph_time_by_filename([(i,j) for (i, j, k) in entry if k == "bigRNA"], "Time graph FuzzTree method with slicing in sphere part 3 out of 3", bar_length = 0.3)
+        return entry
+    if test == 28:
+        #time graph with near"
+        entry_raw = [('1E7K', 1.4278004169464111, [[0.0, 0.175, 0.699]]), ('6HCT', 1.5956840515136719, [[0.0, 0.203, 0.762]]), ('5G4T', 1.6446595191955566, [[0.115, 0.115, 0.62]]), ('3NVI', 1.7362689971923828, [[0.518, 0.518, 1.0]]), ('3SIU', 2.3870444297790527, [[0.0, 0.184, 0.788]]), ('4BW0', 2.5716769695281982, [[0.181, 0.181, 0.663]]), ('1T0K', 3.274966239929199, [[0.128, 0.128, 0.557]]), ('3NMU', 3.298027753829956, [[0.257, 0.257, 1.0]]), ('5FJ4', 4.195765018463135, [[0.1, 0.1, 0.587]]), ('4C4W', 4.322925806045532, [[0.139, 0.139, 0.625]]), ('6HCT', 5.505043268203735, [[0.0, 0.157, 0.356], [0.0, 0.125, 0.42]]), ('5G4U', 5.8360772132873535, [[0.081, 0.081, 0.349], [0.096, 0.096, 0.295]]), ('2OZB', 6.400434494018555, [[0.0, 0.0, 0.0]]), ('5XTM', 8.633862018585205, [[0.0, 0.0, 1.0]]), ('5XTM', 8.646195411682129, [[0.0, 0.0, 0.0]]), ('5DCV', 9.876028060913086, [[0.0, 0.0, 1.0]]), ('1U63', 11.58642053604126, [[0.0, 0.0, 0.54]]), ('3SIV', 12.602856397628784, [[0.0, 0.0, 0.0], [0.0, 0.155, 0.671]]), ('5Y7M', 13.279045343399048, [[0.0, 0.0, 0.0]]), ('2HW8', 24.179459810256958, [[0.0, 0.0, 0.0]]), ('5D8H', 24.81542706489563, [[0.0, 0.125, 0.619]]), ('3U4M', 31.55271315574646, [[0.113, 0.113, 0.607]]), ('3Q3Z', 31.67681050300598, [[0.199, 0.199, 0.641]]), ('2VPL', 46.498624324798584, [[0.0, 0.0, 0.0]]), ('5FJC', 46.54033088684082, [[0.118, 0.118, 0.609]]), ('6UFM', 52.27826380729675, [[0.084, 0.084, 0.506]]), ('4LCK', 54.75152587890625, [[0.0, 0.222, 0.786]]), ('6DVK', 58.71999716758728, [[0.0, 0.0, 0.243]]), ('4AOB', 61.546157360076904, [[0.0, 0.0, 0.365]]), ('4KQY', 84.89300441741943, [[0.157, 0.157, 0.65]]), ('3RW6', 95.82019829750061, [[0.077, 0.077, 0.453]]), ('3V7E', 128.75165915489197, [[0.0, 0.0, 0.529]]), ('6UFG', 271.3213586807251, [[0.094, 0.094, 0.515]]), ('6UFH', 360.8544452190399, [[0.251, 0.251, 0.767]]), ('4GXY', 366.75551652908325, [[0.228, 0.228, 0.746]]), ('2R8S', 533.8074650764465, [[0.0, 0.0, 0.0]]), ('1U6B', 1053.009474515915, [[0.0, 0.0, 0.0]]), ('6SY6', 1612.3541376590729, [[0, 0, 0]]), ('6SY4', 2101.450353384018, [[0, 0, 0]])]
+        entry = []
+        for (name, time, prop) in entry_raw:
+            entry.append((name, time, "smallRNA"))
+        li_big_RNA = ["blub", "4LFB", "4V9F", "4V88", "4WF9", "5J7L", "5TBW", "6CZR", "7A0S", "7RQB"]
+        for i in range(1, 10):
+            booleen = 1
+            resu = []
+            val = 0
+            with open("Timegraphbrut/timewithnear"+ str(i) + ".txt", "r") as f:
+                for line in f.readlines():
+                    #print("line", line)
+                    if len(line) >= 3:
+                        if booleen:
+                            resu.append(float(line[:-2]))
+                        booleen = (booleen + 1) % 2
+            for num in resu:
+                val+= num
+            entry.append((li_big_RNA[i], val, "bigRNA"))
+        print("entry", entry)
+        small1 = [(i,j) for (i, j, k) in entry if k == "smallRNA"]
+        cut = (len(small1) + 1)/2
+        small2 = [elem for k, elem in enumerate(small1) if k >= cut]
+        small1 = [elem for k, elem in enumerate(small1) if k < cut]
+        bar_graph_time_by_filename(small1, "Time graph FuzzTree method with near part 1 out of 3", bar_length = 0.3)
+        bar_graph_time_by_filename(small2, "Time graph FuzzTree method with near part 2 out of 3", bar_length = 0.3)
+        bar_graph_time_by_filename([(i,j) for (i, j, k) in entry if k == "bigRNA"], "Time graph FuzzTree method with near with slicing in sphere part 3 out of 3", bar_length = 0.3)
+        return entry
+    if test == 29:
+        from TestFuzzTree import open_graph
+        GT = open_graph("ALLkinkturnpattern/17smallRNAinto3SIV.pickle")
+        print(GT.nodes.data())
+        return 
+    if test == 30:
+        from example2 import postprocessresuwithnear
+        import pickle
+        perfect_mapping = csv_parse("kink_turn", -1)
+        resu = postprocessresuwithnear()[1:]
+        new_resu = []
+        for (RNA, blub2, blub3, blub4, blubx5, mappings) in resu:
+            new_resu_loc = []
+            loc_perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in [RNA]]
+            local_nodes_pdb = []
+            for (blub, li) in loc_perfect_mapping:
+                with open("bigRNAstorage/" + RNA + ".nxpickle",'rb') as f:
+                    G = pickle.load(f)
+                for (a,(i,j)) in li:
+                    b = [(ii, jj) for ((ii,jj), tt) in G.nodes.data() if ii == i and tt['pdb_position'] == j][0]
+                    local_nodes_pdb.append(b)
+            print(local_nodes_pdb)
+            for mapp in mappings:
+                booleen = 1
+                for (a,b) in mapp:
+                    if b in local_nodes_pdb:
+                        booleen = 0
+                        break
+                if booleen:
+                    new_resu_loc.append(mapp)
+            new_resu.append((RNA, new_resu_loc.copy()))
 #work(test = 13)
-work(test = 26)
+work(test = 30)
 
 
 

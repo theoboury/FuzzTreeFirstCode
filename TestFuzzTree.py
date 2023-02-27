@@ -185,7 +185,9 @@ def fusion_resu_cube(resu): #resu empty never happens
             (filename, full_time, full_proportion, full_mappings).
     """
     full_filename = resu[0][0]
-    full_timer = max([timer for (_, timer, _, _) in resu])
+    full_timer = 0
+    for (blub1, timer, blub2, blub3) in resu:
+        full_timer += timer
     full_mapping = []
     full_proportion = [[0, 0, 0]]*len(resu[0][2])
     for (_, _, proportion, mapping) in resu:
@@ -478,3 +480,34 @@ def bar_graph_3proportions_1time_by_filename(resu, title, proportion_choice='exa
     plt.title(title)
     plt.show()
 
+    
+def bar_graph_time_by_filename(resu, title, bar_length = 0.3):
+    """
+    Input: - resu, the list of couples (filename, time) obtained during the test.
+           - title, a title for the plot.
+           - bar_length, size of bar drawn.
+    Output: returns a bar plot for the time for each RNA studied during the tests.
+    """
+    plt.rc('xtick', labelsize=7)
+    y = []
+    graph_names = []
+    max_time = 1
+    for (name, time) in resu:
+        max_time = max(max_time, time)
+    for (name, time) in resu:
+        y.append(time)
+        graph_names.append(name)
+    x = range(len(y)) 
+
+
+    fig, ax = plt.subplots()
+    ax.set_ylabel('Time', color='blue')
+    ax.set(ylim=(1, 10**7))
+    ax.bar(x, y, width = bar_length, color = 'blue', edgecolor = 'black', linewidth = 2, log = True)
+    ax.set_facecolor(color='white')
+    fig.set_facecolor(color='white')
+    plt.xticks([r + bar_length / 2 for r in range(len(y))], graph_names)
+    plt.title(title)
+    plt.savefig(title + '.png', format='png')
+    plt.savefig(title + '.pdf', format='pdf')
+    plt.show()
