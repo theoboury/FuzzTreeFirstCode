@@ -455,6 +455,39 @@ def work(test = 1):
                     new_resu_loc.append(mapp)
             new_resu.append((RNA, new_resu_loc.copy()))
         print("\nnew_resu", new_resu)
+        def purge(li, elem_li):
+            new_li = li.copy()
+            for elem in elem_li:
+                ind = li.index(elem)
+                new_li = li[:ind] + li[(ind + 1):]
+            #for e in li:
+            #    if e != elem:
+            #        new_li.append(e)
+            return new_li
+        connex_by_RNA = []
+        for (RNA, mapping) in new_resu:
+            with open("bigRNAstorage/" + RNA + ".nxpickle",'rb') as f:
+                G = pickle.load(f)  
+            mapping_unfold = []
+            for mapp in mapping:
+                for (num,e) in mapp:
+                    if e not in mapping_unfold:
+                        mapping_unfold.append(e)  
+            connex_graphs = []
+            while mapping_unfold:
+                elem = mapping_unfold[0]
+                mapping_unfold = purge(mapping_unfold, [elem])
+                new_connex = [elem]
+                old_connex = []
+                while new_connex != old_connex:
+                    old_connex = new_connex.copy()
+                    for elem1 in new_connex:
+                        adj = [e for e in G[elem1] if e in mapping_unfold and e not in new_connex]
+                        mapping_unfold = purge(mapping_unfold, adj)
+                        new_connex += adj
+                connex_graphs.append(new_connex.copy())
+            connex_by_RNA.append((RNA, connex_graphs.copy()))
+        print(connex_by_RNA)
 #work(test = 13)
 work(test = 30)
 
