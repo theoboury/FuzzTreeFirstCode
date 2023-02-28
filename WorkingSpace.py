@@ -454,7 +454,7 @@ def work(test = 1):
                 if booleen:
                     new_resu_loc.append(mapp)
             new_resu.append((RNA, new_resu_loc.copy()))
-        print("\nnew_resu", new_resu)
+        #print("\nnew_resu", new_resu)
         def purge(li, elem_li):
             new_li = li.copy()
             for elem in elem_li:
@@ -487,7 +487,7 @@ def work(test = 1):
                         new_connex += adj
                 connex_graphs.append(new_connex.copy())
             connex_by_RNA.append((RNA, connex_graphs.copy()))
-        print(connex_by_RNA)
+        print("\nconnex_by_RNA", connex_by_RNA)
 #work(test = 13)
 work(test = 30)
 
