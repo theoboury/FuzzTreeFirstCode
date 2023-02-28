@@ -458,8 +458,8 @@ def work(test = 1):
         def purge(li, elem_li):
             new_li = li.copy()
             for elem in elem_li:
-                ind = li.index(elem)
-                new_li = li[:ind] + li[(ind + 1):]
+                ind = new_li.index(elem)
+                new_li = new_li[:ind] + new_li[(ind + 1):]
             #for e in li:
             #    if e != elem:
             #        new_li.append(e)
