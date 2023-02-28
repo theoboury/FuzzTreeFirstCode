@@ -1,3 +1,6 @@
+# FuzzTree
+# Copyright (C) 2023 THEO BOURY 
+
 import networkx as nx 
 import networkx.algorithms.isomorphism as iso
 import pickle

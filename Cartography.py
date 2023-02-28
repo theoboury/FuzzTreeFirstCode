@@ -1,3 +1,6 @@
+# FuzzTree
+# Copyright (C) 2023 THEO BOURY 
+
 from FuzzTree import main
 import os, glob, pickle
 from TestFuzzTree import open_graph

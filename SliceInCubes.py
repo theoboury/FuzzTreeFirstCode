@@ -1,3 +1,5 @@
+# FuzzTree
+# Copyright (C) 2023 THEO BOURY 
 
 import math
 import networkx as nx

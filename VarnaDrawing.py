@@ -1,3 +1,6 @@
+# FuzzTree
+# Copyright (C) 2023 THEO BOURY 
+
 import varnaapi
 from varnaapi.param import BaseAnnotation
 from FuzzTree import main

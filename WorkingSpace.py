@@ -1,4 +1,7 @@
 
+# FuzzTree
+# Copyright (C) 2023 THEO BOURY 
+    
 import argparse
 from FuzzTree import main
 from VarnaDrawing import print_mapping_on_target_graph

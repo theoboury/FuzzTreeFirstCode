@@ -1,3 +1,6 @@
+# FuzzTree
+# Copyright (C) 2023 THEO BOURY 
+
 import os, glob, pickle
 import networkx as nx
 import csv

@@ -1,3 +1,6 @@
+# FuzzTree
+# Copyright (C) 2023 THEO BOURY 
+
 # FuzzTree Project
 
 This project aims to present a new tool to solve the Subgraph Isomorphism Problem in its Fuzzy version.
