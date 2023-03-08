@@ -485,12 +485,23 @@ def work(test = 1):
                 while new_connex != old_connex:
                     old_connex = new_connex.copy()
                     for elem1 in new_connex:
-                        adj = [e for e in G[elem1] if e in mapping_unfold and e not in new_connex]
+                        pred = [i for i in G.predecessors(elem1)]
+                        predsucc = pred + [i for i in G.successors(elem1) if i not in pred]
+                        adj = [e for e in predsucc if e in mapping_unfold and e not in new_connex]
                         mapping_unfold = purge(mapping_unfold, adj)
                         new_connex += adj
                 connex_graphs.append(new_connex.copy())
             connex_by_RNA.append((RNA, connex_graphs.copy()))
         print("\nconnex_by_RNA", connex_by_RNA)
+    if test == 31:
+        RNA = "1U6B"
+        import pickle
+        with open("bigRNAstorage/" + RNA + ".nxpickle",'rb') as f:
+            G = pickle.load(f) 
+            elem1 = ('B', 78) 
+            pred = [i for i in G.predecessors(elem1)]
+            predsucc = pred + [i for i in G.successors(elem1) if i not in pred]
+            print('blub', predsucc)
 #work(test = 13)
 work(test = 30)
 
