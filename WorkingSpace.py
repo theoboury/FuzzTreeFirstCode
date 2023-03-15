@@ -512,11 +512,11 @@ def work(test = 1):
             new_resu_loc = []
             loc_perfect_mapping = [perfect_mapping[i] for i in range(len(perfect_mapping)) if perfect_mapping[i][0] in [RNA]]
             local_nodes_pdb = []
+            with open("bigRNAstorage/" + RNA + ".nxpickle",'rb') as f:
+                G = pickle.load(f)
             for (blub, li) in loc_perfect_mapping:
-                with open("bigRNAstorage/" + RNA + ".nxpickle",'rb') as f:
-                    G = pickle.load(f)
                 for (a,(i,j)) in li:
-                    b = [(ii, tt['pdb_position']) for ((ii,jj), tt) in G.nodes.data() if ii == i and tt['pdb_position'] == j][0]
+                    b = [(ii, jj) for ((ii,jj), tt) in G.nodes.data() if ii == i and tt['pdb_position'] == j][0]
                     local_nodes_pdb.append(b)
             print(local_nodes_pdb)
             for mapp in mappings:
@@ -526,7 +526,11 @@ def work(test = 1):
                         booleen = 0
                         break
                 if booleen:
-                    new_resu_loc.append(mapp)
+                    new_mapp = []
+                    for (a_m,(i_m,j_m)) in mapp:
+                        b_m = [(ii, tt['pdb_position']) for ((ii,jj), tt) in G.nodes.data() if ii == i_m and jj == j_m][0]
+                        new_mapp.append((a_m, b_m))
+                    new_resu_loc.append(new_mapp.copy())
             new_resu.append((RNA, new_resu_loc.copy()))
         #print("\nnew_resu", new_resu)
         def purge(li, elem_li):
@@ -564,6 +568,16 @@ def work(test = 1):
                 connex_graphs.append(new_connex.copy())
             connex_by_RNA.append((RNA, connex_graphs.copy()))
         print("\nconnex_by_RNA_with_pdb", connex_by_RNA)
+    #if test == 33:
+        #this part is not tested at all
+    #    from example2 import convexpdb
+    #    list_list_convex = convexpdb()
+    #    for (RNA, list_connex) in list_list_convex:
+    #        with open(RNA + '.pdb', 'r') as f:
+    #            for line in f.readlines():
+    #                line_split = line.split(' ')
+    #                if line_split[0] == 'ATOM':
+            
 #work(test = 13)
 work(test = 32)
 
