@@ -526,11 +526,7 @@ def work(test = 1):
                         booleen = 0
                         break
                 if booleen:
-                    new_mapp = []
-                    for (a_m,(i_m,j_m)) in mapp:
-                        b_m = [(ii, tt['pdb_position']) for ((ii,jj), tt) in G.nodes.data() if ii == i_m and jj == j_m][0]
-                        new_mapp.append((a_m, b_m))
-                    new_resu_loc.append(new_mapp.copy())
+                    new_resu_loc.append(mapp)
             new_resu.append((RNA, new_resu_loc.copy()))
         #print("\nnew_resu", new_resu)
         def purge(li, elem_li):
@@ -565,7 +561,11 @@ def work(test = 1):
                         adj = [e for e in predsucc if e in mapping_unfold and e not in new_connex]
                         mapping_unfold = purge(mapping_unfold, adj)
                         new_connex += adj
-                connex_graphs.append(new_connex.copy())
+                pdb_connex = []
+                for (i_m, j_m) in new_connex:
+                    b_m = [(ii, tt['pdb_position']) for ((ii,jj), tt) in G.nodes.data() if ii == i_m and jj == j_m][0]
+                    pdb_connex.append(b_m)
+                connex_graphs.append(pdb_connex.copy())
             connex_by_RNA.append((RNA, connex_graphs.copy()))
         print("\nconnex_by_RNA_with_pdb", connex_by_RNA)
     #if test == 33:
