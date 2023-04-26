@@ -72,22 +72,22 @@ def draw_varna(GT, nodes_target, mapping):
     
     
 
-def print_mapping_on_target_graph(GP, GT, mapping = [], output_format = "pdf", name_file = "", show=1, E=0, B=0, A=0, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}, nb_procs = 1):
+def print_mapping_on_target_graph(GP, GT, mapping = [], output_format = "pdf", name_file = "", show=1, L=0, E=0, G=0, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}, nb_procs = 1):
     """
     Input : - Two graphs, the pattern graph GP and the target graph GT. 
             - A mapping between GP and GT, if this mapping is not specified, it is calculated here.
             - output_format is the type of file that we want to save, specify None for no save.
             - name_file is the name of the output graph if specified.
             - show is set to 1 if we want to observe the output with directly.
-            - E, A, B are fuzzyness options specified for the main function if mapping is not given.
+            - L, E, G are fuzzyness options specified for the main function if mapping is not given.
     Output : Build the GT graph with a red colored part for each node in GP mapped in GT, can save it as a file or plot it depending on the options selected.
     """
     nodes_target = list(GT.nodes())
     nodes_target.sort()
     if mapping == []:
-        mapping = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = nb_procs)
+        mapping = main(GP, GT, L, E, G, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = nb_procs)
         mapping = [map for (map, length) in mapping if length == len(GP.nodes())]
-        mapping = mapping[0] #We take only the first result #TODO : modify to work with the proportion relatively to the perfect mapping ?
+        mapping = mapping[0] #We take only the first result
     v = draw_varna(GT, nodes_target, mapping)
     if output_format:
         if name_file == "":

@@ -1,9 +1,19 @@
+TODO : introduce a limitation on the set target quickly and explain that it nededs a filter (already done the filter)
+TODO : have zip files or link to bigRNAstorage(near) datas.
+TODO : intergrate the ipynb in launcher (as some scripts as useless and others required multiprocessing) and remove all the remaining DEBUG messages
+TODO : add somewhere Vladimir's script to create the pdb files from connex list.
+TODO : update README
+TODO: make clean ExtractandsearchGeometry.py and copy it in FuzzTree folder
+TODO: make clean RMalignusage.py.py, computation of function in it should be put in launcher.py and copy it in FuzzTree folder
+TODO : make sure that example2 is renamed, cleaned and whatch out about te proportion to dont make seems hard to understand for nothing, cleanly explained what are all of these retrieve values and from what.
+TODO ; iimport_connex_list_of_list_of_RNA_chain_pdbposition.py should be merged with example2
+TODO: test the code in a new folder with none of the pattern/target folder built
 # FuzzTree
 # Copyright (C) 2023 THEO BOURY 
 
 # FuzzTree Project
 
-This project aims to present a new tool to solve the Subgraph Isomorphism Problem in its Fuzzy version.
+This project present FyzzTree, a new tool to solve the Subgraph Isomorphism Problem in its "Fuzzy" version, that allowed to take into account and search for neighborhoods of the requested pattern.
 
 ## Prerequisite and launch
 
@@ -20,7 +30,7 @@ The project uses the following non-standard libraries:
 ### Files and repositories
 The project is entirely available on the current archive. 
 
-For Target RNA graphs, the used graphs were downloaded at https://uqam-my.sharepoint.com/:u:/g/personal/reinharz_vladimir_uqam_ca/Eb9rc26hI-FPgBuRH8EHR3gByiQmcgCgMu6hAdlK0-EVyA?e=R9FocY. (1.5 GB) Your recommandation is to extract them directly into the folder bigRNAstorage
+For Target RNA graphs, the used graphs were downloaded at https://uqam-my.sharepoint.com/:u:/g/personal/reinharz_vladimir_uqam_ca/Eb9rc26hI-FPgBuRH8EHR3gByiQmcgCgMu6hAdlK0-EVyA?e=R9FocY. (1.5 GB) for Our recommandation is to extract them directly into the folder bigRNAstorage
 
 The different files are:
 * FuzzTree.py: launches the tool to search for Fuzzy Subgraph Isomorphism

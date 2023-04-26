@@ -8,9 +8,9 @@ from TestFuzzTree import test_mapping, test_varna
 from TestFuzzTree import test_GP_into_multiples_GT
 from RIN import import_rin
 from Extractor import csv_parse
-from TestFuzzTree import bar_graph_3proportions_1time_by_filename, bar_graph_time_by_filename
+from TestFuzzTree import bar_graph_time_by_filename
 from ExtractAndSearchGeometry import full_metrics
-from Cartography import fromorigincartograph, plot_cartography
+from Cartography import fromorigincartograph
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--task', type=str, required=True)
@@ -29,12 +29,16 @@ parser.add_argument('--samples', type=str, required=False)
 parser.add_argument('--patterncut', type=str, required=False)
 args = parser.parse_args()
 if args.task == "create_patterns_and_targets":
+    print("Launching storage of Pattern and Target graphs!")
     csv_parse("kink_turn", -1, RNAstorage = "bigRNAstorage/", csvlocation = "RNAcsv/", pattern_place="ALLkinkturnpattern/", target_place ="ALLkinkturntarget/", withgaps = 0)
+    print("Pattern and Target graphs partially extracted and stored!")
     csv_parse("kink_turn", -1, RNAstorage = "bigRNAstorage/", csvlocation = "RNAcsv/", pattern_place="ALLkinkturnpatternwithgaps/", target_place ="ALLkinkturntargetwithgaps/", withgaps = 1)
+    print("Pattern and Target graphs completely extracted and stored!")
 if args.task == "launch_sanity_test":
-    test_mapping("ALLkinkturnpattern/53kink_turninto3NVI.pickle", "bigRNAstorage/3NVI.nxpickle", E=10, B=4, A=20, maxGAPdistance=10, nb_samples=1000, D = 5, nb_procs = 1)
+    print("Launching a simple test of the FuzzTree method and of Varna visualization!")
+    test_mapping("ALLkinkturnpattern/53kink_turninto3NVI.pickle", "bigRNAstorage/3NVI.nxpickle", L=10, E=4, G=20, maxGAPdistance=10, nb_samples=1000, D = 5, nb_procs = 1)
     print("FuzzTree method is setted up!")
-    test_varna("SanityCheck","ALLkinkturnpattern/53kink_turninto3NVI.pickle", "bigRNAstorage/3NVI.nxpickle", show=1, output_format="png", E = 10, B = 4, A = 20, maxGAPdistance=10, nb_samples=1000, D = 5, nb_procs = 1)
+    test_varna("SanityCheck","ALLkinkturnpattern/53kink_turninto3NVI.pickle", "bigRNAstorage/3NVI.nxpickle", show=1, output_format="png", L = 10, E = 4, G = 20, maxGAPdistance=10, nb_samples=1000, D = 5, nb_procs = 1)
     print("FuzzTree method + Varna drawing are setted up! You can see SanityCheck.png for the mapping drawn with Varna.")
 if args.task == "launch_custom_test":
     if args.pattern:
@@ -75,7 +79,7 @@ if args.task == "launch_custom_test":
         pid = int(args.number)
     else:
         pid = 0
-        print("Not working in a distributed system, computation done only on small RNAs")
+        print("Not working on a distributed system, computation done only on small RNAs")
     filelist= ["smallRNA", "4LFB", "4V9F", "4V88", "4WF9", "5J7L", "5TBW", "6CZR", "7A0S", "7RQB"] #'4CS1' skipped due to symmetry
     file = filelist[pid]
     if pid == 0:
@@ -85,7 +89,7 @@ if args.task == "launch_custom_test":
     if args.timeout:
         timeout = int(args.timeout)
     perfect_mapping = csv_parse(file, -1, csvlocation="RNAcsv/byRNA/")
-    resu = test_GP_into_multiples_GT(pattern, GTlistfolder = GTlistfolder, threshold_bigGT = threshold_bigGT, strong_mapping = 0.8, respect_injectivity=1, E=L , B=E, A=G, maxGAPdistance = Dgap, nb_samples=nb_samples, remove_near=rm_near, timeout= timeout, D = Dedge, nb_procs = nb_procs, perfect_mapping=perfect_mapping)
+    resu = test_GP_into_multiples_GT(pattern, GTlistfolder = GTlistfolder, threshold_bigGT = threshold_bigGT, strong_mapping = 0.8, respect_injectivity=1, L=L , E=E, G=G, maxGAPdistance = Dgap, nb_samples=nb_samples, remove_near=rm_near, timeout= timeout, D = Dedge, nb_procs = nb_procs, perfect_mapping=perfect_mapping)
     print("\nresu", resu)
 if args.task == "compute_metrics_example":
     #Compute metrics, we recommand 32 procs to do that 

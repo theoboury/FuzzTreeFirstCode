@@ -10,13 +10,12 @@ from infrared import def_constraint_class, def_function_class
 from multiprocessing import Pool
 
 DEBUG = 0
-#infinite = 1000
 infinite = 100
 
-def check(GP, GT, Mapping, E, B, A, D, IDI_matrix, Distancer):
+def check(GP, GT, Mapping, L, E, G, D, IDI_matrix, Distancer):
     """ 
     Input : - Pattern and target graphs GP and GT
-            - Fuzzy thresholds E, B, A, D
+            - Fuzzy thresholds L, E, G, D
             - A mapping found in GT for GP
             - IDI_matrix for label isostericity computation and Distancer that stores distances between edges of GT.
     Output : Returns 1 if the Mapping is admissible and respects all of the fuzzy thresholds and 0 otherwise.
@@ -42,7 +41,7 @@ def check(GP, GT, Mapping, E, B, A, D, IDI_matrix, Distancer):
             elif t['label'] != tt['label']:
                 sum_label += IDI_matrix[t['label']][tt['label']]
             sum_dist_gap += tt['dist'] #Can be done in any case as this label is set to 0 when it is not a "false" edge.
-    if (sum_label > E) or (sum_edge_missing > B) or (sum_dist_gap > A):
+    if (sum_label > L) or (sum_edge_missing > E) or (sum_dist_gap > G):
         return 0
     return 1
 
@@ -73,12 +72,9 @@ def augment_graph(GT, maxGapallowed, Distancer):
     """
     Gnew=nx.DiGraph() #Initiate the new GT graph.
     for (i,t) in GT.nodes.data():
-        #Gnew.add_node(i, pdb_position = t['pdb_position'], atoms = t['atoms'])
         Gnew.add_node(i, atoms = t['atoms'])
     for (i,j,t) in GT.edges.data():
         Gnew.add_edge(i,j, label=t['label'], near=t['near'], correspondant_nodes=[], dist=0)
-        #Gnew.add_edge(i,j, label=t['label'], long_range=t['long_range'], near=t['near'], correspondant_nodes=[], dist=0)
-    
     for node in GT.nodes():
         iter_node = node
         correspondant_nodes = []
@@ -101,8 +97,7 @@ def augment_graph(GT, maxGapallowed, Distancer):
                 break #no nodes after, on this strand, to carry on.
             iter_node = B53_neighbors[0]
             dist = distance(node, iter_node, GT)
-            if dist < maxGapallowed: #if dist - first_dist < maxGapallowed:
-                #Gnew.add_edge(node, iter_node, label='B53', long_range='False', near='False', correspondant_nodes=correspondant_nodes.copy(), dist = max(0, dist - first_dist))
+            if dist < maxGapallowed:
                 Gnew.add_edge(node, iter_node, label='B53', near='False', correspondant_nodes=correspondant_nodes.copy(), dist = max(0, dist - first_dist))
             correspondant_nodes.append(iter_node)
     return Gnew
@@ -146,7 +141,7 @@ def distance(node1, node2, GT):
     Output :
             - The minimal distance between node1 and node2 in GT by considering the atoms that are the more close to each other.
     """
-    #TODO : replace with a distance base on "centrality" of atoms ?
+    # distance here is computed on the base of the two closests atoms and not on "centrality" of atoms.
     li1 = [t['atoms'] for i,t in GT.nodes.data() if i == node1][0]
     li2 = [t['atoms'] for i,t in GT.nodes.data() if i == node2][0]
     dist = math.inf
@@ -162,7 +157,7 @@ def wrapper_distance(node1_GT_k1_li):
     """
     (node1, GT, k1, li) = node1_GT_k1_li
     resu = []
-    for k2, node2 in enumerate(li): #TODO : list(GT.nodes()) should be consistent here !
+    for k2, node2 in enumerate(li):
         if k2 >= k1:
             value = distance(node1, node2, GT)
             resu.append((node1, node2, value))
@@ -199,21 +194,21 @@ def precompute_distance(GT, nb_procs):
         print("Distancer precomputing done\n")
     return Distancer
 
-def _EdgeRespect(x, y, label_edge_ij, nodes_target, edges_target, Distancer, B, D):
+def _EdgeRespect(x, y, label_edge_ij, nodes_target, edges_target, Distancer, E, D):
     """
     Input : - Two nodes x and y from the GT respectively the mappings of i and j from the GP.
             - The list of the nodes in GT nodes_target to map the index of infrared functions with real names of nodes in the graph.
             - The list of all edges in GT, edges_target.
             - Storage of the Target graph GT to compute distance.
-            - B, the threshold on number of missing edges.
+            - E, the threshold on number of missing edges.
             - D, the maximum distance above which we do not consider edges that are missing
-    Output : A value between 0 and +inf that indicates if the edge is present, returns 0 if it is the case, 1/B if it is absent and +inf if it is eliminatory
+    Output : A value between 0 and +inf that indicates if the edge is present, returns 0 if it is the case, 1/E if it is absent and +inf if it is eliminatory
     """
     if x == y: #Necessary condition of Injectivity : If neighbors are mapped to the same node in GT, we can already reject  
         return infinite
     if (nodes_target[x], nodes_target[y]) in edges_target: #We check that this edge is present or not in GT
         return 0
-    if B == 0 or label_edge_ij == 'B53' or (Distancer[nodes_target[x]][nodes_target[y]] > D):
+    if E == 0 or label_edge_ij == 'B53' or (Distancer[nodes_target[x]][nodes_target[y]] > D):
         return infinite
     return 1
 
@@ -230,7 +225,7 @@ def _LabelRespect(x, y, label_edge_ij, nodes_target, label_edge_target, edges_ta
     """
     if (nodes_target[x], nodes_target[y]) in edges_target: #We check that this edge is present or not in GT as no label must be checked otherwise.
         (xx, yy) = interaction_to_number(label_edge_ij), interaction_to_number(label_edge_target[edges_target.index((nodes_target[x], nodes_target[y]))])  #Convert canonical labels to numbers.
-        if xx == yy: #include the case where xx == yy == -1.
+        if xx == yy: #it includes the case where xx == yy == -1.
             return 0 
         if xx == -1 or yy == -1:
             return infinite #Backbone is replaced by something else, it is eliminatory.
@@ -238,7 +233,7 @@ def _LabelRespect(x, y, label_edge_ij, nodes_target, label_edge_target, edges_ta
     return 0 #Nothing to add if we do not talk about an edge in GT, eliminatory case for couple not in GT alreay in _EdgeRespect function.
 
 
-def _GapRespect(x, y, nodes_target, edges_target, GT, A):
+def _GapRespect(x, y, nodes_target, edges_target, GT, G):
     """
     Input : - Two nodes x and y from the GT respectively the mappings of i and j from the GP.
             - The list of the nodes in GT nodes_target to map the index of infrared functions with real names of nodes in the graph.
@@ -249,7 +244,7 @@ def _GapRespect(x, y, nodes_target, edges_target, GT, A):
     """
     if (nodes_target[x], nodes_target[y]) in edges_target: 
         if GT[nodes_target[x]][nodes_target[y]]['correspondant_nodes'] != []: #This field is filled only ig it represents a gap.
-            if A == 0: #If no gap allowed.
+            if G == 0: #If no gap allowed.
                 return infinite
             return GT[nodes_target[x]][nodes_target[y]]['dist']
     return 0  
@@ -259,11 +254,11 @@ class EdgeRespect(ir.infrared.WeightedFunction):
     """
     Constrain complementarity mapping of any pair of nodes (i,j) an check if it is an edge in graph_target.
     ```
-    EdgeRespect(i, j, label_edge_ij, nodes_target, edges_target, GT, B, D).
+    EdgeRespect(i, j, label_edge_ij, nodes_target, edges_target, GT, E, D).
     The constraint is satisfied if the edge (x, y) mapped to (i,j) is an edge in GT.
     """
-def_function_class('EdgeRespect', lambda i, j, label_edge_ij, nodes_target, edges_target, Distancer, B, D: [i, j],
-            lambda x, y, label_edge_ij, nodes_target, edges_target, Distancer, B, D: _EdgeRespect(x, y, label_edge_ij, nodes_target, edges_target, Distancer, B, D),
+def_function_class('EdgeRespect', lambda i, j, label_edge_ij, nodes_target, edges_target, Distancer, E, D: [i, j],
+            lambda x, y, label_edge_ij, nodes_target, edges_target, Distancer, E, D: _EdgeRespect(x, y, label_edge_ij, nodes_target, edges_target, Distancer, E, D),
             module=__name__)
 
 
@@ -284,21 +279,21 @@ class GapRespect(ir.infrared.WeightedFunction):
     """
     Constrain the length of any pair of nodes (x,y) that are mapped to a "false" edge/ gap in graph_target.
     ```
-    GapRespect(i, j,  nodes_target, edges_target, IDI_matrix, GT, A).
+    GapRespect(i, j,  nodes_target, edges_target, IDI_matrix, GT, G).
     ```
     The constraint report the cost of the use of such "false edge".
     """
-def_function_class('GapRespect', lambda i, j, nodes_target, edges_target, GT, A: [i, j],
-            lambda x, y, nodes_target, edges_target, GT, A: _GapRespect(x, y, nodes_target, edges_target, GT, A),
+def_function_class('GapRespect', lambda i, j, nodes_target, edges_target, GT, G: [i, j],
+            lambda x, y, nodes_target, edges_target, GT, G: _GapRespect(x, y, nodes_target, edges_target, GT, G),
             module=__name__)
 
 
-def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}, nb_procs = 1): 
+def main(GP, GT, L, E, G, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}, nb_procs = 1): 
     """
     Input : - Two graphs, the pattern graph GP and the target graph GT.
-            - E, the threshold in term of sum of isostericity allowed
-            - B, the threshold in term of number of missing edges allowed
-            - A, the threshold in term of sum in Angstrom of gaps allowed
+            - L, the threshold in term of sum of isostericity allowed
+            - E, the threshold in term of number of missing edges allowed
+            - G, the threshold in term of sum in Angstrom of gaps allowed
             - maxGAPdistance the maximal distance after which we are not looking for gap anymore
     	    - nb_samples, maximum numbers of samples allowed to look for a pattern in GT.
             - respect_injectivity is a boolean, if set to true we filter patterns that are not injective by postprocessing
@@ -327,8 +322,8 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
 
     #We enrich the target Graph with False Edges that account for gaps
     GT = augment_graph(GT, maxGAPdistance, Distancer)
-    #We quotient IDI_matrix by the isostericity distance allowed by the user to obtain a metric between 0 and 1.
-    if E != 0:
+    #We modify IDI_matrix by the isostericity to avoid taking into account isostericy interned to families.
+    if L != 0:
         for i in range(len(IDI_matrix)):
             storage = IDI_matrix[i][i]
             for j in range(len(IDI_matrix[0])):
@@ -357,38 +352,34 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
     model = ir.Model(n_pattern, n_target)
 
     #We define Edge respect function on each edges in the pattern to check if the mapping of this couple is effectively an edge in the target.
-    model.add_functions([EdgeRespect(nodes_pattern.index(i), nodes_pattern.index(j), label_edge_pattern[k], nodes_target,  edges_target, Distancer, B, D) for k, (i,j) in enumerate(edges_pattern)], 'EdgeRespect')
-    #For now max distance to consider missing edge is consider as max distance with which we consider gap #TODO : change D as something different from maxGAPdistance ?
+    model.add_functions([EdgeRespect(nodes_pattern.index(i), nodes_pattern.index(j), label_edge_pattern[k], nodes_target,  edges_target, Distancer, E, D) for k, (i,j) in enumerate(edges_pattern)], 'EdgeRespect')
+    #For now max distance to consider missing edge is consider as max distance with which we consider gap 
 
     #We define Label respect function on each edges in the pattern to check if the label in the target correspond to it.
     model.add_functions([LabelRespect(nodes_pattern.index(i), nodes_pattern.index(j), label_edge_pattern[k], nodes_target, label_edge_target,  edges_target, IDI_matrix) for k, (i,j) in enumerate(edges_pattern)], 'LabelRespect')
 
     #We define Gap respect function on each edges in the pattern to check if we mapped "false edges" that represent gaps and we take into account the distance between nodes that they induced.
-    model.add_functions([GapRespect(nodes_pattern.index(i), nodes_pattern.index(j), nodes_target,  edges_target, GT, A) for k, (i,j) in enumerate(edges_pattern)], 'GapRespect')
+    model.add_functions([GapRespect(nodes_pattern.index(i), nodes_pattern.index(j), nodes_target,  edges_target, GT, G) for k, (i,j) in enumerate(edges_pattern)], 'GapRespect')
    
     #We now take some samples of results given the built model.
     sampler = ir.Sampler(model)
 
-    #TODO : change the way we set target here depending on benchmark to avoid numerical problem and also focus on the samples that we want.
     #Next we ensure that edges in the pattern are represented enough
-    #sampler.set_target(0, B, 'EdgeRespect') 
-    sampler.set_target(B/2, B/2, 'EdgeRespect') 
+    sampler.set_target(E/2, E/2, 'EdgeRespect') 
     #Next we ensure that the labels are not too far in term of isostericity.
-    #sampler.set_target(0, E, 'LabelRespect') 
-    sampler.set_target(E/2, E/2, 'LabelRespect') 
+    sampler.set_target(L/2, L/2, 'LabelRespect') 
     #Finally we ensure that the sum of gaps does not exceed a certain Angstrom value.
-    #sampler.set_target(0, A, 'GapRespect') 
-    sampler.set_target(A/2, A/2, 'GapRespect')
+    sampler.set_target(G/2, G/2, 'GapRespect')
     if DEBUG:
         print("treewidth", sampler.treewidth())
     samples = []
     for _ in range(nb_samples):
-        #try:
-        samples.append(sampler.targeted_sample())
-        #except:
-        #    if DEBUG:
-        #        print("Inconsistancy error detected !")
-        #    return []
+        try:
+            samples.append(sampler.targeted_sample())
+        except:
+            if DEBUG:
+                print("Inconsistancy error detected ! No solution computable in this case.")
+            return []
     resu = [([(nodes_pattern[k], nodes_target[x]) for k,x in enumerate(sample.values())], len(list(set(sample.values())))) for sample in samples]
     
     #We postprocess now the gap procedure as shorcuted nodes must be left unaffected by the mapping.
@@ -397,9 +388,7 @@ def main(GP, GT, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity
     #We postprocess here by checking number of nodes mapped to same nodes in GT in order to obtain the injectivity.
     if respect_injectivity:
         resu = [(r, length) for r, length  in resu if length == n_pattern]
-    
-    #TODO : use the check function here to ensure that samples are not leving the tolerancy, depends on how set_samples are done. WARNING HERE WITH NO ADDITIONAL CODES IT CAN SOMETIMES RETURNS VOID LIST
-    #resu = [(r, length) for r, length  in resu if check(GP, GT, r, E, B, A, D, IDI_matrix, Distancer)] 
+
     return resu
 
 

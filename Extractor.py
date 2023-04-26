@@ -5,7 +5,7 @@ import os, glob, pickle
 import networkx as nx
 import csv
 
-DEBUG=1
+DEBUG=0
 
 
 def extract_with_pdb_number(G, list_nodes, list_nodes_clean, cutting_edges):
@@ -47,16 +47,12 @@ def extract_with_pdb_number_and_gaps(G, list_nodes, list_nodes_clean, cutting_ed
     Output : Twos graphs, the Gnew graph serves directly as pattern and the Gnewnx graph serves as target for research of pattern inside other patterns.
     """
     Gnew=nx.DiGraph()
-    print("listnodesentry", list_nodes)
-    #list_nodes_pdb = {}
     node_list = [-1]
     index = 1
     for (i, j) in list_nodes:
         k, t = [(kk,tt) for ((ii, kk), tt) in G.nodes.data() if tt['pdb_position'] == j and i == ii][0]
-        Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'])
+        Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'], chain = i)
         node_list.append((i, k))
-        #list_nodes_pdb[(i, j)] = (i, k)
-        print("cutting edges", cutting_edges)
         if (i, j) == list_nodes[-1]:
             iter_node = None
         elif ((i,j),list_nodes[list_nodes.index((i, j)) + 1]) in cutting_edges:
@@ -71,15 +67,13 @@ def extract_with_pdb_number_and_gaps(G, list_nodes, list_nodes_clean, cutting_ed
             succ1, succ2 = list_nodes[list_nodes.index((i,j)) + 1]
             succ = (succ1, int(succ2))
         index +=1
-        print("iternode", iter_node, (i, k), succ)
         while iter_node:
             c1, blub = iter_node
             t = [tt for (ii, tt) in G.nodes.data() if ii == iter_node][0]
             if (c1, int(t['pdb_position'])) == succ:
                 iter_node = None
             else:
-                Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'])     
-            #list_nodes_pdb[(c1, t['pdb_position'])] = iter_node
+                Gnew.add_node(index, pdb_position = t['pdb_position'], atoms = t['atoms'], nt = t['nt'], chain = c1)     
                 node_list.append(iter_node)
                 index +=1
                 B53_neighbors=[n for n in G.successors(iter_node) if G[iter_node][n]['label'] == 'B53']
@@ -98,7 +92,6 @@ def extract_with_pdb_number_and_gaps(G, list_nodes, list_nodes_clean, cutting_ed
                 Gnew.add_edge(indexi, indexj, label=t['label'], near=t['near'])
             elif len(potential_edge) > 1:
                 print("THE WORLD BLOWS UP")
-    print("nodelist", node_list)
     return Gnew, Gnew
 
 def extractor(Gpath, Gnewname, list_nodes, cutting_edges, pattern_place="kinkturnpattern/", target_place ="kinkturntarget/", list_nodes_clean = [], withgaps = 0):
@@ -121,11 +114,9 @@ def extractor(Gpath, Gnewname, list_nodes, cutting_edges, pattern_place="kinktur
         Gnew, Gnewnx = extract_with_pdb_number(G, list_nodes, list_nodes_clean, cutting_edges)
     if DEBUG:
         print([(i) for (i,t) in Gnew.nodes.data()])
-        #print([(i,j, t['label']) for (i,j,t) in Gnew.edges.data() if t['label'] != 'B53'])
         print([(i,j, t['label']) for (i,j,t) in Gnew.edges.data() if t['label'] != 'B53'])
         print([(i,j, t['label']) for (i,j,t) in Gnew.edges.data() if t['label'] == 'B53'])
-        #print([(i) for (i,t) in Gnewnx.nodes.data()])
-        #print([(i,j, t['label']) for (i,j,t) in Gnewnx.edges.data()])
+
     with open(pattern_place +Gnewname + ".pickle", 'wb') as ff:
         pickle.dump(Gnew, ff)
     with open(target_place + Gnewname + ".nxpickle", 'wb') as ff2:

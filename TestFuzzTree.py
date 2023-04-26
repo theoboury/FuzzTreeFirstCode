@@ -11,7 +11,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import func_timeout
 
-DEBUG=1
+DEBUG=0
 
 def open_graph(graph_path):
     """
@@ -58,10 +58,7 @@ def rename_author_position(GT, GTref):
     Output: Change name of author position in pdb_position
     """
     GTref = near_removal(GTref)
-    #print(GT.nodes.data())
-    #print(GTref.nodes.data())
     Gnew=nx.DiGraph() #Initiate the new GT graph.
-    #print(GT[('A', 20)])
     auth = {}
     for ((i, j), t) in GT.nodes.data():
         if 'author_position' in t.keys():
@@ -74,7 +71,6 @@ def rename_author_position(GT, GTref):
         if 'atoms' not in t.keys():
             at = []
         else:
-            #print("\nHOLE", t['atoms'])
             at = []
             for (type, label, blub, pos1, pos2, pos3) in t['atoms']:
                 tt = {}
@@ -90,10 +86,8 @@ def rename_author_position(GT, GTref):
 
         if t['near'] == True:
             if (i,j) not in GTref.edges():
-                #print("AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH", GTref[i][j]['label'], Gnew[i][j]['label'])
                 GTref.add_edge(i, j, label = t['label'], near = t['near'])
     return GTref
-    #return Gnew
    
 def exact_similar_mapping(mapping_ref, mapping, GT):
     """
@@ -144,20 +138,20 @@ def best_effort_similar_mapping(mapping_ref, mapping, GT):
     return weak_similar_mapping(mapping_ref, mapping, GT, 1)
          
 
-def wrapper_main(filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGAPdistance_nb_samples_respect_injectivity_D_Distancer_preprocessed):
+def wrapper_main(filename_local_mapping_strong_mapping_timeout_GP_GT_L_E_G_maxGAPdistance_nb_samples_respect_injectivity_D_Distancer_preprocessed):
     """
     A wrapper around the main of Fuzztree.py to compute it in a multiprocess fashion with two techniques :
     - for small RNA graph, compute them all in parallel
     - for large RNA graphs, proceed eah RNA one after the other. We slice each in small spheres and compute spheres themselves in parallel.
     """
-    (filename, local_mapping, strong_mapping, timeout, GP, GT, E, B, A, maxGAPdistance, nb_samples, respect_injectivity, D, Distancer_preprocessed) = filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGAPdistance_nb_samples_respect_injectivity_D_Distancer_preprocessed
+    (filename, local_mapping, strong_mapping, timeout, GP, GT, L, E, G, maxGAPdistance, nb_samples, respect_injectivity, D, Distancer_preprocessed) = filename_local_mapping_strong_mapping_timeout_GP_GT_L_E_G_maxGAPdistance_nb_samples_respect_injectivity_D_Distancer_preprocessed
     timer = time.time()
     if timeout == -1:
-        mapping = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = 1)
+        mapping = main(GP, GT, L, E, G, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = 1)
         mapping = [mapp for (mapp, _) in mapping]
     else:
         def computation():
-            loc = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = 1)
+            loc = main(GP, GT, L, E, G, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = 1)
             return [mapp for (mapp, _) in loc]
         try:
             mapping = func_timeout.func_timeout(timeout, computation)
@@ -178,6 +172,10 @@ def wrapper_main(filename_local_mapping_strong_mapping_timeout_GP_GT_E_B_A_maxGA
         proportion = [[1.01, 1.01, 1.01]] #It means here that we have no way to verify that the mappings are the ones that we want here.
     if DEBUG:
         print("filename", filename, "timer", timer, "proportion", proportion, "number_mapping", len(mapping))
+    if len(mapping) == 0:
+        print("filename", filename, "timer", timer, "number_mapping", 0)
+    else:
+        print("filename", filename, "timer", timer, "number_mapping", len(mapping), "one_mapping_example", mapping[0])
     return (filename, timer, proportion, mapping)
 
 
@@ -237,11 +235,11 @@ def initialise_perfect_mapping(perfect_mapping, motifs_mapping):
 
 
 
-def test_mapping(GPpath, GTpath, E, B, A, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}, nb_procs = 1):
+def test_mapping(GPpath, GTpath, L, E, G, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, Distancer_preprocessed = {}, nb_procs = 1):
     """
     Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
            - A RNA Target Graph GT file named GTpath. We are looking for GP or a fuzzy version of GP in it.
-           - The Fuzzy Parameters E, B, A that are respectively threshold on sum of isostericity, number of edges and sum of gap distances.
+           - The Fuzzy Parameters L, E, G that are respectively threshold on sum of isostericity, number of edges and sum of gap distances.
            - maxGAPdistance and D, fuzzy parameter about how far we allow to look respectively for gaps and missing edges.
            - number of samples done for each searched pattern nb_samples.
            - A boolean respect_injectivity to ask if we want to ensure that the injectivity is respected or if we allow mapping with doublons.
@@ -253,14 +251,14 @@ def test_mapping(GPpath, GTpath, E, B, A, maxGAPdistance=3, nb_samples=1000, res
     GP = open_graph(GPpath)
     GT = open_graph(GTpath)
     timer = time.time()
-    mapping = main(GP, GT, E, B, A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = nb_procs)
+    mapping = main(GP, GT, L, E, G, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = nb_procs)
     timer = time.time() - timer
     if DEBUG:
         print("\nmapping", mapping)
         print("\ntime", timer)
     return mapping
 
-def test_varna(name_file,GPpath, GTpath, show=1, output_format='png', E = 0, B = 0, A = 0, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, mapping = [], Distancer_preprocessed = {}, nb_procs = 1):
+def test_varna(name_file,GPpath, GTpath, show=1, output_format='png', L = 0, E = 0, G = 0, maxGAPdistance=3, nb_samples=1000, respect_injectivity=1, D = 5, mapping = [], Distancer_preprocessed = {}, nb_procs = 1):
     """
     Input: - A filename for the graph name_file.
            - show to show the graph with matplotlib.pyplot.
@@ -268,7 +266,7 @@ def test_varna(name_file,GPpath, GTpath, show=1, output_format='png', E = 0, B =
            - mapping, the mapping that we ant to draw, if affected we discard the instance parameter, f not we compute a list of mappings for curent instance.
            - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
            - A RNA Target Graph GT file named GTpath. We are looking for GP or a fuzzy version of GP in it.
-           - The Fuzzy Parameters E, B, A that are respectively threshold on sum of isostericity, number of edges and sum of gap distances.
+           - The Fuzzy Parameters L, E, G that are respectively threshold on sum of isostericity, number of edges and sum of gap distances.
            - maxGAPdistance and D, fuzzy parameter about how far we allow to look respectively for gaps and missing edges.
            - number of samples done for each searched pattern nb_samples.
            - A boolean respect_injectivity to ask if we want to ensure that the injectivity is respected or if we allow mapping with doublons.
@@ -282,16 +280,16 @@ def test_varna(name_file,GPpath, GTpath, show=1, output_format='png', E = 0, B =
     if mapping:
         print_mapping_on_target_graph([], GT, mapping=mapping, output_format = output_format, name_file = name_file, show=show)
     else:
-        print_mapping_on_target_graph(GP, GT, mapping = [], output_format = output_format, name_file = name_file, show=show, E=E, B=B, A=A, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = nb_procs)
+        print_mapping_on_target_graph(GP, GT, mapping = [], output_format = output_format, name_file = name_file, show=show, L=L, E=E, G=G, maxGAPdistance=maxGAPdistance, nb_samples=nb_samples, respect_injectivity=respect_injectivity, D = D, Distancer_preprocessed = Distancer_preprocessed, nb_procs = nb_procs)
 
 
 
-def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, E=0 , B=0, A=0, maxGAPdistance = 3, nb_samples=1000, remove_near=True, timeout=-1, D = 5, nb_procs = 32, perfect_mapping = [], motifs_mapping = [], slice = -1):
+def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_bigGT = 500, strong_mapping = 1, respect_injectivity=1, L=0 , E=0, G=0, maxGAPdistance = 3, nb_samples=1000, remove_near=True, timeout=-1, D = 5, nb_procs = 32, perfect_mapping = [], motifs_mapping = [], slice = -1):
     """
     Input: - A graph Pattern GP file named GPpath that we supposed to be exactly the pattern that we are looking for.
            - A list of RNA Target Graphs GTlist as a folder of files GTlistfolder. For each of these GT, we are looking for GP or a fuzzy version of GP in it.
            - The threshold on the number of nucleotides threshold_bigGT above which we consider the RNA GT graph as "big".
-           - The Fuzzy Parameters E, B, A that are respectively threshold on sum of isostericity, number of edges and sum of gap distances.
+           - The Fuzzy Parameters L, E, G that are respectively threshold on sum of isostericity, number of edges and sum of gap distances.
            - maxGAPdistance and D, fuzzy parameter about how far we allow to look respectively for gaps and missing edges.
            - number of samples done for each searched pattern nb_samples.
            - remove_near to True remove all edges labelled "near" and that are not as precise as we want.
@@ -330,9 +328,6 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
             print("Perfect_mapping", perfect_mapping)
         print("File exploration", path_list)
     for num_list, filename in enumerate(path_list):
-        #print("filnemae", filename)
-        #if  filename != "/home/uqamportable/Documents/FuzzTreeFirstCode/bigRNAstoragenear/3SIU.pickle":
-        #    continue
         GT = open_graph(os.path.join(os.getcwd(), filename))
         GTref = open_graph(os.path.join(os.getcwd(), path_listbis[num_list]))
         if GTlistfolder != "bigRNAstorage":
@@ -342,31 +337,14 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
             compact_filename = (filename.split('/'))[-1][:-7]
         else:
             compact_filename = (filename.split('/'))[-1][:-9]
-        #print("nodes", [i for (i, t) in GTref.nodes().data() if i not in GT.nodes()] +[i for (i, t) in GT.nodes().data() if i not in GTref.nodes()]  )     
-        #print("edges", [i for (i, j, t) in GTref.edges().data() if (i, j) not in GT.edges()] +[i for (i, j, t) in GT.edges().data() if (i, j) not in GTref.edges()] )
-        #print([t for (i, j, t) in GT.edges.data()])
-        #TODO : long range missing et albel bizarre à modifier
         local_mapping = []
         if remove_near: #We remove the near edges only if requested.
             GT = near_removal(GT)
-         # #
+
         if perfect_mapping:
             chains = chains_list[num_list]
-            #print("chains", chains)
             GT = outer_chain_removal(GT, chains)
-            #GTref = near_removal(GTref)
-            #GTref = outer_chain_removal(GTref, chains)
-            #print('GTnodes', [(i, t['atoms']) for (i, t) in GT.nodes.data()][:3])
-            #print('GTnodesref', [(i, t['atoms']) for (i, t) in GTref.nodes.data()][:3])
-            #print('GTB53', [(i, j) for (i, j, t) in GT.edges.data() if t['label'] == 'B53'])
-            #print('GTB53ref', [(i, j) for (i, j, t) in GTref.edges.data() if t['label'] == 'B53'])
-            #print('GTlink', len([(i, j, t['label']) for (i, j, t) in GT.edges.data() if t['label'] != 'B53']))
-            #print('GTlinkref', len([(i, j, t['label']) for (i, j, t) in GTref.edges.data() if t['label'] != 'B53']))
-            #print('GTnear', [(i, j) for (i, j, t) in GT.edges.data() if t['near'] == True])
-            #print('GTnearref', [(i, j) for (i, j, t) in GTref.edges.data() if t['near'] == True])
-            #GT = near_removal(GT)
             local_mapping = perfect_mapping[(RNA_list[num_list], tuple(chains))]
-            #print("loc", local_mapping)
         if len(list(GT.nodes())) > threshold_bigGT:
             if DEBUG:
                 print("Big GT", compact_filename, "size", len(GT.nodes()), "\n")
@@ -378,110 +356,24 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
             smallGT.append((compact_filename, GT.copy(), local_mapping))
     entry = []
     for (filename, GT, local_mapping) in smallGT:
-        entry.append((filename, local_mapping, strong_mapping, timeout, GP, GT, E, B, A, maxGAPdistance, nb_samples, respect_injectivity, D, {}))
+        entry.append((filename, local_mapping, strong_mapping, timeout, GP, GT, L, E, G, maxGAPdistance, nb_samples, respect_injectivity, D, {}))
     with Pool(nb_procs) as pool:
         resu = list(pool.imap_unordered(wrapper_main, entry))
-    #resu = []
-    #for ent in entry:
-    #    resu.append(wrapper_main(ent))
     for (filename, GT, local_mapping) in bigGT:
         entry = []
         if slice == -1:
             slice = A/4
         graph_grid, Distancer = slicer(GP, GT, nb_procs, filename=filename, D = slice) #instead of 0.5 for now to have less cubes
         for GTsmall in graph_grid:
-            local_nb_samples = max(10, int(nb_samples/len(graph_grid)) + 1) 
-            #TODO: Is the maximum necessary here to avoid unlucky mismatch ? Furthermore, should we remove multiple indentical samples. In this case, by what should we replace the proportion ?
-            entry.append((filename, local_mapping, strong_mapping, timeout, GP, GTsmall, E, B, A, maxGAPdistance, local_nb_samples, respect_injectivity, D, Distancer))
+            local_nb_samples = max(10, int(nb_samples/len(graph_grid)) + 1) #The maximum is here to ensure that we sample in something at least.
+            entry.append((filename, local_mapping, strong_mapping, timeout, GP, GTsmall, L, E, G, maxGAPdistance, local_nb_samples, respect_injectivity, D, Distancer))
         with Pool(nb_procs, maxtasksperchild=1) as pool:
             resu_big = list(pool.imap_unordered(wrapper_main, entry))
         resu.append(fusion_resu_cube(resu_big))
-    compact_resu = [(i,j,k) for (i,j,k,_) in resu]
+    compact_resu = [(i,j,len(l)) for (i,j,k,l) in resu]
+    print("List of filename x time x nb_mappings: \n")
     print("compact_resu", compact_resu)
-    #print("\n resu", resu)
     return resu
-
-    
-def bar_graph_3proportions_1time_by_filename(resu, title, proportion_choice='exact', bar_length = 0.3):
-    """
-    Input: - resu, the list of triplets (filename, time, proportion, mappings) obtained during the test.
-           - title, a title for the plot.
-           - bar_length, size of bar drawn.
-    Output: returns a bar plot for the proportion and the time for each RNA studied during the tests.
-    """
-    if proportion_choice == 'exact':
-        ind_pro = 0
-    elif proportion_choice == 'best_effort':
-        ind_pro = 1
-    elif proportion_choice == 'weak':
-        ind_pro = 2
-    else:
-        print('Not a valid choice of proportion !\n')
-        return
-    plt.rc('xtick', labelsize=7)
-    y11 = []
-    y12 = []
-    y13 = []
-    y14 = []
-    y15 = []
-    y2 = []
-    graph_names = []
-    max_proportion = 1
-    max_time = 1
-    for (name, time, proportion, _) in resu:
-        max_proportion = max(max_proportion, len(proportion))
-        max_time = max(max_time, time)
-    if max_proportion > 5:
-        print("TOO MUCH PROPORTION TO HANDLE LIMITED TO 5 FOR NOW\n")
-        return 
-    for (name, time, proportion, _) in resu:
-        if len(proportion) >= 1:
-            y11.append(proportion[0][ind_pro])
-        else:
-            y11.append(0)
-        if len(proportion) >= 2:
-            y12.append(proportion[1][ind_pro])
-        else:
-            y12.append(0)
-        if len(proportion) >= 3:
-            y13.append(proportion[2][ind_pro])
-        else:
-            y13.append(0)
-        if len(proportion) >= 4:
-            y14.append(proportion[3][ind_pro])
-        else:
-            y14.append(0)
-        if len(proportion) >= 5:
-            y15.append(proportion[4][ind_pro])
-        else:
-            y15.append(0)
-        y2.append(time)
-        graph_names.append(name)
-    print(y11, y12, y13, y14, y15)
-    x1 = range(len(y11)) 
-
-    x2 = [i + bar_length for i in x1]
-
-
-    fig, ax1 = plt.subplots()
-    ax2 = ax1.twinx()
-
-    ax1.set_ylabel('Proportion of "perfect" mapping', color='orange')
-    ax1.set(ylim=(0, 1))
-    ax2.set(ylim=(1, max_time + 1))
-    ax2.set_ylabel('Time', color='blue')
-    ax1.bar(x1, y11, width = bar_length, color = 'orange', edgecolor = 'black', linewidth = 2)
-    ax1.bar(x1, y12, width = bar_length, color = 'green', bottom=y11, edgecolor = 'black', linewidth = 2)
-    ax1.bar(x1, y13, width = bar_length, color = 'red', bottom=[y11[i] + y12[i] for i in range(len(y11))], edgecolor = 'black', linewidth = 2)
-    ax1.bar(x1, y14, width = bar_length, color = 'blue', bottom=[y11[i] + y12[i] + y13[i] for i in range(len(y11))], edgecolor = 'black', linewidth = 2)
-    ax1.bar(x1, y15, width = bar_length, color = 'pink', bottom=[y11[i] + y12[i] + y13[i] + y14[i] for i in range(len(y11))], edgecolor = 'black', linewidth = 2)
-    ax2.bar(x2, y2, width = bar_length, color = 'blue', edgecolor = 'black', linewidth = 2, log = True)
-    ax1.set_facecolor(color='white')
-    ax2.set_facecolor(color='white')
-    fig.set_facecolor(color='white')
-    plt.xticks([r + bar_length / 2 for r in range(len(y11))], graph_names)
-    plt.title(title)
-    plt.show()
 
     
 def bar_graph_time_by_filename(resu, title, bar_length = 0.3):

@@ -5,7 +5,7 @@ import math
 import networkx as nx
 from FuzzTree import preL2distance, precompute_distance
 from multiprocessing import Pool
-DEBUG = 1
+DEBUG = 0
 
 
 def get_radius(GP):
@@ -28,7 +28,7 @@ def get_radius(GP):
 
 def wrapper_sphere(GT_Distancer_cube_cutoff_sphere):
     """
-    A werapper around the creation of spheres to allow multiprocessing"""
+    A wrapper around the creation of spheres to allow multiprocessing"""
     (GT, Distancer_cube, cutoff_sphere) = GT_Distancer_cube_cutoff_sphere
     preresu = [node for node in GT.nodes() if Distancer_cube[node] <= cutoff_sphere]
     return list(set(preresu))
@@ -94,7 +94,7 @@ def slicer(GP, GT, nb_procs, filename = "", D = 0):
     if DEBUG:
         print("Radius", rad)
     Distancer = precompute_distance(GT, nb_procs) 
-    grid = allocate_sphere(GT, rad + D, Distancer, nb_procs)#TODO : here we cheated, should be rad + A + D instead of rad or 20 ?
+    grid = allocate_sphere(GT, rad + D, Distancer, nb_procs) #Here, the ideal solution for exactitude should be rad + G + Dedge, here we gain some time by avoid considering the extremal case. 
     if DEBUG:
         print("filename", filename, "Number of cubes", len(grid), "Max size cube", max([len(grid[i]) for i in range(len(grid))]), "Size of each cube", ([len(grid[i]) for i in range(len(grid))]))
     pre_graph_grid = [grid[i] for i in range(len(grid))]
