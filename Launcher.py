@@ -52,6 +52,45 @@ if args.task == "launch_sanity_test_novarna":
     print("Launching a simple test of the FuzzTree method and of Varna visualization!")
     test_mapping("ALLkinkturnpattern/53kink_turninto3NVI.pickle", "bigRNAstorage/3NVI.nxpickle", L=10, E=4, G=20, maxGAPdistance=10, nb_samples=1000, D = 5, nb_procs = 1)
     print("FuzzTree method is setted up!")
+if args.task == "launch_fuzztree":
+    if args.pattern:
+        pattern = "ALLkinkturnpattern/" + args.pattern + ".pickle"
+    else:
+        pattern = "ALLkinkturnpattern/53kink_turninto3NVI.pickle"
+
+    rm_near = True
+    GTlistfolder = "bigRNAstorage"
+    if args.near:
+        if int(args.near) == 0:
+            rm_near = False
+            GTlistfolder = "bigRNAstoragenear"
+    if args.target:
+        target = GTlistfolder + "/" + args.target + ".nxpickle"
+    else:
+        target = GTlistfolder + "/3NVI.nxpickle"
+    L = 20
+    E = 4
+    G = 20
+    Dedge = 5
+    Dgap = 10
+    nb_samples=1000
+    nb_procs = 64
+    if args.L:
+        L = int(args.L)
+    if args.E:
+        E = int(args.E)
+    if args.G:
+        G = int(args.G)
+    if args.samples:
+        nb_samples = int(args.samples)
+    if args.procs:
+        nb_procs = int(args.procs)
+    if args.Dedge:
+        Dedge = int(args.Dedge)
+    if args.Dgap:
+        Dgap = int(args.Dgap)
+    mappings = test_mapping(pattern, target, L=L, E=E, G=G, maxGAPdistance=Dgap, nb_samples=nb_samples, D = Dedge, nb_procs = nb_procs)
+    print("Found mappings", mappings)
 if args.task == "launch_varna_mapping":
     if args.pattern:
         pattern = "ALLkinkturnpattern/" + args.pattern + ".pickle"
@@ -187,8 +226,7 @@ if args.task == "compute_cartography_kink_turns":
         print("WARNING : We recommand to launch this test with at least 32 procs. \n")
     fromorigincartograph(pattern, Lmax = 50, Emax = 12, Gmax = 50, Dedgemax = 20, Dgapmax = 20, nb_procs = nb_procs)
 if args.task == "draw_cartography_example":
-    if args.task == "draw_cartography_example":
-        li = [(48, (-1, -1, -1)), (49,(-1, -1, -1)), (61,(-1, -1, -1)), (15, (0, 0, 0)), (53, (13, 0, 0)), (16, (0, 4, 0)), (5, (0, 4, 0)), (17, (0, 4, 0)), (8, (0, 2, 0)), (13, (0, 2, 0)), (0, (0, 2, 0)), (14, (0, 2, 0)), (44, (0, 2, 0)), (54, (13, 2, 0)), (66, (-1, -1, -1)), (18, (0, 2, 0)), (23, (0, 0, 0)), (9, (0, 8, 0)), (69, (-1, -1, -1)), (4, (0, 2, 0)), (19, (0, 2, 0)), (68, (0, 6, 0)), (3, (0, 4, 0)), (12, (0, 6, 0)), (71, (16, 2, 0)), (26, (0, 4, 0)), (22, (0, 2, 0)), (7, (0, 4, 0)), (51, (0, 2, 0)), (62, (0, 8, 0)), (21, (0, 2, 0)), (24, (0, 4, 0)), (6, (0, 4, 0)), (55, (13, 0, 0)), (65, (24, 0, 8)), (2, (0, 2, 0)), (11, (0, 4, 0)), (20, (0, 0, 0)), (43, (0, 2, 0)), (1, (0, 6, 0)), (10, (0, 4, 0)), (70, (14, 6, 2)), (34, (0, 0, 10)), (35, (0, 0, 10)), (33, (0, 0, 8)), (32, (0, 0, 8)), (28, (0, 6, 2)), (30, (0, 6, 2)), (25, (0, 6, 2)), (37, (0, 0, 8)), (27, (0, 6, 2)), (36, (0, 0, 8)), (31, (0, 6, 2)), (41, (0, 6, 5)), (64, (16, 4, 6)), (46, (0, 4, 2)), (40, (0, 4, 5)), (29, (0, 4, 2)), (39, (0, 4, 5)), (63, (16, 2, 9)), (42, (0, 4, 5)), (57, (0, 0, 5)), (38, (0, 4, 5)), (56, (0, 0, 5)), (47, (0, 2, 6)), (58, (0, 2, 5)), (50, (28, 2, 9)), (67, (25, 4, 11)), (52, (0, 2, 11)), (60, (31, 2, 20)), (59, (31, 2, 19))]
+    li = [(48, (-1, -1, -1)), (49,(-1, -1, -1)), (61,(-1, -1, -1)), (15, (0, 0, 0)), (53, (13, 0, 0)), (16, (0, 4, 0)), (5, (0, 4, 0)), (17, (0, 4, 0)), (8, (0, 2, 0)), (13, (0, 2, 0)), (0, (0, 2, 0)), (14, (0, 2, 0)), (44, (0, 2, 0)), (54, (13, 2, 0)), (66, (-1, -1, -1)), (18, (0, 2, 0)), (23, (0, 0, 0)), (9, (0, 8, 0)), (69, (-1, -1, -1)), (4, (0, 2, 0)), (19, (0, 2, 0)), (68, (0, 6, 0)), (3, (0, 4, 0)), (12, (0, 6, 0)), (71, (16, 2, 0)), (26, (0, 4, 0)), (22, (0, 2, 0)), (7, (0, 4, 0)), (51, (0, 2, 0)), (62, (0, 8, 0)), (21, (0, 2, 0)), (24, (0, 4, 0)), (6, (0, 4, 0)), (55, (13, 0, 0)), (65, (24, 0, 8)), (2, (0, 2, 0)), (11, (0, 4, 0)), (20, (0, 0, 0)), (43, (0, 2, 0)), (1, (0, 6, 0)), (10, (0, 4, 0)), (70, (14, 6, 2)), (34, (0, 0, 10)), (35, (0, 0, 10)), (33, (0, 0, 8)), (32, (0, 0, 8)), (28, (0, 6, 2)), (30, (0, 6, 2)), (25, (0, 6, 2)), (37, (0, 0, 8)), (27, (0, 6, 2)), (36, (0, 0, 8)), (31, (0, 6, 2)), (41, (0, 6, 5)), (64, (16, 4, 6)), (46, (0, 4, 2)), (40, (0, 4, 5)), (29, (0, 4, 2)), (39, (0, 4, 5)), (63, (16, 2, 9)), (42, (0, 4, 5)), (57, (0, 0, 5)), (38, (0, 4, 5)), (56, (0, 0, 5)), (47, (0, 2, 6)), (58, (0, 2, 5)), (50, (28, 2, 9)), (67, (25, 4, 11)), (52, (0, 2, 11)), (60, (31, 2, 20)), (59, (31, 2, 19))]
     li.sort()
     li = [j for (i, j) in li]
     for indi1,(i1, j1, k1) in enumerate(li):
