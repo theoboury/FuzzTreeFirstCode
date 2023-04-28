@@ -317,7 +317,6 @@ if args.task == "time_graphs_example":
         for num in resu:
             val+= num
         entry.append((li_big_RNA[i], val, "bigRNA"))
-    print("entry", entry)
     small1 = [(i,j) for (i, j, k) in entry if k == "smallRNA"]
     cut = (len(small1) + 1)/2
     small2 = [elem for k, elem in enumerate(small1) if k >= cut]
@@ -325,7 +324,6 @@ if args.task == "time_graphs_example":
     bar_graph_time_by_filename(small1, name + "part 1 out of 3", bar_length = 0.3)
     bar_graph_time_by_filename(small2, name + "part 2 out of 3", bar_length = 0.3)
     bar_graph_time_by_filename([(i,j) for (i, j, k) in entry if k == "bigRNA"], name + "with slicing in sphere part 3 out of 3", bar_length = 0.3)
-    return entry
 if args.task == "connexity_graphs_creation_example":
     #Return connexity list with near
     #We import the results that we have for the near computation after the postprocessing task "compute_metrics_example"
