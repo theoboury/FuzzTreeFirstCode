@@ -1,13 +1,12 @@
-TODO : introduce a limitation on the set target quickly and explain that it nededs a filter (already done the filter)
 TODO : have zip files or link to bigRNAstorage(near) datas.
-TODO : intergrate the ipynb in launcher (as some scripts as useless and others required multiprocessing) and remove all the remaining DEBUG messages
 TODO : add somewhere Vladimir's script to create the pdb files from connex list.
-TODO : update README
-TODO: make clean ExtractandsearchGeometry.py and copy it in FuzzTree folder
-TODO: make clean RMalignusage.py.py, computation of function in it should be put in launcher.py and copy it in FuzzTree folder
-TODO : make sure that example2 is renamed, cleaned and whatch out about te proportion to dont make seems hard to understand for nothing, cleanly explained what are all of these retrieve values and from what.
-TODO ; iimport_connex_list_of_list_of_RNA_chain_pdbposition.py should be merged with example2
+TODO : update README , introduce a limitation on the set target quickly and explain that it nededs a filter (already done the filter), put a warning about loading on some results if the RAM is not suffisant python ca refuse to load it and "stop the process"
 TODO: test the code in a new folder with none of the pattern/target folder built
+TODO : test every test on nagagamisis
+TODO : put something to download varna and RNAalign http://www.rnabinding.com/RMalign/RMalign.html
+
+TODO : all task with example in the name have goal to make reproducible our test but can required some adaptations to use it directly ith new family of motifs
+#Should we keep the varna part ? (not used any more in final product but allow some visulatisations)
 # FuzzTree
 # Copyright (C) 2023 THEO BOURY 
 
@@ -23,9 +22,11 @@ The project uses the following non-standard libraries:
 * infrared (see https://hal.archives-ouvertes.fr/hal-03711828/document by Hua-Ting Yao, 2022 for more details.
 * matplotlib (for vizualizations).
 * pickle (for graph imports). (natively installed for python above 3.7 ?)
+* seaborn (for visualisation of the cartography and of RMSDs computations)
 * networkx (for graph vizualizations).
 * varnaapi (for graph vizualizations). 
-
+* random (for some drawings)
+* pandas (for some dataframes for drawings)
 
 ### Files and repositories
 The project is entirely available on the current archive. 

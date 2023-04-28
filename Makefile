@@ -7,8 +7,14 @@ dependencies:
 tests:
 	python3 Launcher.py --task create_patterns_and_targets
 	python Launcher.py --task launch_sanity_test
+
+tests_no_varna:
+	python3 Launcher.py --task create_patterns_and_targets
+	python Launcher.py --task launch_sanity_test_novarna
+	
 clean:
 	rm -f *.png
 	rm -R -f __pycache__
 	rm -f *.pdf
-	rm -f output.txt
+	rm -f carte1.csv
+	rm -f eRMSD_distribution.csv

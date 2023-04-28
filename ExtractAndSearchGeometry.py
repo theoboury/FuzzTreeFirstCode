@@ -9,13 +9,12 @@ from TestFuzzTree import outer_chain_removal, initialise_perfect_mapping
 from Extractor import csv_parse
 import os 
 
-DEBUG=1
+DEBUG=0
 
 from TestFuzzTree import rename_author_position
 
 def edge_match(d_g1, d_g2):
     return d_g1['label'][:3] == d_g2['label'][:3]
-
 
 def line_graph_to_graph(mapping, g):
     new_g = nx.DiGraph()
@@ -24,7 +23,6 @@ def line_graph_to_graph(mapping, g):
     d = {}
     for n in new_g.nodes():
         d[n] = g.nodes(data=True)[n]
-        #new_g.node[n] = g.node[n]
     nx.set_node_attributes(new_g, d)
 
     return new_g
@@ -96,7 +94,7 @@ def abstract_in_geometry(GT, mappings, cutting_edges):
         for (i,j) in mapp:
             new_mapp.append(j)
         new_mappings.append(new_mapp)
-    #TODO: we assume for now that mappings have a length above 2.
+    #We assume here that mappings have a length above 2.
     motifs_to_search = []
     for mapp in new_mappings:
         Gnew=nx.DiGraph()
@@ -154,10 +152,8 @@ def look_at_all_occurences(GT, chains, mappings, cutting_edges):
     """
     motifs_to_search = abstract_in_geometry(GT, mappings, cutting_edges)
     resu = []
-    #print("motifs to search", [G.nodes() for G in motifs_to_search])
     for GP in motifs_to_search:
         inst = VF2(GP, GT) 
-        #print("inst", [G.nodes() for G in inst])
         for G in inst:
             local_mapping = []
             falseind = 0
@@ -171,6 +167,13 @@ def look_at_all_occurences(GT, chains, mappings, cutting_edges):
 
 
 def compute_metrics(ref_mappings, GT, occurences):
+    """
+    Input: - ref_mappings, the mapping of references that is known for a given Kink-Turn motif. 
+           - The graph target GT in which we are looking this Kink-Turn motif.
+           - occurences, the list of all occurences found for this Kink-Turn motif.
+    Output: A tuple precision, specificity, sensitivity, F score, number of found motifs, list of found motifs 
+    for current instance composed of one Kink-Turn motif and all the occurences that we found for it with our method.
+    """
     if len(occurences) == 0:
         return (0, 0, 0, 0, 0, [])
     ref_unfold = []
@@ -201,28 +204,32 @@ def compute_metrics(ref_mappings, GT, occurences):
 
 
 def wrapper_metrics(mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RNA_listi):
+    """
+    A simple wrapper arond the computation of the metrics in order to be able to multiprocess the computation.
+    """
     (mappings, ref_mappings, GT_listi, chains_listi, cutting_listi, RNA_listi) = mappings_ref_mappings_GT_listi_chains_listi_cutting_listi_RNA_listi
     occ = look_at_all_occurences(GT_listi, chains_listi, mappings, cutting_listi)
-    #print("occ", occ)
     loc = compute_metrics(ref_mappings, GT_listi, occ)
-    if DEBUG:
-        print("\nresu_temp", (RNA_listi, chains_listi,loc))
+    print("\nresu_by_RNA", (RNA_listi, chains_listi, loc))
     return (RNA_listi, chains_listi,loc)
         
-def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", csvtostudy = "kink_turn",nb_procs = 1, cutting_edge = []):
+def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", csvtostudy = "kink_turn", nb_procs = 1, cutting_edge = []):
+    """
+    Input: - dict_mappings, the list of all found mappings for studied Kink-Turn motifs obtained with the FuzzTree method. 
+           - GTlistfolder, location of full RNA graphs.
+           - csvtostudy, the csv from which the motif of references known for the Kink-Turn are extracted.
+           - nb_procs, the number of processors to use to reduce time of computation.
+           - cutting_edges, list of numbers where the backbone has to be separated in the pattern graph that wes used to found the motifs in the FuzzTree method.
+    Output: Compute for each Kink-Turn motif of reference a tuple precision, specificity, sensitivity, F score, number of found motifs, list of found motifs. 
+    """
     resu = [("precision", "specificity", "sensitivity", "F", "nb_found_motifs", "found_motifs")]
     perfect_mapping = csv_parse(csvtostudy, -1)
     perfect_mapping = initialise_perfect_mapping(perfect_mapping, [])
     new_perfect_mapping = {}
     for (RNAname, chains) in perfect_mapping.keys():
-        #if list(chains)[0] == 'B':
-        #    print("hole")
         new_mapping = perfect_mapping[(RNAname, chains)]
-        #else:
-        #    new_mapping = []
         if RNAname in new_perfect_mapping.keys():
             (cha, mapper) = new_perfect_mapping[RNAname]
-            #print("cha, mapper", cha, mapper)
             new_perfect_mapping[RNAname] = (tuple(list(cha) + list(chains)), mapper + new_mapping)
         else:
             new_perfect_mapping[RNAname] = (chains, new_mapping)
@@ -258,8 +265,7 @@ def full_metrics(dict_mappings, GTlistfolder = "bigRNAstorage", csvtostudy = "ki
         entry.append((mappings, ref_mappings, GT_list[i], chains_list[i], cutting_edge, RNA_list[i]))
     with Pool(nb_procs, maxtasksperchild=1) as pool:
         resu += list(pool.imap_unordered(wrapper_metrics, entry))
-    if DEBUG:
-        print("\nresu", resu)
+    print("\nresu", resu)
     return resu
 
 

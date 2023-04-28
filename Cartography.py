@@ -15,8 +15,6 @@ def wrapper(GPsrc_GTsrc_Lmax_Emax_Gmax_Dedgemax_Dgapmax_filename):
     GP, GT = GPsrc, GTsrc
     if len(GPsrc.nodes()) > len(GTsrc.nodes()):
         GP, GT = GTsrc, GPsrc
-    print(GP.nodes())
-    print(GP.edges())
     mappings = main(GP, GT, Lmax, Emax, Gmax, maxGAPdistance=Dgapmax, D = Dedgemax)
     if len(mappings) == 0:
         print("Parameters not retrieved for ", filename)

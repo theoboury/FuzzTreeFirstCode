@@ -371,6 +371,9 @@ def test_GP_into_multiples_GT(GPpath, GTlistfolder = "bigRNAstorage", threshold_
             resu_big = list(pool.imap_unordered(wrapper_main, entry))
         resu.append(fusion_resu_cube(resu_big))
     compact_resu = [(i,j,len(l)) for (i,j,k,l) in resu]
+    if DEBUG:
+        debug_resu = [(i, j, k) for (i,j,k,l) in resu]
+        print("debug_resu", debug_resu)
     print("List of filename x time x nb_mappings: \n")
     print("compact_resu", compact_resu)
     return resu
